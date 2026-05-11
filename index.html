@@ -403,16 +403,15 @@ var members = [
   {id:7,jmeno:"Eva",prijmeni:"Blahova",email:"eva.blahova@posta.cz",telefon:"+420 607 300 400",adresa:"Lidicka 18, Olomouc",datumVstupu:"2017-09-01",typ:"Radny clen",oddeleni:"Quality Assurance",pozice:"Auditor",osnum:"H77334",prispevky:"ano"},
   {id:8,jmeno:"Adam",prijmeni:"Zeman",email:"a.zeman@mail.cz",telefon:"+420 608 500 600",adresa:"Korunni 4, Praha 10",datumVstupu:"2021-06-15",typ:"Radny clen",oddeleni:"Assembly",pozice:"Monter",osnum:"H88211",prispevky:"ano"},
   {id:9,jmeno:"Barbora",prijmeni:"Mala",email:"b.mala@centrum.cz",telefon:"+420 609 700 800",adresa:"Nakladni 9, Pardubice",datumVstupu:"2020-11-30",typ:"Tajny clen",oddeleni:"neni zamestnanec HMMC",pozice:"Externista",osnum:"EXT001",prispevky:"ne"},
-  {id:10,jmeno:"Karel",prijmeni:"Novak",email:"k.novak@gmail.com",telefon:"+420 601 234 567",adresa:"Skolni 3, Nosovice",datumVstupu:"2016-03-22",typ:"Radny clen",oddeleni:"Welding",pozice:"Mistr svareni",osnum:"H10045",prispevky:"ano"},
+  {id:10,jmeno:"Karel",prijmeni:"Novak",email:"k.novak@gmail.com",telefon:"+420 601 234 567",adresa:"Skolni 3, Nosovice",datumVstupu:"2016-03-22",typ:"Radny clen",oddeleni:"Welding",pozice:"Mistr svareni",osnum:"H10045",prispevky:"ano"}
 ];
 
 var currentPage = 1;
 var currentLetter = "";
 var detailMember = null;
-var cardMember = null;
 var toastTimer = null;
 
-// --- LOGIN ---
+// LOGIN
 function doLogin() {
   var u = (document.getElementById("inp-user").value || "").trim();
   var p = (document.getElementById("inp-pass").value || "").trim();
@@ -434,15 +433,15 @@ function doLogin() {
   }
 }
 document.getElementById("btn-login").onclick = doLogin;
-document.getElementById("inp-user").onkeydown = function(e){ if(e.key==="Enter") doLogin(); };
-document.getElementById("inp-pass").onkeydown = function(e){ if(e.key==="Enter") doLogin(); };
+document.getElementById("inp-user").onkeydown = function(e) { if (e.key === "Enter") doLogin(); };
+document.getElementById("inp-pass").onkeydown = function(e) { if (e.key === "Enter") doLogin(); };
 document.getElementById("btn-logout").onclick = function() {
   document.getElementById("app-screen").style.display = "none";
   document.getElementById("login-screen").style.display = "flex";
 };
 
-// --- NAV ---
-var pages = {
+// NAV
+var pagesMeta = {
   members: {title:"Clenove", sub:"Databaze clenu"},
   email: {title:"E-mail", sub:"Hromadne e-maily"},
   sms: {title:"SMS", sub:"Hromadne SMS"}
@@ -450,47 +449,51 @@ var pages = {
 document.querySelectorAll(".nav-btn[data-page]").forEach(function(btn) {
   btn.onclick = function() {
     var pg = btn.dataset.page;
-    document.querySelectorAll(".nav-btn[data-page]").forEach(function(b){ b.classList.remove("active"); });
+    document.querySelectorAll(".nav-btn[data-page]").forEach(function(b) { b.classList.remove("active"); });
     btn.classList.add("active");
-    ["members","email","sms"].forEach(function(p){ document.getElementById("page-"+p).style.display = p===pg?"block":"none"; });
-    document.getElementById("pg-title").textContent = pages[pg].title;
-    document.getElementById("pg-sub").textContent = pages[pg].sub;
+    ["members","email","sms"].forEach(function(p) {
+      document.getElementById("page-"+p).style.display = (p === pg) ? "block" : "none";
+    });
+    document.getElementById("pg-title").textContent = pagesMeta[pg].title;
+    document.getElementById("pg-sub").textContent = pagesMeta[pg].sub;
   };
 });
 
-// --- MEMBERS ---
-function sortedFiltered() {
+// MEMBERS
+function getSorted() {
   var q = document.getElementById("srch-inp").value.toLowerCase();
   var typ = document.getElementById("typ-flt").value;
-  return members.slice().sort(function(a,b){
+  return members.slice().sort(function(a, b) {
     return a.prijmeni.localeCompare(b.prijmeni) || a.jmeno.localeCompare(b.jmeno);
-  }).filter(function(m){
-    var s = (m.jmeno+" "+m.prijmeni+" "+m.email+" "+m.osnum+" "+m.oddeleni+" "+m.pozice).toLowerCase();
-    return s.includes(q) && (!typ||m.typ===typ) && (!currentLetter||m.prijmeni[0].toUpperCase()===currentLetter);
+  }).filter(function(m) {
+    var s = (m.jmeno + " " + m.prijmeni + " " + m.email + " " + m.osnum + " " + m.oddeleni + " " + m.pozice).toLowerCase();
+    return s.indexOf(q) !== -1 && (!typ || m.typ === typ) && (!currentLetter || m.prijmeni[0].toUpperCase() === currentLetter);
   });
 }
 
 function renderStats() {
-  var radny = members.filter(function(m){return m.typ==="Radny clen";}).length;
-  var zap = members.filter(function(m){return m.prispevky==="ano";}).length;
-  var nezap = members.filter(function(m){return m.prispevky==="ne";}).length;
+  var radny = members.filter(function(m) { return m.typ === "Radny clen"; }).length;
+  var zap = members.filter(function(m) { return m.prispevky === "ano"; }).length;
+  var nezap = members.filter(function(m) { return m.prispevky === "ne"; }).length;
   var data = [
     {n:members.length, l:"Celkem clenu", c:"var(--blue)"},
     {n:radny, l:"Radni clenove", c:"var(--cyan)"},
     {n:zap, l:"Prispevky zaplaceny", c:"var(--green)"},
-    {n:nezap, l:"Prispevky nezaplaceny", c:"var(--red)"},
+    {n:nezap, l:"Prispevky nezaplaceny", c:"var(--red)"}
   ];
-  document.getElementById("stats-row").innerHTML = data.map(function(d){
-    return '<div class="stat"><div class="stat-bar" style="background:'+d.c+'"></div><div class="stat-n" style="color:'+d.c+'">'+d.n+'</div><div class="stat-l">'+d.l+'</div></div>';
+  document.getElementById("stats-row").innerHTML = data.map(function(d) {
+    return '<div class="stat"><div class="stat-bar" style="background:' + d.c + '"></div><div class="stat-n" style="color:' + d.c + '">' + d.n + '</div><div class="stat-l">' + d.l + '</div></div>';
   }).join("");
 }
 
 function renderAlpha() {
-  var avail = new Set(members.map(function(m){return m.prijmeni[0]?m.prijmeni[0].toUpperCase():""}));
-  var html = '<button class="a-btn'+(currentLetter===""?" on":"") + '" onclick="setLetter('')">Vse</button>';
-  LETTERS.forEach(function(l){
+  var avail = new Set(members.map(function(m) { return m.prijmeni[0] ? m.prijmeni[0].toUpperCase() : ""; }));
+  var html = '<button class="a-btn' + (currentLetter === "" ? " on" : "") + '" onclick="setLetter(\'\')">Vse</button>';
+  LETTERS.forEach(function(l) {
     var has = avail.has(l);
-    html += '<button class="a-btn'+(currentLetter===l?" on":"")+(has?"":" dim")+'" onclick="'+(has?'setLetter("'+l+'")':'')+'">'+l+'</button>';
+    var cls = "a-btn" + (currentLetter === l ? " on" : "") + (has ? "" : " dim");
+    var click = has ? ('onclick="setLetter(\'' + l + '\')"') : "";
+    html += '<button class="' + cls + '" ' + click + '>' + l + '</button>';
   });
   document.getElementById("alpha-bar").innerHTML = html;
 }
@@ -499,52 +502,50 @@ function setLetter(l) { currentLetter = l; currentPage = 1; renderAlpha(); rende
 function filterMembers() { currentPage = 1; renderTable(); }
 
 function renderTable() {
-  var filtered = sortedFiltered();
+  var filtered = getSorted();
   var pages = Math.max(1, Math.ceil(filtered.length / PAGE_SZ));
   if (currentPage > pages) currentPage = 1;
-  var slice = filtered.slice((currentPage-1)*PAGE_SZ, currentPage*PAGE_SZ);
-
+  var slice = filtered.slice((currentPage - 1) * PAGE_SZ, currentPage * PAGE_SZ);
   var tbody = document.getElementById("tbl-body");
   if (slice.length === 0) {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--text2)">Zadne zaznamy</td></tr>';
   } else {
-    tbody.innerHTML = slice.map(function(m, i){
-      var typBdg = m.typ==="Radny clen" ? '<span class="bdg bdg-blue">'+m.typ+'</span>' : '<span class="bdg bdg-gray">'+m.typ+'</span>';
-      var prisBdg = m.prispevky==="ano" ? '<span class="bdg bdg-green">Zaplaceny</span>' : '<span class="bdg bdg-red">Nezaplaceny</span>';
-      var av = (m.jmeno[0]||"")+(m.prijmeni[0]||"");
-      return '<tr onclick="openDetail('+m.id+')" style="cursor:pointer">'
-        +'<td style="color:var(--text3);font-size:11px">'+((currentPage-1)*PAGE_SZ+i+1)+'</td>'
-        +'<td><div class="mc"><div class="mav">'+av.toUpperCase()+'</div><div><div class="mn">'+m.prijmeni+' '+m.jmeno+'</div><div class="me">'+m.email+'</div></div></div></td>'
-        +'<td style="color:var(--text2);font-weight:600">'+m.osnum+'</td>'
-        +'<td style="color:var(--text2);font-size:12px">'+m.oddeleni+'</td>'
-        +'<td>'+typBdg+'</td>'
-        +'<td>'+prisBdg+'</td>'
-        +'<td style="color:var(--text3);font-size:12px">'+m.datumVstupu+'</td>'
-        +'<td onclick="event.stopPropagation()"><button class="btn btn-out btn-sm" onclick="openCardById('+m.id+')">&#127760; Karta</button></td>'
-        +'</tr>';
+    tbody.innerHTML = slice.map(function(m, i) {
+      var typBdg = m.typ === "Radny clen" ? '<span class="bdg bdg-blue">' + m.typ + '</span>' : '<span class="bdg bdg-gray">' + m.typ + '</span>';
+      var prisBdg = m.prispevky === "ano" ? '<span class="bdg bdg-green">Zaplaceny</span>' : '<span class="bdg bdg-red">Nezaplaceny</span>';
+      var av = ((m.jmeno[0] || "") + (m.prijmeni[0] || "")).toUpperCase();
+      return '<tr onclick="openDetail(' + m.id + ')">'
+        + '<td style="color:var(--text3);font-size:11px">' + ((currentPage - 1) * PAGE_SZ + i + 1) + '</td>'
+        + '<td><div class="mc"><div class="mav">' + av + '</div><div><div class="mn">' + m.prijmeni + ' ' + m.jmeno + '</div><div class="me">' + m.email + '</div></div></div></td>'
+        + '<td style="color:var(--text2);font-weight:600">' + m.osnum + '</td>'
+        + '<td style="color:var(--text2);font-size:12px">' + m.oddeleni + '</td>'
+        + '<td>' + typBdg + '</td>'
+        + '<td>' + prisBdg + '</td>'
+        + '<td style="color:var(--text3);font-size:12px">' + m.datumVstupu + '</td>'
+        + '<td onclick="event.stopPropagation()"><button class="btn btn-out btn-sm" onclick="openCardById(' + m.id + ')">&#127760; Karta</button></td>'
+        + '</tr>';
     }).join("");
   }
-
   var pagHtml = "";
-  for (var i=1; i<=pages; i++) {
-    pagHtml += '<button class="pg-b'+(i===currentPage?" on":"")+ '" onclick="goPage('+i+')">'+i+'</button>';
+  for (var i = 1; i <= pages; i++) {
+    pagHtml += '<button class="pg-b' + (i === currentPage ? " on" : "") + '" onclick="goPage(' + i + ')">' + i + '</button>';
   }
-  pagHtml += '<div class="pg-info">'+slice.length+' z '+filtered.length+' zaznamu</div>';
+  pagHtml += '<div class="pg-info">' + slice.length + ' z ' + filtered.length + ' zaznamu</div>';
   document.getElementById("pag-row").innerHTML = pagHtml;
 }
 
 function goPage(p) { currentPage = p; renderTable(); }
 
-// --- DETAIL PANEL ---
+// DETAIL PANEL
 function openDetail(id) {
-  detailMember = members.find(function(m){return m.id===id;});
+  detailMember = members.find(function(m) { return m.id === id; });
   if (!detailMember) return;
   var m = detailMember;
-  var av = ((m.jmeno[0]||"")+(m.prijmeni[0]||"")).toUpperCase();
+  var av = ((m.jmeno[0] || "") + (m.prijmeni[0] || "")).toUpperCase();
   document.getElementById("dp-av").textContent = av;
-  document.getElementById("dp-name").textContent = m.jmeno+" "+m.prijmeni;
-  var typBdg = m.typ==="Radny clen" ? '<span class="bdg bdg-blue">'+m.typ+'</span>' : '<span class="bdg bdg-gray">'+m.typ+'</span>';
-  var prisBdg = m.prispevky==="ano" ? '<span class="bdg bdg-green">Prispevky zaplaceny</span>' : '<span class="bdg bdg-red">Prispevky nezaplaceny</span>';
+  document.getElementById("dp-name").textContent = m.jmeno + " " + m.prijmeni;
+  var typBdg = m.typ === "Radny clen" ? '<span class="bdg bdg-blue">' + m.typ + '</span>' : '<span class="bdg bdg-gray">' + m.typ + '</span>';
+  var prisBdg = m.prispevky === "ano" ? '<span class="bdg bdg-green">Prispevky zaplaceny</span>' : '<span class="bdg bdg-red">Prispevky nezaplaceny</span>';
   document.getElementById("dp-badges").innerHTML = typBdg + " " + prisBdg;
   renderDetailView();
   document.getElementById("detail-overlay").classList.add("show");
@@ -556,13 +557,13 @@ function renderDetailView() {
     ["E-mail", m.email], ["Telefon", m.telefon],
     ["Osobni cislo", m.osnum], ["Datum vstupu", m.datumVstupu],
     ["Typ clenstvi", m.typ], ["Oddeleni", m.oddeleni],
-    ["Pozice", m.pozice], ["Prispevky", m.prispevky==="ano"?"Zaplaceny":"Nezaplaceny"]
+    ["Pozice", m.pozice], ["Prispevky", m.prispevky === "ano" ? "Zaplaceny" : "Nezaplaceny"]
   ];
-  var addrHtml = '<div class="info-item" style="grid-column:1/-1"><div class="info-lbl">Adresa</div><div class="info-val">'+(m.adresa||"—")+'</div></div>';
-  var fieldsHtml = fields.map(function(f){
-    return '<div class="info-item"><div class="info-lbl">'+f[0]+'</div><div class="info-val">'+(f[1]||"—")+'</div></div>';
+  var addrHtml = '<div class="info-item" style="grid-column:1/-1"><div class="info-lbl">Adresa</div><div class="info-val">' + (m.adresa || "—") + '</div></div>';
+  var fieldsHtml = fields.map(function(f) {
+    return '<div class="info-item"><div class="info-lbl">' + f[0] + '</div><div class="info-val">' + (f[1] || "—") + '</div></div>';
   }).join("");
-  document.getElementById("dp-body").innerHTML = '<div class="dp-sec">Kontaktni a pracovni udaje</div><div class="info-grid">'+addrHtml+fieldsHtml+'</div>';
+  document.getElementById("dp-body").innerHTML = '<div class="dp-sec">Kontaktni a pracovni udaje</div><div class="info-grid">' + addrHtml + fieldsHtml + '</div>';
   document.getElementById("dp-foot").innerHTML =
     '<button class="btn btn-blue" onclick="switchToEdit()">&#9998; Upravit</button>' +
     '<button class="btn btn-out" onclick="closeDetailPanel()">Zavrit</button>' +
@@ -571,21 +572,21 @@ function renderDetailView() {
 
 function switchToEdit() {
   var m = detailMember;
-  var oddOpts = ODDELENI.map(function(o){ return '<option'+(m.oddeleni===o?' selected':'')+'>'+o+'</option>'; }).join("");
+  var oddOpts = ODDELENI.map(function(o) { return '<option' + (m.oddeleni === o ? ' selected' : '') + '>' + o + '</option>'; }).join("");
   document.getElementById("dp-body").innerHTML =
     '<div class="dp-sec">Upravit udaje</div>' +
     '<div class="field-group"><div class="field-grid">' +
-    '<div><label class="lbl">Jmeno</label><input class="finp" id="e-jmeno" value="'+m.jmeno+'"/></div>' +
-    '<div><label class="lbl">Prijmeni</label><input class="finp" id="e-prijmeni" value="'+m.prijmeni+'"/></div>' +
-    '<div><label class="lbl">E-mail</label><input class="finp" id="e-email" value="'+m.email+'"/></div>' +
-    '<div><label class="lbl">Telefon</label><input class="finp" id="e-tel" value="'+m.telefon+'"/></div>' +
-    '<div class="field-span"><label class="lbl">Adresa</label><input class="finp" id="e-adresa" value="'+m.adresa+'"/></div>' +
-    '<div><label class="lbl">Osobni cislo</label><input class="finp" id="e-osnum" value="'+m.osnum+'"/></div>' +
-    '<div><label class="lbl">Datum vstupu</label><input class="finp" type="date" id="e-vstup" value="'+m.datumVstupu+'"/></div>' +
-    '<div><label class="lbl">Typ clenstvi</label><select class="finp" id="e-typ"><option'+(m.typ==="Radny clen"?" selected":"")+'>Radny clen</option><option'+(m.typ==="Tajny clen"?" selected":"")+'>Tajny clen</option></select></div>' +
-    '<div><label class="lbl">Oddeleni</label><select class="finp" id="e-odd">'+oddOpts+'</select></div>' +
-    '<div class="field-span"><label class="lbl">Pozice</label><input class="finp" id="e-pozice" value="'+m.pozice+'"/></div>' +
-    '<div><label class="lbl">Prispevky</label><select class="finp" id="e-pris"><option value="ano"'+(m.prispevky==="ano"?" selected":"")+'>Zaplaceny</option><option value="ne"'+(m.prispevky==="ne"?" selected":"")+'>Nezaplaceny</option></select></div>' +
+    '<div><label class="lbl">Jmeno</label><input class="finp" id="e-jmeno" value="' + m.jmeno + '"/></div>' +
+    '<div><label class="lbl">Prijmeni</label><input class="finp" id="e-prijmeni" value="' + m.prijmeni + '"/></div>' +
+    '<div><label class="lbl">E-mail</label><input class="finp" id="e-email" value="' + m.email + '"/></div>' +
+    '<div><label class="lbl">Telefon</label><input class="finp" id="e-tel" value="' + m.telefon + '"/></div>' +
+    '<div class="field-span"><label class="lbl">Adresa</label><input class="finp" id="e-adresa" value="' + m.adresa + '"/></div>' +
+    '<div><label class="lbl">Osobni cislo</label><input class="finp" id="e-osnum" value="' + m.osnum + '"/></div>' +
+    '<div><label class="lbl">Datum vstupu</label><input class="finp" type="date" id="e-vstup" value="' + m.datumVstupu + '"/></div>' +
+    '<div><label class="lbl">Typ clenstvi</label><select class="finp" id="e-typ"><option' + (m.typ === "Radny clen" ? " selected" : "") + '>Radny clen</option><option' + (m.typ === "Tajny clen" ? " selected" : "") + '>Tajny clen</option></select></div>' +
+    '<div><label class="lbl">Oddeleni</label><select class="finp" id="e-odd">' + oddOpts + '</select></div>' +
+    '<div class="field-span"><label class="lbl">Pozice</label><input class="finp" id="e-pozice" value="' + m.pozice + '"/></div>' +
+    '<div><label class="lbl">Prispevky</label><select class="finp" id="e-pris"><option value="ano"' + (m.prispevky === "ano" ? " selected" : "") + '>Zaplaceny</option><option value="ne"' + (m.prispevky === "ne" ? " selected" : "") + '>Nezaplaceny</option></select></div>' +
     '</div></div>';
   document.getElementById("dp-foot").innerHTML =
     '<button class="btn btn-blue" onclick="saveEdit()">&#10003; Ulozit</button>' +
@@ -605,27 +606,33 @@ function saveEdit() {
   m.oddeleni = document.getElementById("e-odd").value;
   m.pozice = document.getElementById("e-pozice").value;
   m.prispevky = document.getElementById("e-pris").value;
-  var av = ((m.jmeno[0]||"")+(m.prijmeni[0]||"")).toUpperCase();
-  document.getElementById("dp-av").textContent = av;
-  document.getElementById("dp-name").textContent = m.jmeno+" "+m.prijmeni;
-  renderDetailView(); renderStats(); renderTable();
+  document.getElementById("dp-av").textContent = ((m.jmeno[0] || "") + (m.prijmeni[0] || "")).toUpperCase();
+  document.getElementById("dp-name").textContent = m.jmeno + " " + m.prijmeni;
+  renderDetailView();
+  renderStats();
+  renderTable();
   showToast("Udaje ulozeny.", "ok");
 }
 
 function deleteMember() {
   if (!confirm("Opravdu smazat tohoto clena?")) return;
-  members = members.filter(function(m){return m.id!==detailMember.id;});
-  closeDetailPanel(); renderStats(); renderAlpha(); renderTable();
+  members = members.filter(function(m) { return m.id !== detailMember.id; });
+  closeDetailPanel();
+  renderStats();
+  renderAlpha();
+  renderTable();
   showToast("Clen smazan.", "err");
 }
 
 function closeDetail(e) { if (e.target === document.getElementById("detail-overlay")) closeDetailPanel(); }
 function closeDetailPanel() { document.getElementById("detail-overlay").classList.remove("show"); }
 
-// --- ADD MODAL ---
+// ADD MODAL
 function openAddModal() { document.getElementById("add-modal").classList.add("show"); }
 function closeAddModal(e) {
-  if (!e || e.target===document.getElementById("add-modal")) document.getElementById("add-modal").classList.remove("show");
+  if (!e || e.target === document.getElementById("add-modal")) {
+    document.getElementById("add-modal").classList.remove("show");
+  }
 }
 function addMember() {
   var m = {
@@ -640,124 +647,151 @@ function addMember() {
     oddeleni: document.getElementById("add-oddeleni").value,
     pozice: document.getElementById("add-pozice").value,
     osnum: document.getElementById("add-osnum").value,
-    prispevky: document.getElementById("add-prispevky").value,
+    prispevky: document.getElementById("add-prispevky").value
   };
   members.push(m);
   closeAddModal();
-  renderStats(); renderAlpha(); renderTable();
+  renderStats();
+  renderAlpha();
+  renderTable();
   showToast("Clen pridan.", "ok");
 }
 
-// --- CARD ---
-function openCardById(id) { openDetail(id); openCard(); }
+// CARD
+function openCardById(id) {
+  detailMember = members.find(function(m) { return m.id === id; });
+  openCard();
+}
 function openCard() {
   var m = detailMember;
   if (!m) return;
-  document.getElementById("card-name").textContent = m.jmeno+" "+m.prijmeni;
-  document.getElementById("card-os").textContent = "Osobni cislo: "+(m.osnum||"—");
-  document.getElementById("card-since").textContent = "CLEN OD "+m.datumVstupu;
+  document.getElementById("card-name").textContent = m.jmeno + " " + m.prijmeni;
+  document.getElementById("card-os").textContent = "Osobni cislo: " + (m.osnum || "—");
+  document.getElementById("card-since").textContent = "CLEN OD " + m.datumVstupu;
   document.getElementById("card-meta").innerHTML =
-    '<div class="dcard-meta-item"><div class="dm-lbl">TYP CLENSTVI</div><div class="dm-val">'+m.typ+'</div></div>' +
-    '<div class="dcard-meta-item"><div class="dm-lbl">ODDELENI</div><div class="dm-val">'+m.oddeleni+'</div></div>' +
-    '<div class="dcard-meta-item"><div class="dm-lbl">POZICE</div><div class="dm-val">'+(m.pozice||"—")+'</div></div>';
-  var qrText = "HMMC-UNION|"+m.jmeno+" "+m.prijmeni+"|OS:"+m.osnum+"|"+m.typ;
-  document.getElementById("card-qr").src = "https://api.qrserver.com/v1/create-qr-code/?size=110x110&data="+encodeURIComponent(qrText)+"&color=0d1f3c&bgcolor=ffffff&margin=4";
+    '<div class="dcard-meta-item"><div class="dm-lbl">TYP CLENSTVI</div><div class="dm-val">' + m.typ + '</div></div>' +
+    '<div class="dcard-meta-item"><div class="dm-lbl">ODDELENI</div><div class="dm-val">' + m.oddeleni + '</div></div>' +
+    '<div class="dcard-meta-item"><div class="dm-lbl">POZICE</div><div class="dm-val">' + (m.pozice || "—") + '</div></div>';
+  var qrText = "HMMC-UNION|" + m.jmeno + " " + m.prijmeni + "|OS:" + m.osnum + "|" + m.typ;
+  document.getElementById("card-qr").src = "https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=" + encodeURIComponent(qrText) + "&color=0d1f3c&bgcolor=ffffff&margin=4";
   var btn = document.getElementById("btn-card-send");
   btn.textContent = "Odeslat na e-mail";
   btn.disabled = !m.email;
   document.getElementById("card-modal").classList.add("show");
 }
 function closeCardModal(e) {
-  if (!e||e.target===document.getElementById("card-modal")) document.getElementById("card-modal").classList.remove("show");
+  if (!e || e.target === document.getElementById("card-modal")) {
+    document.getElementById("card-modal").classList.remove("show");
+  }
 }
 function sendCardEmail() {
   var m = detailMember;
-  if (!m||!m.email) return;
-  showToast("Karta odeslana na "+m.email, "ok");
+  if (!m || !m.email) return;
+  showToast("Karta odeslana na " + m.email, "ok");
   document.getElementById("btn-card-send").textContent = "Odeslano!";
   document.getElementById("btn-card-send").disabled = true;
 }
 
-// --- CSV ---
+// CSV
 function csvExport() {
   var h = ["ID","Jmeno","Prijmeni","OS cislo","Email","Telefon","Adresa","Vstup","Typ","Oddeleni","Pozice","Prispevky"];
-  var rows = members.map(function(m){return [m.id,m.jmeno,m.prijmeni,m.osnum,m.email,m.telefon,m.adresa,m.datumVstupu,m.typ,m.oddeleni,m.pozice,m.prispevky];});
-  var csv = [h].concat(rows).map(function(r){return r.map(function(v){return '"'+v+'"';}).join(",");}).join("
-");
-  var blob = new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8;"});
-  var a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="clenove.csv"; a.click();
+  var rows = members.map(function(m) {
+    return [m.id, m.jmeno, m.prijmeni, m.osnum, m.email, m.telefon, m.adresa, m.datumVstupu, m.typ, m.oddeleni, m.pozice, m.prispevky];
+  });
+  var lines = [h].concat(rows).map(function(r) {
+    return r.map(function(v) { return '"' + v + '"'; }).join(",");
+  });
+  var csv = lines.join("\n");
+  var blob = new Blob(["\ufeff" + csv], {type: "text/csv;charset=utf-8;"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "clenove.csv";
+  a.click();
 }
 
-// --- EMAIL ---
+// EMAIL
 function updateEmailRcpt() {
   var typ = document.getElementById("email-typ").value;
-  var n = members.filter(function(m){return m.email&&(!typ||m.typ===typ);}).length;
+  var n = members.filter(function(m) { return m.email && (!typ || m.typ === typ); }).length;
   document.getElementById("email-rcpt-n").textContent = n;
-  document.getElementById("btn-send-email").textContent = "Odeslat vsem ("+n+")";
-}
-async function sendEmail() {
-  var sub = document.getElementById("email-sub").value;
-  var msg = document.getElementById("email-msg").value;
-  if (!sub||!msg) {showToast("Vyplnte predmet i text.","err");return;}
-  var typ = document.getElementById("email-typ").value;
-  var rcpt = members.filter(function(m){return m.email&&(!typ||m.typ===typ);});
-  var total = rcpt.length;
-  if (!total) return;
-  document.getElementById("email-progress").style.display="block";
-  document.getElementById("email-ok").style.display="none";
-  document.getElementById("btn-send-email").disabled=true;
-  for (var i=0;i<total;i++) {
-    await new Promise(function(r){setTimeout(r,20);});
-    var pct = Math.round((i+1)/total*100);
-    document.getElementById("email-prog-txt").textContent="Odesilam "+(i+1)+"/"+total+"... "+pct+"%";
-    document.getElementById("email-prog-bar").style.width=pct+"%";
-  }
-  document.getElementById("email-progress").style.display="none";
-  document.getElementById("email-ok").style.display="block";
-  document.getElementById("email-ok").textContent="Hotovo! Odeslano "+total+" e-mailu.";
-  document.getElementById("btn-send-email").disabled=false;
-  showToast("E-mail odeslan "+total+" prijemcum!","ok");
+  document.getElementById("btn-send-email").textContent = "Odeslat vsem (" + n + ")";
 }
 
-// --- SMS ---
+function sendEmail() {
+  var sub = document.getElementById("email-sub").value;
+  var msg = document.getElementById("email-msg").value;
+  if (!sub || !msg) { showToast("Vyplnte predmet i text.", "err"); return; }
+  var typ = document.getElementById("email-typ").value;
+  var rcpt = members.filter(function(m) { return m.email && (!typ || m.typ === typ); });
+  var total = rcpt.length;
+  if (!total) return;
+  document.getElementById("email-progress").style.display = "block";
+  document.getElementById("email-ok").style.display = "none";
+  document.getElementById("btn-send-email").disabled = true;
+  var i = 0;
+  function step() {
+    if (i >= total) {
+      document.getElementById("email-progress").style.display = "none";
+      document.getElementById("email-ok").style.display = "block";
+      document.getElementById("email-ok").textContent = "Hotovo! Odeslano " + total + " e-mailu.";
+      document.getElementById("btn-send-email").disabled = false;
+      showToast("E-mail odeslan " + total + " prijemcum!", "ok");
+      return;
+    }
+    i++;
+    var pct = Math.round(i / total * 100);
+    document.getElementById("email-prog-txt").textContent = "Odesilam " + i + "/" + total + "... " + pct + "%";
+    document.getElementById("email-prog-bar").style.width = pct + "%";
+    setTimeout(step, 20);
+  }
+  step();
+}
+
+// SMS
 function updateSmsRcpt() {
   var typ = document.getElementById("sms-typ").value;
-  var n = members.filter(function(m){return m.telefon&&(!typ||m.typ===typ);}).length;
+  var n = members.filter(function(m) { return m.telefon && (!typ || m.typ === typ); }).length;
   document.getElementById("sms-rcpt-n").textContent = n;
-  document.getElementById("btn-send-sms").textContent = "Odeslat SMS ("+n+")";
+  document.getElementById("btn-send-sms").textContent = "Odeslat SMS (" + n + ")";
 }
 function updateSmsChar() {
   var l = document.getElementById("sms-msg").value.length;
-  document.getElementById("sms-char").textContent = l+"/160 znaku";
+  document.getElementById("sms-char").textContent = l + "/160 znaku";
 }
-async function sendSms() {
+function sendSms() {
   var msg = document.getElementById("sms-msg").value;
-  if (!msg) {showToast("Napiste text SMS.","err");return;}
+  if (!msg) { showToast("Napiste text SMS.", "err"); return; }
   var typ = document.getElementById("sms-typ").value;
-  var rcpt = members.filter(function(m){return m.telefon&&(!typ||m.typ===typ);});
+  var rcpt = members.filter(function(m) { return m.telefon && (!typ || m.typ === typ); });
   var total = rcpt.length;
   if (!total) return;
-  document.getElementById("sms-progress").style.display="block";
-  document.getElementById("sms-ok").style.display="none";
-  document.getElementById("btn-send-sms").disabled=true;
-  for (var i=0;i<total;i++) {
-    await new Promise(function(r){setTimeout(r,10);});
-    document.getElementById("sms-prog-bar").style.width=Math.round((i+1)/total*100)+"%";
+  document.getElementById("sms-progress").style.display = "block";
+  document.getElementById("sms-ok").style.display = "none";
+  document.getElementById("btn-send-sms").disabled = true;
+  var i = 0;
+  function step() {
+    if (i >= total) {
+      document.getElementById("sms-progress").style.display = "none";
+      document.getElementById("sms-ok").style.display = "block";
+      document.getElementById("sms-ok").textContent = "Hotovo! SMS odeslano " + total + " prijemcum.";
+      document.getElementById("btn-send-sms").disabled = false;
+      showToast("SMS odeslano " + total + " prijemcum!", "ok");
+      return;
+    }
+    i++;
+    document.getElementById("sms-prog-bar").style.width = Math.round(i / total * 100) + "%";
+    setTimeout(step, 10);
   }
-  document.getElementById("sms-progress").style.display="none";
-  document.getElementById("sms-ok").style.display="block";
-  document.getElementById("sms-ok").textContent="Hotovo! SMS odeslano "+total+" prijemcum.";
-  document.getElementById("btn-send-sms").disabled=false;
-  showToast("SMS odeslano "+total+" prijemcum!","ok");
+  step();
 }
 
-// --- TOAST ---
+// TOAST
 function showToast(msg, type) {
   var t = document.getElementById("toast");
   t.textContent = msg;
-  t.className = "toast show "+(type||"ok");
+  t.className = "toast show " + (type || "ok");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function(){t.className="toast";},3500);
+  toastTimer = setTimeout(function() { t.className = "toast"; }, 3500);
 }
 </script>
 </body>
