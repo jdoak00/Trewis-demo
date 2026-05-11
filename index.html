@@ -413,9 +413,9 @@ var cardMember = null;
 var toastTimer = null;
 
 // --- LOGIN ---
-document.getElementById("btn-login").onclick = function() {
-  var u = document.getElementById("inp-user").value.trim();
-  var p = document.getElementById("inp-pass").value.trim();
+function doLogin() {
+  var u = (document.getElementById("inp-user").value || "").trim();
+  var p = (document.getElementById("inp-pass").value || "").trim();
   var errEl = document.getElementById("login-err");
   if (u === "admin" && p === "odbory2024") {
     errEl.style.display = "none";
@@ -423,16 +423,22 @@ document.getElementById("btn-login").onclick = function() {
     document.getElementById("app-screen").style.display = "block";
     document.getElementById("user-av").textContent = "A";
     document.getElementById("user-name").textContent = "admin";
-    renderStats(); renderAlpha(); renderTable(); updateEmailRcpt(); updateSmsRcpt();
+    renderStats();
+    renderAlpha();
+    renderTable();
+    updateEmailRcpt();
+    updateSmsRcpt();
   } else {
     errEl.textContent = "Nesprávné přihlašovací údaje.";
     errEl.style.display = "block";
   }
-};
-document.getElementById("inp-pass").onkeydown = function(e){ if(e.key==="Enter") document.getElementById("btn-login").click(); };
+}
+document.getElementById("btn-login").onclick = doLogin;
+document.getElementById("inp-user").onkeydown = function(e){ if(e.key==="Enter") doLogin(); };
+document.getElementById("inp-pass").onkeydown = function(e){ if(e.key==="Enter") doLogin(); };
 document.getElementById("btn-logout").onclick = function() {
   document.getElementById("app-screen").style.display = "none";
-  document.getElementById("login-screen").style.display = "flex"; document.getElementById("login-screen").style.display = "flex";
+  document.getElementById("login-screen").style.display = "flex";
 };
 
 // --- NAV ---
