@@ -1487,14 +1487,17 @@ function showSetStatus(msg, type){
 function testEmail(){
   if(!BREVO_API_KEY){ showSetStatus("Nejprve uložte API klíč.", "err"); return; }
   if(!BREVO_FROM_EMAIL){ showSetStatus("Nejprve uložte odesílací e-mail.", "err"); return; }
-  showSetStatus("Odesílám testovací e-mail...", "ok");
+  var testAddr = prompt("Na jakou e-mailovou adresu odeslat testovací e-mail?", BREVO_FROM_EMAIL);
+  if(!testAddr || !testAddr.trim()){ showSetStatus("Testování zrušeno.", "err"); return; }
+  testAddr = testAddr.trim();
+  showSetStatus("Odesílám testovací e-mail na " + testAddr + "...", "ok");
   sendBrevoEmail(
-    [{email: BREVO_FROM_EMAIL, name: BREVO_FROM_NAME}],
+    [{email: testAddr, name: "Test"}],
     "Test - Odbory HMMC",
-    "<p>Testovací e-mail z aplikace Odbory HMMC. Vše funguje správně!</p>"
+    "<p style='font-family:sans-serif;font-size:14px'>Testovací e-mail z aplikace <b>Odbory HMMC</b>.<br><br>Pokud jste tento e-mail obdrželi, odesílání funguje správně! ✅<br><br>Odesláno z: " + BREVO_FROM_EMAIL + "</p>"
   ).then(function(ok){
-    if(ok) showSetStatus("Testovací e-mail odeslán na " + BREVO_FROM_EMAIL + "!", "ok");
-    else showSetStatus("Chyba při odesílání. Zkontrolujte API klíč a e-mail.", "err");
+    if(ok) showSetStatus("✅ Testovací e-mail odeslán na " + testAddr + "! Zkontrolujte schránku.", "ok");
+    else showSetStatus("❌ Chyba při odesílání. Zkontrolujte API klíč a odesílací e-mail.", "err");
   });
 }
 
