@@ -277,12 +277,12 @@ tbody td{padding:10px 14px;font-size:13px;}
     <input class="inp" id="inp-user" placeholder="admin" autocomplete="username"/>
     <label class="lbl">Heslo</label>
     <input class="inp" id="inp-pass" type="password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" autocomplete="current-password"/>
-    <div id="totp-field" style="display:none">
+    <div id="totp-field" style="display:block">
       <label class="lbl">Ověřovací kód (Google Authenticator)</label>
       <input class="inp" id="inp-totp" placeholder="123456" maxlength="6" autocomplete="one-time-code"/>
     </div>
     <button class="btn-login" id="btn-login">Přihlásit se</button>
-    <div class="demo-tip" id="demo-tip">Demo: <code>admin</code> / <code>odbory2024</code></div>
+    <div class="demo-tip" id="demo-tip" style="display:none">Demo: <code>admin</code> / <code>odbory2024</code></div>
   </div>
 </div>
 
@@ -294,6 +294,7 @@ tbody td{padding:10px 14px;font-size:13px;}
       <button class="nav-btn active" data-page="members">&#128101; Členové</button>
       <button class="nav-btn" data-page="email">&#9993; E-mail</button>
       <button class="nav-btn" data-page="sms">&#128241; SMS</button>
+      <button class="nav-btn" data-page="uzivatele">&#128273; Uživatelé</button>
       <button class="nav-btn" data-page="nastaveni">&#9881; Nastavení</button>
     </div>
     <div class="sb-foot">
@@ -389,6 +390,70 @@ tbody td{padding:10px 14px;font-size:13px;}
           <button class="btn btn-blue" id="btn-send-sms" onclick="sendSms()">&#9658; Odeslat SMS</button>
         </div>
       </div>
+      <!-- UZIVATELE PAGE -->
+      <div id="page-uzivatele" style="display:none;">
+        <div class="compose" style="max-width:680px;margin-left:0;">
+          <div class="compose-title">&#128273; Správa uživatelů</div>
+          <div class="info-bar">
+            Přidejte uživatele kteří mohou přistupovat do aplikace. Každý uživatel dostane <b>QR kód</b> pro Google Authenticator — naskenuje ho jednou a při každém přihlášení zadá 6místný kód.
+          </div>
+
+          <!-- PRIDAT UZIVATELE -->
+          <div class="field-group" style="margin-bottom:20px;">
+            <div class="dp-sec">Přidat nového uživatele</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+              <div>
+                <label class="lbl" style="margin-bottom:6px">Uživatelské jméno</label>
+                <input class="finp" id="new-username" placeholder="jan.novak"/>
+              </div>
+              <div>
+                <label class="lbl" style="margin-bottom:6px">Heslo</label>
+                <input class="finp" id="new-password" type="password" placeholder="min. 8 znaků"/>
+              </div>
+              <div>
+                <label class="lbl" style="margin-bottom:6px">Role</label>
+                <select class="finp" id="new-role">
+                  <option value="admin">Admin — plný přístup</option>
+                  <option value="editor">Editor — pouze čtení a editace</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-blue" onclick="addUser()">&#43; Přidat uživatele a vygenerovat QR kód</button>
+            <div id="user-status" style="display:none;margin-top:10px;padding:10px 14px;border-radius:8px;font-size:13px;"></div>
+          </div>
+
+          <!-- SEZNAM UZIVATELU -->
+          <div class="dp-sec">Stávající uživatelé</div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%">
+              <thead>
+                <tr>
+                  <th>Uživatel</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Vytvořen</th>
+                  <th>Akce</th>
+                </tr>
+              </thead>
+              <tbody id="users-table">
+                <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2)">Načítám...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- UPOZORNENI -->
+          <div style="margin-top:20px;padding:14px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r)">
+            <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">&#9888; Důležité</div>
+            <ul style="font-size:12px;color:var(--text2);padding-left:18px;line-height:2">
+              <li>QR kód se zobrazí <b>pouze jednou</b> při vytvoření — uživatel ho musí okamžitě naskenovat</li>
+              <li>Aplikace: <b>Google Authenticator</b> nebo <b>Authy</b> (zdarma v App Store / Google Play)</li>
+              <li>Pokud uživatel ztratí přístup — smažte ho a vytvořte znovu</li>
+              <li>Vždy mějte alespoň jednoho aktivního admina</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <!-- NASTAVENÍ PAGE -->
       <div id="page-nastaveni" style="display:none;">
         <div class="compose" style="max-width:680px;margin-left:0;">
@@ -543,7 +608,7 @@ var SUPABASE_KEY = "sb_publishable_fuPWp0mgcSFnx6zsZoUgXg_nMcIvdLZ";
 // Pro aktivaci zmente TWO_FA_ENABLED na true
 // Nejprve vytvorte tabulku uzivatele v Supabase
 // =====================================================
-var TWO_FA_ENABLED = false;
+var TWO_FA_ENABLED = true;
 
 // TOTP - generovani a overeni kodu (RFC 6238)
 function base32Decode(s){
@@ -617,14 +682,22 @@ function loadUsers(){
 function renderUsersTable(users){
   var el=document.getElementById("users-table");
   if(!el) return;
+  if(users.length===0){
+    el.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2)">Žádní uživatelé — přidejte prvního výše.</td></tr>';
+    return;
+  }
   el.innerHTML=users.map(function(u){
+    var datum=u.created_at?u.created_at.substring(0,10):"—";
     return '<tr>'+
-      '<td>'+u.username+'</td>'+
-      '<td>'+u.role+'</td>'+
+      '<td><b>'+u.username+'</b></td>'+
+      '<td><span class="bdg '+(u.role==="admin"?"bdg-blue":"bdg-gray")+'">'+u.role+'</span></td>'+
       '<td>'+(u.aktivni?'<span class="bdg bdg-green">Aktivní</span>':'<span class="bdg bdg-red">Neaktivní</span>')+'</td>'+
-      '<td><button class="btn btn-out btn-sm" onclick="toggleUser('+u.id+','+u.aktivni+')">'+
-      (u.aktivni?'Deaktivovat':'Aktivovat')+'</button> '+
-      '<button class="btn btn-out btn-sm btn-red" onclick="deleteUser('+u.id+')">Smazat</button></td>'+
+      '<td style="font-size:11px;color:var(--text2)">'+datum+'</td>'+
+      '<td>'+
+      '<button class="btn btn-out btn-sm" onclick="toggleUser('+u.id+','+u.aktivni+')" style="margin-right:4px">'+
+      (u.aktivni?'Deaktivovat':'Aktivovat')+'</button>'+
+      '<button class="btn btn-out btn-sm btn-red" onclick="deleteUser('+u.id+')">Smazat</button>'+
+      '</td>'+
       '</tr>';
   }).join("");
 }
@@ -634,22 +707,34 @@ function addUser(){
   var username=(document.getElementById("new-username").value||"").trim();
   var password=(document.getElementById("new-password").value||"").trim();
   var role=document.getElementById("new-role").value||"editor";
-  if(!username||!password){ showToast("Vyplňte jméno a heslo.","err"); return; }
+  if(!username||!password){ showUserStatus("Vyplňte uživatelské jméno a heslo.","err"); return; }
+  if(password.length < 6){ showUserStatus("Heslo musí mít alespoň 6 znaků.","err"); return; }
   var secret=generateTotpSecret();
-  // Heslo - jednoduchy hash (pro produkci pouzit bcrypt na serveru)
   var passwordHash=btoa(password+"_hmmc_salt_2024");
+  showUserStatus("Vytvářím uživatele...","ok");
   sbFetch("uzivatele",{method:"POST",body:JSON.stringify({
     username:username, password_hash:passwordHash,
     totp_secret:secret, role:role, aktivni:true
   })}).then(function(r){ return r.json(); })
     .then(function(data){
-      var saved=Array.isArray(data)?data[0]:data;
+      if(data && data.code){ showUserStatus("Chyba: "+data.message,"err"); return; }
       showQrCode(username, secret);
       loadUsers();
       document.getElementById("new-username").value="";
       document.getElementById("new-password").value="";
-      showToast("Uživatel vytvořen. Naskenujte QR kód.","ok");
-    });
+      showUserStatus("Uživatel vytvořen! Naskenujte QR kód v Google Authenticator.","ok");
+      showToast("Uživatel "+username+" vytvořen.","ok");
+    }).catch(function(){ showUserStatus("Chyba při vytváření uživatele.","err"); });
+}
+
+function showUserStatus(msg, type){
+  var el=document.getElementById("user-status");
+  if(!el) return;
+  el.style.display="block";
+  el.style.background=type==="ok"?"rgba(7,196,90,.07)":"rgba(220,38,38,.07)";
+  el.style.border="1px solid "+(type==="ok"?"rgba(7,196,90,.2)":"rgba(220,38,38,.2)");
+  el.style.color=type==="ok"?"var(--green)":"var(--red)";
+  el.textContent=msg;
 }
 
 function showQrCode(username, secret){
@@ -914,13 +999,14 @@ var pagesMeta={
   members:{title:"Evidence členů",sub:"#odboryhyundai"},
   email:{title:"E-mail",sub:"#odboryhyundai"},
   sms:{title:"SMS",sub:"#odboryhyundai"},
+  uzivatele:{title:"Správa uživatelů",sub:"2FA přístup"},
   nastaveni:{title:"Nastavení",sub:"Konfigurace e-mailu"}
 };
 function switchPage(pg){
   document.querySelectorAll(".nav-btn[data-page]").forEach(function(b){ b.classList.remove("active"); });
   var btn=document.querySelector(".nav-btn[data-page='"+pg+"']");
   if(btn) btn.classList.add("active");
-  ["members","email","sms","nastaveni"].forEach(function(p){
+  ["members","email","sms","uzivatele","nastaveni"].forEach(function(p){
     var el=document.getElementById("page-"+p);
     if(el) el.style.display=(p===pg)?"block":"none";
   });
@@ -928,6 +1014,8 @@ function switchPage(pg){
   document.getElementById("pg-sub").textContent=pagesMeta[pg].sub;
   // Kdyz otevreme nastaveni, nacti aktualni hodnoty
   if(pg==="nastaveni") loadSettings();
+  // Kdyz otevreme uzivatele, nacti seznam
+  if(pg==="uzivatele") loadUsers();
   // Scrollovat nahoru
   var contentEl=document.querySelector(".content");
   if(contentEl) contentEl.scrollTop=0;
@@ -1530,6 +1618,7 @@ function showToast(msg,type){
     <button class="mn-btn on" data-mnpage="members" onclick="mobNav('members')">&#128101;<br>Evidence</button>
     <button class="mn-btn" data-mnpage="email" onclick="mobNav('email')">&#9993;<br>E-mail</button>
     <button class="mn-btn" data-mnpage="sms" onclick="mobNav('sms')">&#128241;<br>SMS</button>
+    <button class="mn-btn" data-mnpage="uzivatele" onclick="mobNav('uzivatele')">&#128273;<br>Uživ.</button>
     <button class="mn-btn" data-mnpage="nastaveni" onclick="mobNav('nastaveni')">&#9881;<br>Nastav.</button>
   </div>
 </nav>
