@@ -691,23 +691,49 @@ function checkGuest(msg){
 
 function applyRoleRestrictions(){
   var guest = isGuest();
-  // Skryt tlacitka pro guest
-  var hideForGuest = [
-    "btn-send-email", "btn-send-sms"
-  ];
-  hideForGuest.forEach(function(id){
-    var el = document.getElementById(id);
-    if(el) el.style.display = guest ? "none" : "";
+
+  // Skryt/zobrazit NAV polozky
+  document.querySelectorAll(".nav-btn[data-page]").forEach(function(btn){
+    var page = btn.getAttribute("data-page");
+    if(guest && (page === "email" || page === "sms" || page === "uzivatele" || page === "nastaveni")){
+      btn.style.display = "none";
+    } else {
+      btn.style.display = "";
+    }
   });
-  // Skryt nav polozky pro guest
-  var navEmail = document.querySelector(".nav-btn[data-page='email']");
-  var navSms = document.querySelector(".nav-btn[data-page='sms']");
-  var navUzivatele = document.querySelector(".nav-btn[data-page='uzivatele']");
-  var navNastaveni = document.querySelector(".nav-btn[data-page='nastaveni']");
-  if(navEmail) navEmail.style.display = guest ? "none" : "";
-  if(navSms) navSms.style.display = guest ? "none" : "";
-  if(navUzivatele) navUzivatele.style.display = guest ? "none" : "";
-  if(navNastaveni) navNastaveni.style.display = guest ? "none" : "";
+
+  // Skryt mobilni nav tlacitka pro guest
+  document.querySelectorAll(".mn-btn[data-mnpage]").forEach(function(btn){
+    var page = btn.getAttribute("data-mnpage");
+    if(guest && (page === "email" || page === "sms" || page === "nastaveni")){
+      btn.style.display = "none";
+    } else {
+      btn.style.display = "";
+    }
+  });
+
+  // Skryt akce v tabulce pro guest
+  var addBtn = document.querySelector(".btn-blue[onclick*='openAddModal']");
+  if(addBtn) addBtn.style.display = guest ? "none" : "";
+
+  // Skryt tlacitka Pridat, Import, Export pro guest
+  document.querySelectorAll(".toolbar .btn").forEach(function(btn){
+    var oc = btn.getAttribute("onclick") || "";
+    if(guest && (oc.indexOf("openAddModal") !== -1 || oc.indexOf("csvImport") !== -1 || oc.indexOf("importCSV") !== -1)){
+      btn.style.display = "none";
+    }
+  });
+
+  // Pokud je guest a pokusi se jit na zakázanou stranku - presmeruj na members
+  if(guest){
+    var currentPage = document.querySelector(".nav-btn.active");
+    if(currentPage){
+      var cp = currentPage.getAttribute("data-page");
+      if(cp === "email" || cp === "sms" || cp === "uzivatele" || cp === "nastaveni"){
+        switchPage("members");
+      }
+    }
+  }
 }
 
 // TOTP - generovani a overeni kodu (RFC 6238)
@@ -1068,7 +1094,7 @@ function doLogin(){
         document.getElementById("user-name").textContent=result.user.username;
         CURRENT_USER_ROLE = result.user.role || "guest";
         applyRoleRestrictions();
-        updateViewToggle(); loadMembers(); loadSettings(); resetInactivityTimer();
+        updateViewToggle(); loadMembers(); loadSettings(); resetInactivityTimer(); setTimeout(applyRoleRestrictions, 500);
       } else {
         errEl.textContent=result.msg;
         errEl.style.display="block";
@@ -1118,6 +1144,13 @@ var pagesMeta={
   nastaveni:{title:"Nastavení",sub:"Konfigurace e-mailu"}
 };
 function switchPage(pg){
+  // Zkontrolovat opravneni pro guest
+  var restrictedPages = ["email","sms","uzivatele","nastaveni"];
+  if(isGuest() && restrictedPages.indexOf(pg) !== -1){
+    showToast("Nemáte oprávnění k této sekci.", "err");
+    pg = "members";
+  }
+
   document.querySelectorAll(".nav-btn[data-page]").forEach(function(b){ b.classList.remove("active"); });
   var btn=document.querySelector(".nav-btn[data-page='"+pg+"']");
   if(btn) btn.classList.add("active");
