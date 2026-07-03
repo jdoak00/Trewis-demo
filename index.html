@@ -573,6 +573,8 @@ tbody td{padding:12px 14px;font-size:16px;}
           </div>
         </div>
 
+      </div>
+
       <!-- VYRAZENI PAGE -->
       <div id="page-vyrazeni" style="display:none;">
         <div class="card">
@@ -589,17 +591,12 @@ tbody td{padding:12px 14px;font-size:16px;}
           <div style="overflow-x:auto;">
             <table>
               <thead><tr>
-                <th>Příjmení a jméno</th>
-                <th>Evid. číslo</th>
-                <th>Člen od</th>
-                <th>Člen do</th>
-                <th>Oddělení</th>
-                <th>Linka a směna</th>
-                <th>Důvod ukončení</th>
-                <th></th>
+                <th>Příjmení a jméno</th><th>Evid. číslo</th><th>Člen od</th>
+                <th>Člen do</th><th>Oddělení</th><th>Linka a směna</th>
+                <th>Důvod ukončení</th><th></th>
               </tr></thead>
               <tbody id="vyr-body">
-                <tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text2)">Načítám...</td></tr>
+                <tr><td colspan="8" style="text-align:center;padding:28px;color:var(--text2)">Načítám...</td></tr>
               </tbody>
             </table>
           </div>
@@ -611,64 +608,16 @@ tbody td{padding:12px 14px;font-size:16px;}
       <div id="page-prispevky" style="display:none;">
         <div class="compose" style="max-width:680px;margin-left:0;">
           <div class="compose-title">&#128176; Příspěvky</div>
-          <div style="text-align:center;padding:40px 20px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r-lg);">
+          <div style="text-align:center;padding:40px 20px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r-lg);margin-top:16px;">
             <div style="font-size:48px;margin-bottom:16px;">🚧</div>
             <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px;">V přípravě</div>
             <div style="font-size:15px;color:var(--text2);">Tato sekce bude brzy k dispozici.</div>
           </div>
         </div>
       </div>
-      </div>
-
-    </div>
-  </div>
 </div>
 
-      <!-- VYRAZENI PAGE -->
-      <div id="page-vyrazeni" style="display:none;">
-        <div class="card">
-          <div class="toolbar">
-            <div class="srch">
-              <span class="srch-ic">&#128269;</span>
-              <input id="vyr-srch" placeholder="Hledat vyřazeného člena..." oninput="filterVyrazeni()"/>
-            </div>
-            <button class="btn btn-out" onclick="csvExportVyrazeni()">&#8595; Export CSV</button>
-            <button class="btn btn-out" onclick="document.getElementById('vyr-import-inp').click()">&#8593; Import CSV</button>
-            <input type="file" id="vyr-import-inp" accept=".csv" style="display:none" onchange="importVyrazeni(event)"/>
-            <button class="btn btn-blue" onclick="openAddVyrazeniModal()">+ Přidat</button>
-          </div>
-          <div style="overflow-x:auto;">
-            <table>
-              <thead><tr>
-                <th>Příjmení a jméno</th>
-                <th>Evid. číslo</th>
-                <th>Člen od</th>
-                <th>Člen do</th>
-                <th>Oddělení</th>
-                <th>Linka a směna</th>
-                <th>Důvod ukončení</th>
-                <th></th>
-              </tr></thead>
-              <tbody id="vyr-body">
-                <tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text2)">Načítám...</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="pag" id="vyr-pag"></div>
-        </div>
-      </div>
-
-      <!-- PRISPEVKY PAGE -->
-      <div id="page-prispevky" style="display:none;">
-        <div class="compose" style="max-width:680px;margin-left:0;">
-          <div class="compose-title">&#128176; Příspěvky</div>
-          <div style="text-align:center;padding:40px 20px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r-lg);">
-            <div style="font-size:48px;margin-bottom:16px;">🚧</div>
-            <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px;">V přípravě</div>
-            <div style="font-size:15px;color:var(--text2);">Tato sekce bude brzy k dispozici.</div>
-          </div>
-        </div>
-      </div>
+      
 
 <!-- DETAIL PANEL -->
 <div class="overlay-bg" id="detail-overlay" onclick="closeDetail(event)">
@@ -1467,8 +1416,7 @@ function switchToEdit(){
     '<div><label class="lbl">Typ členství</label><select class="finp" id="e-typ"><option'+(m.typ==="Řádný člen"?' selected':'')+'>Řádný člen</option><option'+(m.typ==="Tajný člen"?' selected':'')+'>Tajný člen</option></select></div>'+
     '<div><label class="lbl">Oddělení</label><select class="finp" id="e-odd">'+oddOpts+'</select></div>'+
     '<div><label class="lbl">Linka</label><input class="finp" id="e-linka" value="'+m.linka+'" placeholder="např. L1"/></div>'+
-    '<div><label class="lbl">Směna</label><select class="finp" id="e-smena">'+smenaOpts(m.smena)+
-    '</div></div>';
+    '<div><label class="lbl">Směna</label><select class="finp" id="e-smena">'+smenaOpts(m.smena)+'</select></div>'+'<div><label class="lbl">Vedoucí</label><select class="finp" id="e-vedouci">'+VEDOUCI_OPTS.map(function(v){ return '<option value="'+v+'"'+(m.vedouci===v?' selected':'')+'>'+( v||'— Není vedoucí —')+'</option>'; }).join('')+'</select></div>'+'</div></div>';
   document.getElementById("dp-foot").innerHTML=
     '<button class="btn btn-blue" onclick="saveEdit()">&#10003; Uložit</button>'+
     '<button class="btn btn-out" onclick="renderDetailView()">Zrušit</button>';
