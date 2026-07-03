@@ -1707,11 +1707,11 @@ function renderVyrazeni(){
       return '<tr>'+
         '<td><b>'+v.prijmeni+' '+v.jmeno+'</b></td>'+
         '<td style="color:var(--text2)">'+( v.evidencni_cislo||"—")+'</td>'+
-        '<td style="color:var(--text2);font-size:12px">'+formatDate(v.clen_od)+'</td>'+
-        '<td style="color:var(--text2);font-size:12px">'+formatDate(v.clen_do)+'</td>'+
-        '<td style="color:var(--text2);font-size:12px">'+( v.oddeleni||"—")+'</td>'+
-        '<td style="color:var(--text2);font-size:12px">'+( v.linka_smena||"—")+'</td>'+
-        '<td style="color:var(--text2);font-size:12px">'+( v.duvod_ukonceni||"—")+'</td>'+
+        '<td style="color:var(--text2)">'+formatDate(v.clen_od)+'</td>'+
+        '<td style="color:var(--text2)">'+formatDate(v.clen_do)+'</td>'+
+        '<td style="color:var(--text2)">'+( v.oddeleni||"—")+'</td>'+
+        '<td style="color:var(--text2)">'+( v.linka_smena||"—")+'</td>'+
+        '<td style="color:var(--text2)">'+( v.duvod_ukonceni||"—")+'</td>'+
         '<td onclick="event.stopPropagation()"><button class="btn btn-out btn-sm" onclick="openEditVyrModal('+v.id+')">&#9998; Upravit</button></td>'+
         '</tr>';
     }).join("");
