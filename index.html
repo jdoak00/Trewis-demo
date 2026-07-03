@@ -572,6 +572,52 @@ tbody td{padding:12px 14px;font-size:16px;}
             </ol>
           </div>
         </div>
+
+      <!-- VYRAZENI PAGE -->
+      <div id="page-vyrazeni" style="display:none;">
+        <div class="card">
+          <div class="toolbar">
+            <div class="srch">
+              <span class="srch-ic">&#128269;</span>
+              <input id="vyr-srch" placeholder="Hledat vyřazeného člena..." oninput="filterVyrazeni()"/>
+            </div>
+            <button class="btn btn-out" onclick="csvExportVyrazeni()">&#8595; Export CSV</button>
+            <button class="btn btn-out" onclick="document.getElementById('vyr-import-inp').click()">&#8593; Import CSV</button>
+            <input type="file" id="vyr-import-inp" accept=".csv" style="display:none" onchange="importVyrazeni(event)"/>
+            <button class="btn btn-blue" onclick="openAddVyrazeniModal()">+ Přidat</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr>
+                <th>Příjmení a jméno</th>
+                <th>Evid. číslo</th>
+                <th>Člen od</th>
+                <th>Člen do</th>
+                <th>Oddělení</th>
+                <th>Linka a směna</th>
+                <th>Důvod ukončení</th>
+                <th></th>
+              </tr></thead>
+              <tbody id="vyr-body">
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text2)">Načítám...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pag" id="vyr-pag"></div>
+        </div>
+      </div>
+
+      <!-- PRISPEVKY PAGE -->
+      <div id="page-prispevky" style="display:none;">
+        <div class="compose" style="max-width:680px;margin-left:0;">
+          <div class="compose-title">&#128176; Příspěvky</div>
+          <div style="text-align:center;padding:40px 20px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r-lg);">
+            <div style="font-size:48px;margin-bottom:16px;">🚧</div>
+            <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px;">V přípravě</div>
+            <div style="font-size:15px;color:var(--text2);">Tato sekce bude brzy k dispozici.</div>
+          </div>
+        </div>
+      </div>
       </div>
 
     </div>
@@ -601,6 +647,7 @@ tbody td{padding:12px 14px;font-size:16px;}
                 <th>Oddělení</th>
                 <th>Linka a směna</th>
                 <th>Důvod ukončení</th>
+                <th></th>
               </tr></thead>
               <tbody id="vyr-body">
                 <tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text2)">Načítám...</td></tr>
@@ -1717,6 +1764,7 @@ function renderVyrazeni(){
         '<td style="color:var(--text2);font-size:12px">'+( v.oddeleni||"—")+'</td>'+
         '<td style="color:var(--text2);font-size:12px">'+( v.linka_smena||"—")+'</td>'+
         '<td style="color:var(--text2);font-size:12px">'+( v.duvod_ukonceni||"—")+'</td>'+
+        '<td onclick="event.stopPropagation()"><button class="btn btn-out btn-sm" onclick="openEditVyrModal('+v.id+')">&#9998; Upravit</button></td>'+
         '</tr>';
     }).join("");
   }
@@ -1729,11 +1777,17 @@ function renderVyrazeni(){
 
 function openAddVyrazeniModal(){
   if(checkGuest("Nemáte oprávnění přidávat záznamy.")) return;
+  editVyrId = null;
   ["vyr-jmeno","vyr-prijmeni","vyr-evid","vyr-linka-smena","vyr-duvod"].forEach(function(id){
     var el=document.getElementById(id); if(el) el.value="";
   });
   var od=document.getElementById("vyr-clen-od"); if(od){ od.value=""; od.dataset.isoValue=""; }
   var doo=document.getElementById("vyr-clen-do"); if(doo){ doo.value=""; doo.dataset.isoValue=""; }
+  // Reset titulek a tlacitko
+  var tit = document.querySelector("#add-vyr-modal .modal-t");
+  var btn = document.querySelector("#add-vyr-modal .modal-f .btn-blue");
+  if(tit) tit.textContent = "Přidat vyřazeného člena";
+  if(btn){ btn.textContent = "✓ Přidat vyřazeného"; btn.setAttribute("onclick","addVyrazeni()"); }
   document.getElementById("add-vyr-modal").classList.add("show");
 }
 
@@ -1769,6 +1823,56 @@ function addVyrazeni(){
       setTimeout(loadAuditLog, 500);
       showToast("Vyřazený člen přidán.","ok");
     }).catch(function(){ showToast("Chyba při ukládání.","err"); });
+}
+
+var editVyrId = null;
+
+function openEditVyrModal(id){
+  if(checkGuest("Nemáte oprávnění upravovat záznamy.")) return;
+  var v = vyrazeniData.find(function(x){ return x.id === id; });
+  if(!v) return;
+  editVyrId = id;
+  document.getElementById("vyr-jmeno").value = v.jmeno||"";
+  document.getElementById("vyr-prijmeni").value = v.prijmeni||"";
+  document.getElementById("vyr-evid").value = v.evidencni_cislo||"";
+  document.getElementById("vyr-oddeleni").value = v.oddeleni||"";
+  document.getElementById("vyr-linka-smena").value = v.linka_smena||"";
+  document.getElementById("vyr-duvod").value = v.duvod_ukonceni||"";
+  var od = document.getElementById("vyr-clen-od");
+  if(od){ od.value = v.clen_od ? formatDate(v.clen_od) : ""; od.dataset.isoValue = v.clen_od||""; }
+  var doo = document.getElementById("vyr-clen-do");
+  if(doo){ doo.value = v.clen_do ? formatDate(v.clen_do) : ""; doo.dataset.isoValue = v.clen_do||""; }
+  // Zmenit titulek a tlacitko modalu
+  document.querySelector("#add-vyr-modal .modal-t").textContent = "Upravit vyřazeného člena";
+  document.querySelector("#add-vyr-modal .modal-f .btn-blue").textContent = "✓ Uložit změny";
+  document.querySelector("#add-vyr-modal .modal-f .btn-blue").setAttribute("onclick","saveEditVyr()");
+  document.getElementById("add-vyr-modal").classList.add("show");
+}
+
+function saveEditVyr(){
+  if(!editVyrId) return;
+  var row = {
+    jmeno: document.getElementById("vyr-jmeno").value.trim(),
+    prijmeni: document.getElementById("vyr-prijmeni").value.trim(),
+    evidencni_cislo: document.getElementById("vyr-evid").value.trim(),
+    oddeleni: document.getElementById("vyr-oddeleni").value,
+    clen_od: getIsoDate(document.getElementById("vyr-clen-od"))||null,
+    clen_do: getIsoDate(document.getElementById("vyr-clen-do"))||null,
+    linka_smena: document.getElementById("vyr-linka-smena").value.trim(),
+    duvod_ukonceni: document.getElementById("vyr-duvod").value.trim()
+  };
+  sbFetch("vyrazeni?id=eq."+editVyrId, {method:"PATCH", body:JSON.stringify(row)})
+    .then(function(r){
+      if(!r.ok){ showToast("Chyba uložení.","err"); return; }
+      var idx = vyrazeniData.findIndex(function(x){ return x.id===editVyrId; });
+      if(idx!==-1){ vyrazeniData[idx] = Object.assign(vyrazeniData[idx], row); }
+      closeAddVyrModal();
+      renderVyrazeni();
+      logChange("Upraven vyřazený člen", row.prijmeni+" "+row.jmeno);
+      setTimeout(loadAuditLog, 500);
+      showToast("Záznam upraven.","ok");
+      editVyrId = null;
+    });
 }
 
 function csvExportVyrazeni(){
