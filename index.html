@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-
-    +'<div><label class="lbl">Vedoucí</label><select class="finp" id="e-vedouci">'+VEDOUCI_OPTS.map(function(v){ return '<option value="'+v+'"'+(m.vedouci===v?' selected':'')+'>'+( v||'— Není vedoucí —')+'</option>'; }).join('')+'</select></div>'+<html lang="cs">
+<html lang="cs">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -614,11 +613,12 @@ tbody td{padding:12px 14px;font-size:16px;}
 
       <!-- PRISPEVKY PAGE -->
       <div id="page-prispevky" style="display:none;">
-        <div class="compose" style="max-width:680px;">
+        <div class="compose" style="max-width:680px;margin-left:0;">
           <div class="compose-title">&#128176; Příspěvky</div>
-          <div class="info-bar" style="font-size:16px;text-align:center;padding:30px;">
-            🚧 <b>V přípravě...</b><br><br>
-            <span style="font-size:14px;color:var(--text2);">Tato sekce bude brzy k dispozici.</span>
+          <div style="text-align:center;padding:40px 20px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r-lg);">
+            <div style="font-size:48px;margin-bottom:16px;">🚧</div>
+            <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px;">V přípravě</div>
+            <div style="font-size:15px;color:var(--text2);">Tato sekce bude brzy k dispozici.</div>
           </div>
         </div>
       </div>
@@ -665,6 +665,7 @@ tbody td{padding:12px 14px;font-size:16px;}
           <option>Production Control</option><option>Admin</option>
           <option>není zaměstnanec HMMC</option>
         </select></div><div><label class="lbl">Linka</label><input class="finp" id="add-linka" placeholder="např. L1"/></div><div><label class="lbl">Směna</label><select class="finp" id="add-smena"><option value="">— Vyberte —</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="Ranní">Ranní</option><option value="12A">12A</option><option value="12B">12B</option><option value="12C">12C</option><option value="12D">12D</option></select></div>
+        <div><label class="lbl">Vedoucí</label><select class="finp" id="add-vedouci"><option value="">— Není vedoucí —</option><option value="G/L">G/L — Group Leader</option><option value="T/L">T/L — Team Leader</option><option value="M/T">M/T — Specialista</option></select></div>
         
       </div>
     </div>
@@ -1536,12 +1537,13 @@ function addMember(){
     });
     return;
   }
-  // Kontrola duplicit
-  var duplicate=members.find(function(m){
-    return m.jmeno.toLowerCase()===jmeno.toLowerCase() && m.prijmeni.toLowerCase()===prijmeni.toLowerCase();
+  // Kontrola duplicit - pouze podle prijmeni
+  var duplicates = members.filter(function(m){
+    return m.prijmeni.toLowerCase() === prijmeni.toLowerCase();
   });
-  if(duplicate){
-    if(!confirm("Člen "+prijmeni+" "+jmeno+" již v seznamu existuje. Chcete ho přesto přidat?")) return;
+  if(duplicates.length > 0){
+    var names = duplicates.map(function(m){ return m.prijmeni+" "+m.jmeno; }).join(", ");
+    if(!confirm("Pozor! V databázi již existuje člen se stejným příjmením \""+prijmeni+"\":\n\n"+names+"\n\nChcete přesto pokračovat a přidat tohoto člena?")) return;
   }
   var vstupEl=document.getElementById("add-vstup");
   var linka=document.getElementById("add-linka")?document.getElementById("add-linka").value:"";
