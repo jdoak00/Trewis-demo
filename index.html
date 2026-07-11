@@ -606,18 +606,99 @@ tbody td{padding:12px 14px;font-size:16px;}
 
       <!-- PRISPEVKY PAGE -->
       <div id="page-prispevky" style="display:none;">
-        <div class="compose" style="max-width:680px;margin-left:0;">
-          <div class="compose-title">&#128176; Příspěvky</div>
-          <div style="text-align:center;padding:40px 20px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r-lg);margin-top:16px;">
-            <div style="font-size:48px;margin-bottom:16px;">🚧</div>
-            <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px;">V přípravě</div>
-            <div style="font-size:15px;color:var(--text2);">Tato sekce bude brzy k dispozici.</div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="toolbar" style="flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <select class="flt" id="pris-rok" onchange="loadPrispevky()" style="font-size:15px;">
+<option value="2024">2024</option>
+<option value="2025">2025</option>
+<option value="2026">2026</option>
+<option value="2027">2027</option>
+<option value="2028">2028</option>
+<option value="2029">2029</option>
+<option value="2030">2030</option>
+              </select>
+              <div class="srch" style="min-width:200px;">
+                <span class="srch-ic">&#128269;</span>
+                <input id="pris-srch" placeholder="Hledat člena..." oninput="renderPrispevky()"/>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <select class="flt" id="pris-mesic-import" style="font-size:15px;">
+<option value="1">Leden</option>
+<option value="2">Únor</option>
+<option value="3">Březen</option>
+<option value="4">Duben</option>
+<option value="5">Květen</option>
+<option value="6">Červen</option>
+<option value="7">Červenec</option>
+<option value="8">Srpen</option>
+<option value="9">Září</option>
+<option value="10">Říjen</option>
+<option value="11">Listopad</option>
+<option value="12">Prosinec</option>
+              </select>
+              <button class="btn btn-out" onclick="document.getElementById('pris-import-inp').click()">&#8593; Import CSV</button>
+              <input type="file" id="pris-import-inp" accept=".csv" style="display:none" onchange="importPrispevky(event)"/>
+              <button class="btn btn-out" onclick="exportPrispevkyPDF()">&#8681; PDF rok</button>
+              <button class="btn btn-out btn-sm" onclick="exportPrispevkyCSV()">&#8595; CSV rok</button>
+            </div>
           </div>
+        </div>
+
+        <!-- TABULKA PRISPEVKY -->
+        <div class="card">
+          <div style="overflow-x:auto;">
+            <table id="pris-table">
+              <thead>
+                <tr>
+                  <th>Příjmení a jméno</th>
+                  <th>Os. číslo</th>
+                  <th style="color:#087cf4">Celkem rok</th>
+                  <th style="color:var(--text2);font-size:12px">Led</th>
+                  <th style="color:var(--text2);font-size:12px">Úno</th>
+                  <th style="color:var(--text2);font-size:12px">Bře</th>
+                  <th style="color:var(--text2);font-size:12px">Dub</th>
+                  <th style="color:var(--text2);font-size:12px">Kvě</th>
+                  <th style="color:var(--text2);font-size:12px">Čer</th>
+                  <th style="color:var(--text2);font-size:12px">Čvc</th>
+                  <th style="color:var(--text2);font-size:12px">Srp</th>
+                  <th style="color:var(--text2);font-size:12px">Zář</th>
+                  <th style="color:var(--text2);font-size:12px">Říj</th>
+                  <th style="color:var(--text2);font-size:12px">Lis</th>
+                  <th style="color:var(--text2);font-size:12px">Pro</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="pris-body">
+                <tr><td colspan="16" style="text-align:center;padding:28px;color:var(--text2)">Vyberte rok a načtěte data.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pag" id="pris-pag"></div>
         </div>
       </div>
 </div>
 
       
+
+<!-- PRISPEVKY EDIT MODAL -->
+<div class="modal-bg" id="pris-edit-modal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-h">
+      <span class="modal-t" id="pris-edit-title">Ruční zadání příspěvků</span>
+      <button class="btn btn-out btn-sm" onclick="document.getElementById('pris-edit-modal').classList.remove('show')">&#10005;</button>
+    </div>
+    <div class="modal-b">
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:16px;" id="pris-edit-name"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="pris-edit-fields"></div>
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-out" onclick="document.getElementById('pris-edit-modal').classList.remove('show')">Zrušit</button>
+      <button class="btn btn-blue" onclick="savePrisEditModal()">&#10003; Uložit příspěvky</button>
+    </div>
+  </div>
+</div>
 
 <!-- DETAIL PANEL -->
 <div class="overlay-bg" id="detail-overlay" onclick="closeDetail(event)">
@@ -1178,7 +1259,7 @@ function doLogin(){
         document.getElementById("user-name").textContent=result.user.username;
         CURRENT_USER_ROLE = result.user.role || "guest";
         applyRoleRestrictions();
-        updateViewToggle(); loadMembers(); loadSettings(); resetInactivityTimer(); setTimeout(applyRoleRestrictions, 500); setTimeout(loadAuditLog, 1500);
+        updateViewToggle(); loadMembers(); loadSettings(); resetInactivityTimer(); setTimeout(applyRoleRestrictions, 500); setTimeout(loadAuditLog, 1500); setTimeout(initPrisRok, 300);
       } else {
         errEl.textContent=result.msg;
         errEl.style.display="block";
@@ -1252,6 +1333,8 @@ function switchPage(pg){
   if(pg==="uzivatele") loadUsers();
   // Kdyz otevreme vyrazeni, nacti seznam
   if(pg==="vyrazeni") loadVyrazeni();
+  // Kdyz otevreme prispevky, nacti data
+  if(pg==="prispevky"){ if(!prispevkyLoaded) loadPrispevky(); }
   // Scrollovat nahoru
   var contentEl=document.querySelector(".content");
   if(contentEl) contentEl.scrollTop=0;
@@ -1673,6 +1756,350 @@ function openCard(){
 }
 function closeCardModal(e){ if(!e||e.target===document.getElementById("card-modal")) document.getElementById("card-modal").classList.remove("show"); }
 function sendCardEmail(){ showToast("Karta odeslána na "+detailMember.email,"ok"); document.getElementById("btn-card-send").textContent="Odesláno!"; document.getElementById("btn-card-send").disabled=true; }
+
+
+// ===== PŘÍSPĚVKY =====
+var prispevkyData = {}; // {osobni_cislo: {1: castka, 2: castka, ...}}
+var prispevkyLoaded = false;
+var prisPrisPage = 1;
+var PRIS_PAGE_SZ = 50;
+var MESICE_NAMES = ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
+
+function initPrisRok(){
+  var sel = document.getElementById("pris-rok");
+  if(!sel) return;
+  var now = new Date().getFullYear();
+  for(var i=0;i<sel.options.length;i++){
+    if(parseInt(sel.options[i].value) === now){ sel.selectedIndex=i; break; }
+  }
+  // Nastavit aktualni mesic v importu
+  var mesicSel = document.getElementById("pris-mesic-import");
+  if(mesicSel) mesicSel.selectedIndex = new Date().getMonth();
+}
+
+function loadPrispevky(){
+  var rok = parseInt(document.getElementById("pris-rok").value);
+  prispevkyLoaded = false;
+  document.getElementById("pris-body").innerHTML = '<tr><td colspan="16" style="text-align:center;padding:20px;color:var(--text2)">Načítám...</td></tr>';
+  
+  sbFetch("prispevky?rok=eq."+rok+"&select=osobni_cislo,mesic,castka&limit=50000")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      prispevkyData = {};
+      if(Array.isArray(data)){
+        data.forEach(function(p){
+          if(!prispevkyData[p.osobni_cislo]) prispevkyData[p.osobni_cislo] = {};
+          prispevkyData[p.osobni_cislo][p.mesic] = parseFloat(p.castka)||0;
+        });
+      }
+      prispevkyLoaded = true;
+      prisPrisPage = 1;
+      renderPrispevky();
+    }).catch(function(){ showToast("Chyba načítání příspěvků.","err"); });
+}
+
+function getPrisCelkem(osnum, mesice){
+  if(!prispevkyData[osnum]) return 0;
+  var sum = 0;
+  mesice.forEach(function(m){ sum += prispevkyData[osnum][m]||0; });
+  return sum;
+}
+
+function renderPrispevky(){
+  if(!prispevkyLoaded) return;
+  var q = (document.getElementById("pris-srch").value||"").toLowerCase();
+  var rok = parseInt(document.getElementById("pris-rok").value);
+  
+  var filtered = members.filter(function(m){
+    return (m.prijmeni+" "+m.jmeno+" "+m.osnum).toLowerCase().indexOf(q) !== -1;
+  });
+  
+  // Seradit podle prijmeni
+  filtered.sort(function(a,b){ return a.prijmeni.localeCompare(b.prijmeni,"cs")||a.jmeno.localeCompare(b.jmeno,"cs"); });
+  
+  var pages = Math.max(1, Math.ceil(filtered.length/PRIS_PAGE_SZ));
+  if(prisPrisPage > pages) prisPrisPage = 1;
+  var slice = filtered.slice((prisPrisPage-1)*PRIS_PAGE_SZ, prisPrisPage*PRIS_PAGE_SZ);
+  
+  var tbody = document.getElementById("pris-body");
+  if(!slice.length){
+    tbody.innerHTML = '<tr><td colspan="16" style="text-align:center;padding:20px;color:var(--text2)">Žádní členové.</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = slice.map(function(m){
+    var pd = prispevkyData[m.osnum]||{};
+    var celkem = 0;
+    for(var i=1;i<=12;i++) celkem += pd[i]||0;
+    
+    var mesiceCells = '';
+    for(var i=1;i<=12;i++){
+      var val = pd[i]||0;
+      var color = val > 0 ? '#05c957' : 'var(--text2)';
+      mesiceCells += '<td style="text-align:center;font-size:13px;color:'+color+';min-width:40px;">'+
+        (val > 0 ? val : '—')+'</td>';
+    }
+    
+    var celkemColor = celkem > 0 ? '#087cf4' : 'var(--text2)';
+    return '<tr>'+
+      '<td><b>'+m.prijmeni+' '+m.jmeno+'</b></td>'+
+      '<td style="color:var(--text2);font-size:13px;">'+m.osnum+'</td>'+
+      '<td style="text-align:center;font-weight:700;color:'+celkemColor+';">'+
+        (celkem > 0 ? celkem+' Kč' : '—')+'</td>'+
+      mesiceCells+
+      '<td onclick="event.stopPropagation()" style="white-space:nowrap;">'+'<button class="btn btn-out btn-sm" data-o="'+m.osnum+'" data-n="'+encodeURIComponent(m.prijmeni+' '+m.jmeno)+'" onclick="openPrisEdit(this.dataset.o,decodeURIComponent(this.dataset.n))">&#9998;</button> '+'<button class="btn btn-out btn-sm" data-o="'+m.osnum+'" data-n="'+encodeURIComponent(m.prijmeni+' '+m.jmeno)+'" onclick="exportClenPDF(this.dataset.o,decodeURIComponent(this.dataset.n))" title="PDF">&#8681;</button>'+'</td>'+
+    '</tr>';
+  }).join("");
+  
+  // Paginace
+  var pagHtml = "";
+  for(var i=1;i<=pages;i++) pagHtml+='<button class="pg-b'+(i===prisPrisPage?" on":"")+'" onclick="prisPrisPage='+i+';renderPrispevky()">'+i+'</button>';
+  if(filtered.length > PRIS_PAGE_SZ) pagHtml+='<div class="pg-info">'+filtered.length+' členů</div>';
+  document.getElementById("pris-pag").innerHTML = pagHtml;
+}
+
+// Import CSV příspěvků
+function importPrispevky(event){
+  if(checkGuest("Nemáte oprávnění importovat příspěvky.")) return;
+  var file = event.target.files[0]; if(!file) return;
+  var mesic = parseInt(document.getElementById("pris-mesic-import").value);
+  var rok = parseInt(document.getElementById("pris-rok").value);
+  var mesicName = MESICE_NAMES[mesic-1];
+  
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var text = e.target.result;
+    var delim = text.indexOf(";")!==-1?";":"\t";
+    var lines = text.split("\n").map(function(l){ return l.replace("\r",""); }).filter(function(l){ return l.trim(); });
+    if(lines.length<2){ showToast("CSV je prázdné.","err"); return; }
+    
+    var header = parseCSVLine(lines[0],delim).map(function(h){ return h.trim().toLowerCase(); });
+    function col(names){ for(var i=0;i<names.length;i++){ var idx=header.indexOf(names[i]); if(idx!==-1) return idx; } return -1; }
+    
+    var idCol = col(["id","osobní číslo","osobni cislo","os. číslo","os.číslo"]);
+    var castkaCol = col(["částka","castka","amount","kč","czk","příspěvek"]);
+    
+    if(idCol===-1||castkaCol===-1){
+      showToast("CSV musí obsahovat sloupce ID a Částka.","err"); return;
+    }
+    
+    var rows = [];
+    for(var i=1;i<lines.length;i++){
+      var cols = parseCSVLine(lines[i],delim);
+      if(cols.length<2) continue;
+      var osnum = (cols[idCol]||"").trim();
+      var castka = parseFloat((cols[castkaCol]||"0").replace(",",".").replace(/[^0-9.]/g,""))||0;
+      if(osnum) rows.push({osnum:osnum, castka:castka});
+    }
+    
+    if(!rows.length){ showToast("Žádné záznamy k importu.","err"); return; }
+    
+    // Zkontroluj existenci zaznamu pro tento mesic/rok
+    var existingCount = 0;
+    members.forEach(function(m){
+      if(prispevkyData[m.osnum] && prispevkyData[m.osnum][mesic] !== undefined) existingCount++;
+    });
+    
+    var doImport = function(){
+      showToast("Importuji "+mesicName+" "+rok+"...","ok");
+      
+      // Vytvor mapu z CSV - osnum -> castka
+      var csvMap = {};
+      rows.forEach(function(r){ csvMap[r.osnum] = r.castka; });
+      
+      // Pro vsechny cleny - ti co nejsou v CSV dostanou 0
+      var upsertRows = members.map(function(m){
+        return {
+          osobni_cislo: m.osnum,
+          rok: rok,
+          mesic: mesic,
+          castka: csvMap[m.osnum] !== undefined ? csvMap[m.osnum] : 0
+        };
+      });
+      
+      // Upsert po davkach
+      function upsertBatch(offset){
+        var chunk = upsertRows.slice(offset, offset+100);
+        if(!chunk.length){
+          loadPrispevky();
+          logChange("Import příspěvků", mesicName+" "+rok+", záznamů: "+upsertRows.length);
+          setTimeout(loadAuditLog, 500);
+          showToast("Import "+mesicName+" "+rok+" dokončen!","ok");
+          return;
+        }
+        sbFetch("prispevky", {
+          method:"POST",
+          extraHeaders:{"Prefer":"resolution=merge-duplicates,return=minimal"},
+          body:JSON.stringify(chunk)
+        }).then(function(r){
+          if(r.ok) upsertBatch(offset+100);
+          else showToast("Chyba při importu.","err");
+        });
+      }
+      upsertBatch(0);
+    };
+    
+    if(existingCount > 0){
+      if(confirm("Pro "+mesicName+" "+rok+" již existuje "+existingCount+" záznamů.\nChcete je přepsat novými daty?")){
+        // Smaž existující záznamy pro tento měsíc/rok
+        sbFetch("prispevky?rok=eq."+rok+"&mesic=eq."+mesic, {method:"DELETE"})
+          .then(function(){ doImport(); });
+      }
+    } else {
+      doImport();
+    }
+  };
+  reader.readAsText(file,"UTF-8");
+  event.target.value="";
+}
+
+// Ruční editace příspěvků
+var prisEditOsnum = null;
+var prisEditName = null;
+
+function openPrisEdit(osnum, name){
+  if(checkGuest("Nemáte oprávnění upravovat příspěvky.")) return;
+  prisEditOsnum = osnum;
+  prisEditName = name;
+  var rok = parseInt(document.getElementById("pris-rok").value);
+  var pd = prispevkyData[osnum]||{};
+  
+  document.getElementById("pris-edit-title").textContent = "Příspěvky — "+rok;
+  document.getElementById("pris-edit-name").textContent = name+" ("+osnum+")";
+  
+  var fields = "";
+  MESICE_NAMES.forEach(function(m, i){
+    var mesic = i+1;
+    var val = pd[mesic]||0;
+    fields += '<div>'+
+      '<label class="lbl" style="margin-bottom:4px;">'+m+'</label>'+
+      '<input class="finp" id="pris-m-'+mesic+'" type="number" min="0" max="9999" step="1" value="'+val+'" placeholder="0"/>'+
+    '</div>';
+  });
+  
+  document.getElementById("pris-edit-fields").innerHTML = fields;
+  document.getElementById("pris-edit-modal").classList.add("show");
+}
+
+function savePrisEditModal(){
+  if(!prisEditOsnum) return;
+  var rok = parseInt(document.getElementById("pris-rok").value);
+  var rows = [];
+  for(var i=1;i<=12;i++){
+    var el = document.getElementById("pris-m-"+i);
+    var castka = parseFloat(el.value)||0;
+    rows.push({osobni_cislo:prisEditOsnum, rok:rok, mesic:i, castka:castka});
+  }
+  
+  sbFetch("prispevky", {
+    method:"POST",
+    extraHeaders:{"Prefer":"resolution=merge-duplicates,return=minimal"},
+    body:JSON.stringify(rows)
+  }).then(function(r){
+    if(r.ok){
+      // Aktualizuj lokalni data
+      prispevkyData[prisEditOsnum] = prispevkyData[prisEditOsnum]||{};
+      rows.forEach(function(r){ prispevkyData[prisEditOsnum][r.mesic] = r.castka; });
+      document.getElementById("pris-edit-modal").classList.remove("show");
+      renderPrispevky();
+      logChange("Ruční editace příspěvků", prisEditName+" ("+prisEditOsnum+")");
+      setTimeout(loadAuditLog, 500);
+      showToast("Příspěvky uloženy.","ok");
+    } else {
+      showToast("Chyba při ukládání.","err");
+    }
+  });
+}
+
+// Export PDF pro úřady - vsichni clenove
+function exportPrispevkyPDF(){
+  var rok = parseInt(document.getElementById("pris-rok").value);
+  var rows = members.map(function(m){
+    var pd = prispevkyData[m.osnum]||{};
+    var celkem = 0;
+    for(var i=1;i<=12;i++) celkem += pd[i]||0;
+    return {jmeno:m.jmeno, prijmeni:m.prijmeni, osnum:m.osnum, celkem:celkem};
+  }).sort(function(a,b){ return a.prijmeni.localeCompare(b.prijmeni,"cs"); });
+  
+  generatePrisPDF(rok, rows, "Všichni členové");
+}
+
+// Export PDF pro jednotlivého člena
+function exportClenPDF(osnum, name){
+  var rok = parseInt(document.getElementById("pris-rok").value);
+  var pd = prispevkyData[osnum]||{};
+  var celkem = 0;
+  for(var i=1;i<=12;i++) celkem += pd[i]||0;
+  var m = members.find(function(x){ return x.osnum===osnum; });
+  if(!m) return;
+  generatePrisPDF(rok, [{jmeno:m.jmeno, prijmeni:m.prijmeni, osnum:osnum, celkem:celkem}], name);
+}
+
+function generatePrisPDF(rok, rows, title){
+  var pd_all = prispevkyData;
+  var mesiceNames = MESICE_NAMES;
+  
+  var tableRows = rows.map(function(r){
+    var pd = pd_all[r.osnum]||{};
+    var mesiceCells = mesiceNames.map(function(mn, i){
+      var val = pd[i+1]||0;
+      return '<td style="text-align:right;padding:4px 8px;border:1px solid #e2e6ed;font-size:11px;">'+
+        (val > 0 ? val+' Kč' : '—')+'</td>';
+    }).join("");
+    return '<tr>'+
+      '<td style="padding:4px 8px;border:1px solid #e2e6ed;font-size:12px;">'+r.prijmeni+' '+r.jmeno+'</td>'+
+      '<td style="padding:4px 8px;border:1px solid #e2e6ed;font-size:11px;color:#666;">'+r.osnum+'</td>'+
+      mesiceCells+
+      '<td style="text-align:right;padding:4px 8px;border:1px solid #e2e6ed;font-weight:700;color:#087cf4;">'+r.celkem+' Kč</td>'+
+    '</tr>';
+  }).join("");
+  
+  var mesiceHeaders = mesiceNames.map(function(m){ 
+    return '<th style="padding:4px 6px;background:#1a2332;color:#fff;font-size:10px;min-width:44px;">'+m.substring(0,3)+'</th>'; 
+  }).join("");
+  
+  var html = '<html><head><meta charset="UTF-8"><title>Příspěvky '+rok+'</title>'+
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;margin:20px;} h2{color:#1a2332;} table{border-collapse:collapse;width:100%;} '+
+    '@media print{button{display:none!important;}}</style></head><body>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
+    '<div><h2 style="margin:0">ZO OS KOVO Hyundai — Příspěvky '+rok+'</h2>'+
+    '<div style="font-size:12px;color:#666;">'+title+' | Vygenerováno: '+new Date().toLocaleDateString("cs-CZ")+'</div></div>'+
+    '<button onclick="window.print()" style="padding:8px 16px;background:#087cf4;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;">&#128424; Tisknout / Uložit PDF</button>'+
+    '</div>'+
+    '<table><thead><tr>'+
+    '<th style="padding:4px 8px;background:#1a2332;color:#fff;font-size:11px;text-align:left;">Příjmení a jméno</th>'+
+    '<th style="padding:4px 8px;background:#1a2332;color:#fff;font-size:11px;">Os. číslo</th>'+
+    mesiceHeaders+
+    '<th style="padding:4px 8px;background:#087cf4;color:#fff;font-size:11px;">Celkem</th>'+
+    '</tr></thead><tbody>'+tableRows+'</tbody></table>'+
+    '<div style="margin-top:20px;font-size:11px;color:#999;">Celkový počet členů: '+rows.length+
+    ' | Celková suma: '+rows.reduce(function(s,r){ return s+r.celkem; },0)+' Kč</div>'+
+    '</body></html>';
+  
+  var win = window.open("","_blank");
+  win.document.write(html);
+  win.document.close();
+}
+
+// Export CSV príspevky
+function exportPrispevkyCSV(){
+  var rok = parseInt(document.getElementById("pris-rok").value);
+  var header = ["Příjmení","Jméno","Os. číslo"].concat(MESICE_NAMES).concat(["Celkem"]);
+  var rows = members.map(function(m){
+    var pd = prispevkyData[m.osnum]||{};
+    var celkem = 0;
+    var mesice = [];
+    for(var i=1;i<=12;i++){ var v=pd[i]||0; celkem+=v; mesice.push(v); }
+    return [m.prijmeni,m.jmeno,m.osnum].concat(mesice).concat([celkem]);
+  }).sort(function(a,b){ return a[0].localeCompare(b[0],"cs"); });
+  
+  var lines = [header].concat(rows).map(function(r){
+    return r.map(function(v){ return '"'+String(v||"").replace(/"/g,'""')+'"'; }).join(";");
+  });
+  var blob = new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8;"});
+  var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "prispevky_"+rok+".csv"; a.click();
+}
 
 // ===== VYRAZENI =====
 var vyrazeniData = [];
