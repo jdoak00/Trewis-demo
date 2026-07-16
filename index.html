@@ -410,7 +410,7 @@ tbody td{padding:12px 14px;font-size:16px;}
           <div id="email-editor" contenteditable="true" style="min-height:160px;padding:12px;background:var(--panel2);border:1.5px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-family:var(--font);font-size:17px;outline:none;margin-bottom:12px;line-height:1.6;" placeholder="Vážená paní / Vážený pane,..."></div>
 
           <!-- PRILOHY -->
-          <label class="lbl" style="margin-bottom:6px">Přílohy (PDF, Word, Excel, PNG, JPEG — max 30 MB celkem)</label>
+          <label class="lbl" style="margin-bottom:6px">Přílohy (PDF, Word, Excel, PNG, JPEG — max 10 MB celkem)</label>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
             <input type="file" id="email-attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" style="display:none" onchange="handleAttachments(event)"/>
             <button class="btn btn-out" onclick="document.getElementById('email-attachments').click()">📎 Přidat přílohu</button>
@@ -2507,8 +2507,8 @@ function handleAttachments(event){
   var totalSize = 0;
   emailAttachments.forEach(function(f){ totalSize += f.size; });
   files.forEach(function(f){ totalSize += f.size; });
-  if(totalSize > 30 * 1024 * 1024){
-    showToast("Celková velikost příloh překračuje 30 MB.", "err");
+  if(totalSize > 10 * 1024 * 1024){
+    showToast("Celková velikost příloh překračuje 10 MB (limit Brevo API).", "err");
     return;
   }
   files.forEach(function(f){ emailAttachments.push(f); });
@@ -2543,11 +2543,15 @@ function sendTestEmail(){
   var jmeno = document.getElementById("user-name").textContent || "";
   var sig = EMAIL_SIGNATURE.replace("{{JMENO}}", jmeno).replace("{{ROLE}}", CURRENT_USER_ROLE === "editor" ? "Editor" : "Host");
   var fullHtml = "<div style='font-family:sans-serif;font-size:15px;line-height:1.6'>"+msg+"</div>"+sig;
-  sendBrevoEmail([{email:"odboryhmmc@email.cz", name:"Kontrolní e-mail"}], "[KONTROLNÍ] "+sub, fullHtml)
-    .then(function(ok){
-      if(ok) showToast("Kontrolní e-mail odeslán na odboryhmmc@email.cz", "ok");
-      else showToast("Chyba při odesílání kontrolního e-mailu.", "err");
-    });
+  // Prilohy pro testovaci email
+  var attachPromises = emailAttachments.map(function(f){ return fileToBase64(f); });
+  Promise.all(attachPromises).then(function(attachBase64){
+    sendBrevoEmail([{email:"odboryhmmc@email.cz", name:"Kontrolní e-mail"}], "[KONTROLNÍ] "+sub, fullHtml, attachBase64)
+      .then(function(ok){
+        if(ok) showToast("Kontrolní e-mail odeslán na odboryhmmc@email.cz"+(attachBase64.length>0?" s "+attachBase64.length+" přílohou":""), "ok");
+        else showToast("Chyba při odesílání kontrolního e-mailu.", "err");
+      });
+  });
 }
 function sendEmail(){
   if(checkGuest("Nemáte oprávnění odesílat e-maily.")) return;
@@ -2580,28 +2584,33 @@ function sendEmail(){
   document.getElementById("email-ok").style.display="none";
   document.getElementById("btn-send-email").disabled=true;
   var sent=0;
-  function sendBatch(offset){
-    var batch=rcpt.slice(offset,offset+50);
-    if(batch.length===0){
-      document.getElementById("email-progress").style.display="none";
-      document.getElementById("email-ok").style.display="block";
-      document.getElementById("email-ok").textContent="Hotovo! Odesláno "+sent+" e-mailů.";
-      document.getElementById("btn-send-email").disabled=false;
-      logChange("Odeslán hromadný e-mail", "Příjemců: "+sent);
-      setTimeout(loadAuditLog, 500);
-      showToast("E-mail odeslán "+sent+" příjemcům!","ok");
-      return;
+
+  // Prevest prilohy na base64
+  var attachPromises = emailAttachments.map(function(f){ return fileToBase64(f); });
+  Promise.all(attachPromises).then(function(attachBase64){
+    function sendBatch(offset){
+      var batch=rcpt.slice(offset,offset+50);
+      if(batch.length===0){
+        document.getElementById("email-progress").style.display="none";
+        document.getElementById("email-ok").style.display="block";
+        document.getElementById("email-ok").textContent="Hotovo! Odesláno "+sent+" e-mailů."+(attachBase64.length>0?" ("+attachBase64.length+" příloha)":"");
+        document.getElementById("btn-send-email").disabled=false;
+        logChange("Odeslán hromadný e-mail", "Příjemců: "+sent+(attachBase64.length>0?", příloh: "+attachBase64.length:""));
+        setTimeout(loadAuditLog, 500);
+        showToast("E-mail odeslán "+sent+" příjemcům!","ok");
+        return;
+      }
+      var to=batch.map(function(m){ return {email:m.email,name:m.jmeno+" "+m.prijmeni}; });
+      sendBrevoEmail(to,sub,htmlMsg,attachBase64).then(function(ok){
+        if(ok){ sent+=batch.length; }
+        var pct=Math.round(Math.min(sent,total)/total*100);
+        document.getElementById("email-prog-txt").textContent="Odesílám "+Math.min(sent,total)+"/"+total+"... "+pct+"%";
+        document.getElementById("email-prog-bar").style.width=pct+"%";
+        setTimeout(function(){ sendBatch(offset+50); },500);
+      });
     }
-    var to=batch.map(function(m){ return {email:m.email,name:m.jmeno+" "+m.prijmeni}; });
-    sendBrevoEmail(to,sub,htmlMsg).then(function(ok){
-      if(ok){ sent+=batch.length; }
-      var pct=Math.round(Math.min(sent,total)/total*100);
-      document.getElementById("email-prog-txt").textContent="Odesílám "+Math.min(sent,total)+"/"+total+"... "+pct+"%";
-      document.getElementById("email-prog-bar").style.width=pct+"%";
-      setTimeout(function(){ sendBatch(offset+50); },500);
-    });
-  }
-  sendBatch(0);
+    sendBatch(0);
+  });
 }
 
 // SMS
@@ -2897,8 +2906,20 @@ function testEmail(){
   });
 }
 
-function sendBrevoEmail(recipients, subject, htmlContent){
+function sendBrevoEmail(recipients, subject, htmlContent, attachments){
   if(!BREVO_API_KEY || !BREVO_FROM_EMAIL) return Promise.resolve(false);
+  var body = {
+    sender: {name: BREVO_FROM_NAME, email: BREVO_FROM_EMAIL},
+    to: recipients,
+    subject: subject,
+    htmlContent: htmlContent
+  };
+  // Pridat prilohy pokud existuji
+  if(attachments && attachments.length > 0){
+    body.attachment = attachments.map(function(a){
+      return { name: a.name, content: a.content };
+    });
+  }
   return fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
@@ -2906,13 +2927,22 @@ function sendBrevoEmail(recipients, subject, htmlContent){
       "api-key": BREVO_API_KEY,
       "content-type": "application/json"
     },
-    body: JSON.stringify({
-      sender: {name: BREVO_FROM_NAME, email: BREVO_FROM_EMAIL},
-      to: recipients,
-      subject: subject,
-      htmlContent: htmlContent
-    })
+    body: JSON.stringify(body)
   }).then(function(r){ return r.ok; }).catch(function(){ return false; });
+}
+
+// Prevede File objekt na base64 pro Brevo API
+function fileToBase64(file){
+  return new Promise(function(resolve, reject){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      // Odstranit "data:...;base64," prefix
+      var base64 = e.target.result.split(",")[1];
+      resolve({ name: file.name, content: base64 });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 // AUTO-ODHLASENI po 10 minutach
