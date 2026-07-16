@@ -444,11 +444,12 @@ tbody td{padding:12px 14px;font-size:16px;}
             <option value="skupina:DaRK">DaRK</option>
             <option value="skupina:Důvěrníci">Důvěrníci</option>
           </select>
-          <div class="rcpt-bar"><span>Prijemci: <span class="rcpt-n" id="sms-rcpt-n">0</span> cisel</span><span style="font-size:11px;color:var(--text3)">smsbrana.cz</span></div>
+          <div class="rcpt-bar"><span>Příjemci: <span class="rcpt-n" id="sms-rcpt-n">0</span> čísel</span><span style="font-size:11px;color:var(--text3)">smsmanager.cz</span></div>
           <label class="lbl" style="margin-bottom:6px">Text SMS</label>
           <textarea class="ftxt" id="sms-msg" rows="4" placeholder="Vazeny clene, zveme Vas na schuzi..." style="margin-bottom:6px" oninput="updateSmsChar()"></textarea>
           <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="sms-char">0/160 znaku</div>
           <div id="sms-progress" style="display:none">
+            <div style="font-size:13px;color:var(--text2);margin-bottom:4px" id="sms-prog-txt"></div>
             <div class="progress-wrap"><div class="progress-bar" id="sms-prog-bar" style="width:0%"></div></div>
           </div>
           <div class="ok-box" id="sms-ok" style="display:none">Hotovo! SMS odeslano.</div>
@@ -2702,10 +2703,16 @@ function sendSms(){
   var smsTypLabel = document.getElementById("sms-typ").options[document.getElementById("sms-typ").selectedIndex].text;
   if(!confirm("Opravdu chcete odeslat SMS "+total+" příjemcům?\n\nSkupina: "+smsTypLabel+"\n\nText: "+msg.substring(0,100)+(msg.length>100?"...":""))) return;
 
-  document.getElementById("sms-progress").style.display="block";
-  document.getElementById("sms-ok").style.display="none";
-  document.getElementById("btn-send-sms").disabled=true;
-  document.getElementById("sms-prog-txt").textContent="Odesílám 0/"+total+"...";
+  var progEl = document.getElementById("sms-progress");
+  var okEl = document.getElementById("sms-ok");
+  var progBar = document.getElementById("sms-prog-bar");
+  var progTxt = document.getElementById("sms-prog-txt");
+  var sendBtn = document.getElementById("btn-send-sms");
+  if(progEl) progEl.style.display="block";
+  if(okEl) okEl.style.display="none";
+  if(progBar) progBar.style.width="0%";
+  if(progTxt) progTxt.textContent="Odesílám 0/"+total+"...";
+  if(sendBtn) sendBtn.disabled=true;
 
   var sent = 0;
   var errors = 0;
@@ -2713,12 +2720,11 @@ function sendSms(){
   function sendNext(idx){
     if(idx >= rcpt.length){
       // Hotovo
-      document.getElementById("sms-progress").style.display="none";
-      document.getElementById("sms-ok").style.display="block";
+      if(progEl) progEl.style.display="none";
       var resultMsg = "Hotovo! SMS odesláno "+sent+" příjemcům.";
       if(errors > 0) resultMsg += " Chyb: "+errors;
-      document.getElementById("sms-ok").textContent = resultMsg;
-      document.getElementById("btn-send-sms").disabled=false;
+      if(okEl){ okEl.style.display="block"; okEl.textContent = resultMsg; }
+      if(sendBtn){ sendBtn.disabled=false; sendBtn.style.opacity="1"; sendBtn.style.cursor="pointer"; }
       logChange("Odeslána hromadná SMS", "Příjemců: "+sent+", chyb: "+errors);
       setTimeout(loadAuditLog, 500);
       showToast("SMS odesláno "+sent+" příjemcům!","ok");
@@ -2732,8 +2738,10 @@ function sendSms(){
     sendSmsManager(phone, msg, apiKey, sender).then(function(ok){
       if(ok) sent++; else errors++;
       var pct = Math.round((idx+1)/total*100);
-      document.getElementById("sms-prog-txt").textContent = "Odesílám "+(idx+1)+"/"+total+"... "+pct+"%";
-      document.getElementById("sms-prog-bar").style.width = pct+"%";
+      var pt = document.getElementById("sms-prog-txt");
+      var pb = document.getElementById("sms-prog-bar");
+      if(pt) pt.textContent = "Odesílám "+(idx+1)+"/"+total+"... "+pct+"%";
+      if(pb) pb.style.width = pct+"%";
       // Pauza 100ms mezi zpravami - ochrana pred rate limitem
       setTimeout(function(){ sendNext(idx+1); }, 100);
     });
