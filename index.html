@@ -640,8 +640,7 @@ tbody td{padding:12px 14px;font-size:16px;}
               </select>
               <button class="btn btn-out" onclick="document.getElementById('pris-import-inp').click()">&#8593; Import CSV</button>
               <input type="file" id="pris-import-inp" accept=".csv" style="display:none" onchange="importPrispevky(event)"/>
-              <button class="btn btn-out" onclick="exportPrispevkyPDF()">&#8681; PDF rok</button>
-              <button class="btn btn-out btn-sm" onclick="exportPrispevkyCSV()">&#8595; CSV rok</button>
+              <button class="btn btn-out" onclick="exportPrispevkyPDF()">&#8681; PDF celý rok</button>
             </div>
           </div>
         </div>
@@ -1364,10 +1363,12 @@ function getSorted(){
 }
 
 function renderStats(){
-  var radny=members.filter(function(m){ return m.typ==="Řádný člen"; }).length;
-  var tajny=members.filter(function(m){ return m.typ==="Tajný člen"; }).length;
+  // Pocitat pouze cleny z tabulky clenove (ne vyrazeni ani jine sekce)
+  var aktivni=members;
+  var radny=aktivni.filter(function(m){ return m.typ==="Řádný člen"; }).length;
+  var tajny=aktivni.filter(function(m){ return m.typ==="Tajný člen"; }).length;
   var data=[
-    {n:members.length,l:"Celkem členů",c:"#087cf4"},
+    {n:aktivni.length,l:"Celkem členů",c:"#087cf4"},
     {n:radny,l:"Řádní členové",c:"#00eddf"},
     {n:tajny,l:"Tajní členové",c:"#07fa70"}
   ];
@@ -1991,15 +1992,20 @@ function savePrisEditModal(){
     rows.push({osobni_cislo:prisEditOsnum, rok:rok, mesic:i, castka:castka});
   }
   
-  sbFetch("prispevky", {
-    method:"POST",
-    extraHeaders:{"Prefer":"resolution=merge-duplicates,return=minimal"},
-    body:JSON.stringify(rows)
+  // Upsert - nejdrive smaz existujici zaznamy, pak vloz nove
+  var rok = parseInt(document.getElementById("pris-rok").value);
+  sbFetch("prispevky?osobni_cislo=eq."+encodeURIComponent(prisEditOsnum)+"&rok=eq."+rok, {
+    method:"DELETE"
+  }).then(function(){
+    return sbFetch("prispevky", {
+      method:"POST",
+      extraHeaders:{"Prefer":"return=minimal"},
+      body:JSON.stringify(rows)
+    });
   }).then(function(r){
     if(r.ok){
-      // Aktualizuj lokalni data
       prispevkyData[prisEditOsnum] = prispevkyData[prisEditOsnum]||{};
-      rows.forEach(function(r){ prispevkyData[prisEditOsnum][r.mesic] = r.castka; });
+      rows.forEach(function(row){ prispevkyData[prisEditOsnum][row.mesic] = row.castka; });
       document.getElementById("pris-edit-modal").classList.remove("show");
       renderPrispevky();
       logChange("Ruční editace příspěvků", prisEditName+" ("+prisEditOsnum+")");
@@ -2008,7 +2014,7 @@ function savePrisEditModal(){
     } else {
       showToast("Chyba při ukládání.","err");
     }
-  });
+  }).catch(function(){ showToast("Chyba připojení.","err"); });
 }
 
 // Export PDF pro úřady - vsichni clenove
