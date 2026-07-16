@@ -15,7 +15,7 @@ exports.handler = async function(event) {
     params.append("type", "utf");
     if(sender) params.append("sender", sender);
 
-    const response = await fetch("https://app.smsmanager.com/api/send", {
+    const response = await fetch("https://api.smsmanager.cz/send", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: params.toString()
