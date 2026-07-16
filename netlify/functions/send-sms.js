@@ -13,7 +13,7 @@ exports.handler = async function(event) {
       "&number=" + encodeURIComponent(normalizedPhone) +
       "&message=" + encodeURIComponent(text) +
       "&type=utf" +
-      (sender ? "&sender=" + encodeURIComponent(sender) : "");
+      "";
 
     const response = await fetch(url, { method: "GET" });
     const responseText = await response.text();
