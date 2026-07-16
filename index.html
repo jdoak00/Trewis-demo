@@ -2654,26 +2654,27 @@ function loadSmsSettings(){
 }
 
 function sendSmsManager(phone, text, apiKey, sender){
-  // SmsManager.cz JSON API v2
-  var url = "https://api.smsmngr.com/v2/message";
-  var body = {
-    to: [{phone_number: phone}],
-    body: text
-  };
-  if(sender) body.sender = sender;
+  // Volame pres Netlify funkci - obchazi CORS omezeni prohlizece
+  var url = "/.netlify/functions/send-sms";
   return fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey
-    },
-    body: JSON.stringify(body)
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      phone: phone,
+      text: text,
+      apiKey: apiKey,
+      sender: sender
+    })
   }).then(function(r){
     return r.json().then(function(data){
+      if(data && data.error){
+        console.error("SMS error:", data.error);
+        return false;
+      }
       // Uspech = data.accepted obsahuje zaznamy
       return data && data.accepted && data.accepted.length > 0;
     });
-  }).catch(function(e){ console.error("SMS error:", e); return false; });
+  }).catch(function(e){ console.error("SMS fetch error:", e); return false; });
 }
 
 function sendSms(){
