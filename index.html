@@ -2030,17 +2030,98 @@ function exportPrispevkyPDF(){
   generatePrisPDF(rok, rows, "Všichni členové");
 }
 
-// Export PDF pro jednotlivého člena
+// Export PDF pro jednotlivého člena - POTVRZENÍ PRO ÚŘADY
 function exportClenPDF(osnum, name){
+  if(checkGuest("Nemáte oprávnění exportovat PDF.")) return;
   var rok = parseInt(document.getElementById("pris-rok").value);
   var pd = prispevkyData[osnum]||{};
   var celkem = 0;
   for(var i=1;i<=12;i++) celkem += pd[i]||0;
   var m = members.find(function(x){ return x.osnum===osnum; });
   if(!m) return;
-  generatePrisPDF(rok, [{jmeno:m.jmeno, prijmeni:m.prijmeni, osnum:osnum, celkem:celkem}], name);
+  generatePotvrzeniPDF(m, rok, celkem);
 }
 
+function generatePotvrzeniPDF(m, rok, celkem){
+  var dnes = new Date().toLocaleDateString("cs-CZ");
+  var jmenoPrijmeni = m.prijmeni.toUpperCase()+' '+m.jmeno;
+  var adresa = m.adresa || '';
+  var castkaText = celkem.toLocaleString("cs-CZ")+'.00 Kč';
+  
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<title>Potvrzení - '+m.prijmeni+' '+m.jmeno+'</title>'+
+    '<style>'+
+    'body{font-family:Arial,sans-serif;font-size:13px;margin:0;padding:40px;color:#222;line-height:1.5;}'+
+    'h3{text-align:center;color:#087cf4;font-size:18px;margin:0 0 6px 0;letter-spacing:0.5px;}'+
+    '.subtitle{text-align:center;font-size:14px;color:#222;margin-bottom:40px;line-height:1.6;}'+
+    '.org-block{margin-bottom:30px;}'+
+    '.org-name{font-weight:700;font-size:13px;}'+
+    '.field-row{display:flex;border-bottom:1px solid #ccc;padding:10px 0;align-items:baseline;}'+
+    '.field-label{min-width:160px;color:#444;font-size:13px;}'+
+    '.field-value{font-size:13px;font-weight:400;}'+
+    '.field-value.bold{font-weight:700;font-size:14px;}'+
+    '.footer-text{text-align:center;font-size:13px;margin:50px 20px 0;line-height:1.7;color:#333;}'+
+    '.sign-row{display:flex;justify-content:space-between;margin-top:60px;font-size:12px;color:#333;}'+
+    '.sign-col{text-align:center;width:45%;}'+
+    '.sign-line{border-top:1px solid #666;padding-top:6px;margin-top:30px;}'+
+    '.logo-wrap{margin-bottom:30px;}'+
+    '@media print{.no-print{display:none!important;} body{padding:30px;}}'+
+    '</style></head><body>'+
+    
+    // Tisknout tlacitko
+    '<div class="no-print" style="text-align:right;margin-bottom:20px;">'+
+    '<button onclick="window.print()" style="padding:10px 20px;background:#087cf4;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:15px;font-weight:700;">&#128424; Tisknout / Uložit PDF</button>'+
+    '</div>'+
+    
+    // Logo + nadpis
+    '<div style="display:flex;align-items:flex-start;gap:20px;margin-bottom:10px;">'+
+    '<div class="logo-wrap"><img src="'+LOGO+'" style="height:70px;object-fit:contain;" alt="Logo"/></div>'+
+    '<div style="flex:1;">'+
+    '<h3>Potvrzení</h3>'+
+    '<div class="subtitle">odborové organizace o výši zaplacených členských příspěvků pro účely<br>snížení základu daně z příjmu fyzických osob</div>'+
+    '</div></div>'+
+    
+    // Organizace
+    '<div class="org-block">'+
+    '<div class="field-row">'+
+    '<span class="field-label">Organizace:</span>'+
+    '<span class="field-value"><span class="bold">Základní organizace OS KOVO Hyundai Czech</span><br>Hyundai 700/1, Nižní Lhoty, 739 51<br><br>'+
+    'potvrzuje ve smyslu ustanovení § 15 odst. 7 zákona č. 586/1992 Sb.,<br>'+
+    'o daních z příjmu v platném znění, že náš člen/členka</span>'+
+    '</div></div>'+
+    
+    // Udaje clena
+    '<div class="field-row"><span class="field-label">Pan(í):</span><span class="field-value bold">'+jmenoPrijmeni+'</span></div>'+
+    '<div class="field-row"><span class="field-label">Narozen(a):</span><span class="field-value"></span></div>'+
+    '<div class="field-row"><span class="field-label">Trvalý pobyt:</span><span class="field-value">'+adresa+'</span></div>'+
+    '<div class="field-row"><span class="field-label">Zaplatil(a) v roce:</span><span class="field-value bold">'+rok+'</span></div>'+
+    '<div class="field-row"><span class="field-label">Částku:</span><span class="field-value bold">'+castkaText+' jako členské příspěvky naší organizaci</span></div>'+
+    
+    // Paticka
+    '<div class="footer-text">'+
+    'Toto potvrzení se vydává podle § 38l odst. 1, písm. j) výše uvedeného zákona na<br>'+
+    'žádost tohoto člena jako doklad pro roční zúčtování záloh na dani z příjmu<br>'+
+    'fyzických osob ze závislé činnosti a funkčních požitků.'+
+    '</div>'+
+    
+    // Datum a podpis
+    '<div class="sign-row">'+
+    '<div class="sign-col"><div>'+dnes+'</div><div class="sign-line">datum</div></div>'+
+    '<div class="sign-col"><div>&nbsp;</div><div class="sign-line">podpis a razítko odborové organizace</div></div>'+
+    '</div>'+
+    
+    '</body></html>';
+  
+  var win = window.open("","_blank");
+  if(win){
+    win.document.write(html);
+    win.document.close();
+  } else {
+    showToast("Povolte vyskakovací okna v prohlížeči.","err");
+  }
+}
+
+// Export PDF souhrn vsech clenu - tabulkovy format
 function generatePrisPDF(rok, rows, title){
   var pd_all = prispevkyData;
   var mesiceNames = MESICE_NAMES;
@@ -2060,31 +2141,31 @@ function generatePrisPDF(rok, rows, title){
     '</tr>';
   }).join("");
   
-  var mesiceHeaders = mesiceNames.map(function(m){ 
-    return '<th style="padding:4px 6px;background:#1a2332;color:#fff;font-size:10px;min-width:44px;">'+m.substring(0,3)+'</th>'; 
+  var mesiceHeaders = mesiceNames.map(function(mn){ 
+    return '<th style="padding:4px 6px;background:#1a2332;color:#fff;font-size:10px;min-width:44px;">'+mn.substring(0,3)+'</th>'; 
   }).join("");
   
-  var html = '<html><head><meta charset="UTF-8"><title>Příspěvky '+rok+'</title>'+
-    '<style>body{font-family:Arial,sans-serif;font-size:12px;margin:20px;} h2{color:#1a2332;} table{border-collapse:collapse;width:100%;} '+
-    '@media print{button{display:none!important;}}</style></head><body>'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
-    '<div><h2 style="margin:0">ZO OS KOVO Hyundai — Příspěvky '+rok+'</h2>'+
-    '<div style="font-size:12px;color:#666;">'+title+' | Vygenerováno: '+new Date().toLocaleDateString("cs-CZ")+'</div></div>'+
-    '<button onclick="window.print()" style="padding:8px 16px;background:#087cf4;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;">&#128424; Tisknout / Uložit PDF</button>'+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Příspěvky '+rok+'</title>'+
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;margin:20px;} table{border-collapse:collapse;width:100%;} '+
+    '@media print{.no-print{display:none!important;}}</style></head><body>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;" class="no-print">'+
+    '<h2 style="margin:0;color:#1a2332;">ZO OS KOVO Hyundai — Příspěvky '+rok+'</h2>'+
+    '<button onclick="window.print()" style="padding:8px 16px;background:#087cf4;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;">&#128424; Tisknout / PDF</button>'+
     '</div>'+
+    '<div style="font-size:12px;color:#666;margin-bottom:12px;">'+title+' | '+new Date().toLocaleDateString("cs-CZ")+'</div>'+
     '<table><thead><tr>'+
     '<th style="padding:4px 8px;background:#1a2332;color:#fff;font-size:11px;text-align:left;">Příjmení a jméno</th>'+
     '<th style="padding:4px 8px;background:#1a2332;color:#fff;font-size:11px;">Os. číslo</th>'+
     mesiceHeaders+
     '<th style="padding:4px 8px;background:#087cf4;color:#fff;font-size:11px;">Celkem</th>'+
     '</tr></thead><tbody>'+tableRows+'</tbody></table>'+
-    '<div style="margin-top:20px;font-size:11px;color:#999;">Celkový počet členů: '+rows.length+
-    ' | Celková suma: '+rows.reduce(function(s,r){ return s+r.celkem; },0)+' Kč</div>'+
+    '<div style="margin-top:16px;font-size:11px;color:#999;">Členů: '+rows.length+
+    ' | Celková suma: '+rows.reduce(function(s,r){ return s+r.celkem; },0).toLocaleString("cs-CZ")+' Kč</div>'+
     '</body></html>';
   
   var win = window.open("","_blank");
-  win.document.write(html);
-  win.document.close();
+  if(win){ win.document.write(html); win.document.close(); }
+  else showToast("Povolte vyskakovací okna v prohlížeči.","err");
 }
 
 // Export CSV príspevky
