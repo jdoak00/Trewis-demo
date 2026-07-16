@@ -448,7 +448,7 @@ tbody td{padding:12px 14px;font-size:16px;}
               <label class="lbl" style="margin-bottom:6px;">SMS API klíč (SMSbrana.cz)</label>
               <input class="finp" id="sms-api-key" placeholder="Váš API klíč ze SMSbrana.cz" style="margin-bottom:8px;"/>
               <label class="lbl" style="margin-bottom:6px;">Odesílatel (max 11 znaků)</label>
-              <input class="finp" id="sms-sender" placeholder="ODBORY" maxlength="11" style="margin-bottom:8px;"/>
+              <input class="finp" id="sms-sender" placeholder="ODBORY" maxlength="16" style="margin-bottom:8px;"/>
               <button class="btn btn-blue" onclick="saveSmsSettings()">&#10003; Uložit SMS nastavení</button>
               <div id="sms-set-status" style="display:none;margin-top:8px;font-size:13px;padding:8px 12px;border-radius:8px;"></div>
             </div>
@@ -2556,7 +2556,7 @@ function saveSmsSettings(){
   var key = (document.getElementById("sms-api-key").value||"").trim();
   var sender = (document.getElementById("sms-sender").value||"").trim();
   if(!key||!sender){ showSmsSetStatus("Vyplňte API klíč a odesílatele.","err"); return; }
-  if(sender.length>11){ showSmsSetStatus("Odesílatel může mít max 11 znaků.","err"); return; }
+  if(sender.length>16){ showSmsSetStatus("Odesílatel může mít max 16 znaků.","err"); return; }
   localStorage.setItem("sms_api_key", key);
   localStorage.setItem("sms_sender", sender);
   showSmsSetStatus("SMS nastavení uloženo!","ok");
