@@ -7,20 +7,15 @@ exports.handler = async function(event) {
 
   try {
     const normalizedPhone = phone.replace(/\s/g, "").replace(/^\+/, "");
+    
+    const url = "https://http-api.smsmanager.cz/Send" +
+      "?apikey=" + encodeURIComponent(apiKey) +
+      "&number=" + encodeURIComponent(normalizedPhone) +
+      "&message=" + encodeURIComponent(text) +
+      "&type=utf" +
+      (sender ? "&sender=" + encodeURIComponent(sender) : "");
 
-    const params = new URLSearchParams();
-    params.append("apikey", apiKey);
-    params.append("number", normalizedPhone);
-    params.append("message", text);
-    params.append("type", "utf");
-    if(sender) params.append("sender", sender);
-
-    const response = await fetch("https://api.smsmanager.cz/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString()
-    });
-
+    const response = await fetch(url, { method: "GET" });
     const responseText = await response.text();
     console.log("SmsManager response:", responseText);
 
@@ -28,13 +23,14 @@ exports.handler = async function(event) {
     return {
       statusCode: 200,
       headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         accepted: ok ? [{ message_id: responseText }] : null,
         rejected: !ok,
         raw: responseText
       })
     };
   } catch(err) {
+    console.error("Error:", err.message);
     return {
       statusCode: 500,
       headers: { "Access-Control-Allow-Origin": "*" },
