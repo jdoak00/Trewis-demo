@@ -433,30 +433,8 @@ tbody td{padding:12px 14px;font-size:16px;}
       <div id="page-sms" style="display:none">
         <div class="compose">
           <div class="compose-title">&#128241; Hromadná SMS</div>
-          <div class="info-bar">SMS přes <b>Twilio</b> nebo <b>SMSbrana.cz</b> (~0,60-0,90 Kč/SMS). Klikněte na tlačítko níže pro návod na nastavení.</div>
-          <button class="btn btn-out" onclick="document.getElementById('sms-navod').style.display=document.getElementById('sms-navod').style.display==='none'?'block':'none'" style="margin-bottom:12px;">📖 Návod na nastavení SMS</button>
-          <div id="sms-navod" style="display:none;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;">
-            <div style="font-size:15px;font-weight:700;margin-bottom:12px;color:var(--text)">Návod — Nastavení hromadných SMS (SMSbrana.cz)</div>
-            <ol style="font-size:14px;color:var(--text2);padding-left:20px;line-height:2.2;">
-              <li>Jděte na <b><a href="https://www.smsbrana.cz" target="_blank" style="color:var(--blue)">smsbrana.cz</a></b> a vytvořte účet</li>
-              <li>Po registraci přejděte do sekce <b>API přístup</b> nebo <b>Nastavení → API</b></li>
-              <li>Vygenerujte <b>API klíč</b> a zkopírujte ho</li>
-              <li>Ověřte váš odesílací telefon nebo název odesílatele (max 11 znaků, bez mezer)</li>
-              <li>Dobijte kredit — cena za SMS je cca <b>0,60–0,90 Kč/SMS</b> včetně DPH</li>
-              <li>API klíč vložte do aplikace níže a uložte</li>
-            </ol>
-            <div style="margin-top:12px;padding:10px;background:rgba(8,124,244,.07);border-radius:8px;font-size:13px;color:var(--text2)">
-              <b>Alternativa — Twilio:</b> Mezinárodní platforma, spolehlivá, anglické rozhraní. Registrace na <a href="https://www.twilio.com" target="_blank" style="color:var(--blue)">twilio.com</a>. Cena cca 0,05–0,08 USD/SMS do ČR.
-            </div>
-            <div style="margin-top:10px;">
-              <label class="lbl" style="margin-bottom:6px;">SMS API klíč (SMSbrana.cz)</label>
-              <input class="finp" id="sms-api-key" placeholder="Váš API klíč ze SMSbrana.cz" style="margin-bottom:8px;"/>
-              <label class="lbl" style="margin-bottom:6px;">Odesílatel (max 11 znaků)</label>
-              <input class="finp" id="sms-sender" placeholder="ODBORY" maxlength="16" style="margin-bottom:8px;"/>
-              <button class="btn btn-blue" onclick="saveSmsSettings()">&#10003; Uložit SMS nastavení</button>
-              <div id="sms-set-status" style="display:none;margin-top:8px;font-size:13px;padding:8px 12px;border-radius:8px;"></div>
-            </div>
-          </div>
+          <div class="info-bar">SMS přes <b>SmsManager.cz</b>. Nastavení API klíče najdete v sekci <b>Nastavení</b>.</div>
+
           <label class="lbl" style="margin-bottom:6px">Filtrovat příjemce</label>
           <select class="flt" id="sms-typ" style="width:100%;max-width:280px;margin-bottom:12px" onchange="updateSmsRcpt()">
             <option value="">Všichni členové s telefonem</option>
@@ -579,6 +557,26 @@ tbody td{padding:12px 14px;font-size:16px;}
               <li>Vložte klíč do pole výše a uložte</li>
             </ol>
           </div>
+        
+
+          <!-- SMS NASTAVENI -->
+          <div style="border-top:1px solid var(--border);margin-top:28px;padding-top:20px;">
+            <div class="dp-sec">&#128241; Nastavení SMS — SmsManager.cz</div>
+            <div class="info-bar">Zadejte <b>API klíč ze SmsManager.cz</b> a název odesílatele. Nastavení platí na všech zařízeních.</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+              <div style="grid-column:1/-1">
+                <label class="lbl" style="margin-bottom:6px;">SMS API klíč</label>
+                <div style="position:relative;">
+                  <input class="finp" id="set-sms-apikey" type="password" placeholder="Váš API klíč ze SmsManager.cz" style="padding-right:80px;"/>
+                  <button onclick="toggleSmsApiKey()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--panel2);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text2);font-size:11px;font-weight:700;padding:3px 8px;font-family:var(--font);" id="btn-sms-eye">Zobrazit</button>
+                </div>
+              </div>
+              <div>
+                <label class="lbl" style="margin-bottom:6px;">Název odesílatele (max 16 znaků)</label>
+                <input class="finp" id="set-sms-sender" placeholder="ODBORY" maxlength="16"/>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -608,7 +606,10 @@ tbody td{padding:12px 14px;font-size:16px;}
               </tbody>
             </table>
           </div>
-          <div class="pag" id="vyr-pag"></div>
+          <div class="pag" id="vyr-pag">
+
+
+</div>
         </div>
       </div>
 
@@ -1158,7 +1159,7 @@ function memberToDbRow(m){
     jmeno:m.jmeno, prijmeni:m.prijmeni, email:m.email, mobil:m.telefon,
     adresa:m.adresa, clen_od:m.datumVstupu||null, typ_clenstvi:m.typ,
     oddeleni:m.oddeleni, linka_smena:ls, osobni_cislo:m.osnum, prispevky:m.prispevky,
-    vedouci:m.vedouci||""
+    vedouci:m.vedouci||"", skupina:m.skupina||""
   };
 }
 
@@ -2760,6 +2761,8 @@ function loadSettings(){
         BREVO_API_KEY = s.brevo_api_key || "";
         BREVO_FROM_EMAIL = s.brevo_from_email || "";
         BREVO_FROM_NAME = s.brevo_from_name || "Odbory HMMC";
+        SMS_API_KEY = s.sms_api_key || "";
+        SMS_SENDER = s.sms_sender || "";
       }
       var keyEl = document.getElementById("set-apikey");
       var emailEl = document.getElementById("set-email");
@@ -2767,6 +2770,10 @@ function loadSettings(){
       if(keyEl) keyEl.value = BREVO_API_KEY;
       if(emailEl) emailEl.value = BREVO_FROM_EMAIL;
       if(nameEl) nameEl.value = BREVO_FROM_NAME;
+      var smsKeyEl = document.getElementById("set-sms-apikey");
+      var smsSenderEl = document.getElementById("set-sms-sender");
+      if(smsKeyEl) smsKeyEl.value = SMS_API_KEY;
+      if(smsSenderEl) smsSenderEl.value = SMS_SENDER;
     })
     .catch(function(){ showToast("Chyba načítání nastavení.","err"); });
 }
@@ -2778,20 +2785,36 @@ function toggleApiKey(){
   else { el.type = "password"; btn.textContent = "Zobrazit"; }
 }
 
+function toggleSmsApiKey(){
+  var el = document.getElementById("set-sms-apikey");
+  var btn = document.getElementById("btn-sms-eye");
+  if(el.type === "password"){ el.type = "text"; btn.textContent = "Skrýt"; }
+  else { el.type = "password"; btn.textContent = "Zobrazit"; }
+}
+
 function saveSettings(){
   BREVO_API_KEY = (document.getElementById("set-apikey").value || "").trim();
   BREVO_FROM_EMAIL = (document.getElementById("set-email").value || "").trim();
   BREVO_FROM_NAME = (document.getElementById("set-name").value || "Odbory HMMC").trim();
+  var smsKey = document.getElementById("set-sms-apikey");
+  var smsSender = document.getElementById("set-sms-sender");
+  if(smsKey) SMS_API_KEY = smsKey.value.trim();
+  if(smsSender) SMS_SENDER = smsSender.value.trim();
   showSetStatus("Ukládám...", "ok");
   sbFetch("nastaveni?id=eq.1", {
     method: "PATCH",
     body: JSON.stringify({
       brevo_api_key: BREVO_API_KEY,
       brevo_from_email: BREVO_FROM_EMAIL,
-      brevo_from_name: BREVO_FROM_NAME
+      brevo_from_name: BREVO_FROM_NAME,
+      sms_api_key: SMS_API_KEY,
+      sms_sender: SMS_SENDER
     })
   }).then(function(r){
     if(r.ok){
+      // Taky uloz do localStorage jako zaloha
+      localStorage.setItem("sms_api_key", SMS_API_KEY);
+      localStorage.setItem("sms_sender", SMS_SENDER);
       showSetStatus("Nastavení uloženo. Platí na všech zařízeních.", "ok");
       showToast("Nastavení uloženo.", "ok");
     } else {
@@ -2918,4 +2941,22 @@ function showToast(msg,type){
 
 
 </body>
-</html>
+</html
+
+          <!-- SMS NASTAVENI -->
+          <div class="dp-sec" style="margin-top:28px;border-top:1px solid var(--border);padding-top:20px;">&#128241; Nastavení SMS — SmsManager.cz</div>
+          <div class="info-bar">Zadejte <b>API klíč ze SmsManager.cz</b> a název odesílatele. Nastavení platí na všech zařízeních.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+            <div style="grid-column:1/-1">
+              <label class="lbl" style="margin-bottom:6px;">SMS API klíč</label>
+              <div style="position:relative;">
+                <input class="finp" id="set-sms-apikey" type="password" placeholder="Váš API klíč ze SmsManager.cz" style="padding-right:80px;"/>
+                <button onclick="toggleSmsApiKey()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--panel2);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text2);font-size:11px;font-weight:700;padding:3px 8px;font-family:var(--font);" id="btn-sms-eye">Zobrazit</button>
+              </div>
+            </div>
+            <div>
+              <label class="lbl" style="margin-bottom:6px;">Název odesílatele (max 16 znaků)</label>
+              <input class="finp" id="set-sms-sender" placeholder="ODBORY" maxlength="16"/>
+            </div>
+          </div>
+>
