@@ -2653,19 +2653,26 @@ function loadSmsSettings(){
 }
 
 function sendSmsManager(phone, text, apiKey, sender){
-  // SmsManager.cz API - HTTP POST
-  var url = "https://api.smsmanager.cz/Send";
-  var data = {
-    apikey: apiKey,
-    number: phone,
-    message: text,
-    sender: sender
+  // SmsManager.cz JSON API v2
+  var url = "https://api.smsmngr.com/v2/message";
+  var body = {
+    to: [{phone_number: phone}],
+    body: text
   };
+  if(sender) body.sender = sender;
   return fetch(url, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(data)
-  }).then(function(r){ return r.ok; }).catch(function(){ return false; });
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey
+    },
+    body: JSON.stringify(body)
+  }).then(function(r){
+    return r.json().then(function(data){
+      // Uspech = data.accepted obsahuje zaznamy
+      return data && data.accepted && data.accepted.length > 0;
+    });
+  }).catch(function(e){ console.error("SMS error:", e); return false; });
 }
 
 function sendSms(){
