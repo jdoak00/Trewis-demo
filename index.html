@@ -1148,7 +1148,7 @@ function dbRowToMember(r){
     datumVstupu:r.clen_od||"", typ:r.typ_clenstvi||"Řádný člen",
     oddeleni:r.oddeleni||"", linka:linka, smena:smena,
     linka_smena:ls, osnum:r.osobni_cislo||"", prispevky:r.prispevky||"ano",
-    vedouci:r.vedouci||""
+    vedouci:r.vedouci||"", skupina:r.skupina||""
   };
 }
 
@@ -1268,7 +1268,7 @@ function doLogin(){
         document.getElementById("user-name").textContent=result.user.username;
         CURRENT_USER_ROLE = result.user.role || "guest";
         applyRoleRestrictions();
-        updateViewToggle(); loadMembers(); loadSettings(); resetInactivityTimer(); setTimeout(applyRoleRestrictions, 500); setTimeout(loadAuditLog, 1500); setTimeout(initPrisRok, 300);
+        updateViewToggle(); loadMembers(); loadSettings(); loadSmsSettings(); resetInactivityTimer(); setTimeout(applyRoleRestrictions, 500); setTimeout(loadAuditLog, 1500); setTimeout(initPrisRok, 300);
       } else {
         errEl.textContent=result.msg;
         errEl.style.display="block";
@@ -2549,6 +2549,9 @@ function sendEmail(){
   });
   var total=rcpt.length;
   if(!total){ showToast("Žádní příjemci.","err"); return; }
+  var emailTypLabel = document.getElementById("email-typ").options[document.getElementById("email-typ").selectedIndex].text;
+  var emailSub = document.getElementById("email-sub").value.trim();
+  if(!confirm("Opravdu chcete odeslat e-mail "+total+" příjemcům?\n\nSkupina: "+emailTypLabel+"\n\nPředmět: "+emailSub)) return;
   // Pridat podpis
   var jmeno=document.getElementById("user-name").textContent||"";
   var sig=EMAIL_SIGNATURE.replace("{{JMENO}}",jmeno).replace("{{ROLE}}",CURRENT_USER_ROLE==="editor"?"Editor":"Host");
@@ -2610,28 +2613,101 @@ function updateSmsRcpt(){
   document.getElementById("btn-send-sms").textContent="Odeslat SMS ("+n+")";
 }
 function updateSmsChar(){ document.getElementById("sms-char").textContent=document.getElementById("sms-msg").value.length+"/160 znaků"; }
+// SMS nastaveni
+var SMS_API_KEY = "";
+var SMS_SENDER = "";
+
+function loadSmsSettings(){
+  SMS_API_KEY = localStorage.getItem("sms_api_key")||"";
+  SMS_SENDER = localStorage.getItem("sms_sender")||"";
+  // Nacti do policek v nastaveni
+  var keyEl = document.getElementById("sms-api-key");
+  var senderEl = document.getElementById("sms-sender");
+  if(keyEl && SMS_API_KEY) keyEl.value = SMS_API_KEY;
+  if(senderEl && SMS_SENDER) senderEl.value = SMS_SENDER;
+}
+
+function sendSmsManager(phone, text, apiKey, sender){
+  // SmsManager.cz API - HTTP POST
+  var url = "https://api.smsmanager.cz/Send";
+  var data = {
+    apikey: apiKey,
+    number: phone,
+    message: text,
+    sender: sender
+  };
+  return fetch(url, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data)
+  }).then(function(r){ return r.ok; }).catch(function(){ return false; });
+}
+
 function sendSms(){
   if(checkGuest("Nemáte oprávnění odesílat SMS.")) return;
-  var msg=document.getElementById("sms-msg").value;
+  var msg = document.getElementById("sms-msg").value.trim();
   if(!msg){ showToast("Napište text SMS.","err"); return; }
-  var val=document.getElementById("sms-typ").value;
-  var total=members.filter(function(m){
+
+  // Zkontroluj API klíč
+  var apiKey = localStorage.getItem("sms_api_key")||"";
+  var sender = localStorage.getItem("sms_sender")||"";
+  if(!apiKey || !sender){
+    showToast("Nastavte SMS API klíč a odesílatele v záložce SMS → Návod.","err");
+    return;
+  }
+
+  var val = document.getElementById("sms-typ").value;
+  var rcpt = members.filter(function(m){
     if(!m.telefon) return false;
     if(!val) return true;
     if(val.indexOf("typ:")===0) return m.typ===val.substring(4);
     if(val.indexOf("skupina:")===0) return m.skupina===val.substring(8);
     return true;
-  }).length;
-  if(!total) return;
+  });
+  var total = rcpt.length;
+  if(!total){ showToast("Žádní příjemci SMS.","err"); return; }
+
+  var smsTypLabel = document.getElementById("sms-typ").options[document.getElementById("sms-typ").selectedIndex].text;
+  if(!confirm("Opravdu chcete odeslat SMS "+total+" příjemcům?\n\nSkupina: "+smsTypLabel+"\n\nText: "+msg.substring(0,100)+(msg.length>100?"...":""))) return;
+
   document.getElementById("sms-progress").style.display="block";
   document.getElementById("sms-ok").style.display="none";
   document.getElementById("btn-send-sms").disabled=true;
-  var i=0;
-  function step(){
-    if(i>=total){ document.getElementById("sms-progress").style.display="none"; document.getElementById("sms-ok").style.display="block"; document.getElementById("sms-ok").textContent="Hotovo! SMS odesláno "+total+" příjemcům."; document.getElementById("btn-send-sms").disabled=false; showToast("SMS odesláno "+total+" příjemcům!","ok"); return; }
-    i++; document.getElementById("sms-prog-bar").style.width=Math.round(i/total*100)+"%"; setTimeout(step,10);
+  document.getElementById("sms-prog-txt").textContent="Odesílám 0/"+total+"...";
+
+  var sent = 0;
+  var errors = 0;
+
+  function sendNext(idx){
+    if(idx >= rcpt.length){
+      // Hotovo
+      document.getElementById("sms-progress").style.display="none";
+      document.getElementById("sms-ok").style.display="block";
+      var resultMsg = "Hotovo! SMS odesláno "+sent+" příjemcům.";
+      if(errors > 0) resultMsg += " Chyb: "+errors;
+      document.getElementById("sms-ok").textContent = resultMsg;
+      document.getElementById("btn-send-sms").disabled=false;
+      logChange("Odeslána hromadná SMS", "Příjemců: "+sent+", chyb: "+errors);
+      setTimeout(loadAuditLog, 500);
+      showToast("SMS odesláno "+sent+" příjemcům!","ok");
+      return;
+    }
+    var m = rcpt[idx];
+    // Normalizuj telefonni cislo
+    var phone = m.telefon.replace(/\s/g,"").replace(/^00420/,"+420").replace(/^420/,"+420");
+    if(!phone.startsWith("+")) phone = "+420"+phone;
+
+    sendSmsManager(phone, msg, apiKey, sender).then(function(ok){
+      if(ok) sent++; else errors++;
+      var pct = Math.round((idx+1)/total*100);
+      document.getElementById("sms-prog-txt").textContent = "Odesílám "+(idx+1)+"/"+total+"... "+pct+"%";
+      document.getElementById("sms-prog-bar").style.width = pct+"%";
+      // Pauza 100ms mezi zpravami - ochrana pred rate limitem
+      setTimeout(function(){ sendNext(idx+1); }, 100);
+    });
   }
-  step();
+
+  sendNext(0);
 }
 
 
