@@ -1482,10 +1482,15 @@ function renderDetailView(){
   var addrHtml='<div class="info-item" style="grid-column:1/-1"><div class="info-lbl">Adresa</div><div class="info-val">'+(m.adresa||"—")+'</div></div>';
   var fieldsHtml=fields.map(function(f){ return '<div class="info-item"><div class="info-lbl">'+f[0]+'</div><div class="info-val">'+(f[1]||"—")+'</div></div>'; }).join("");
   document.getElementById("dp-body").innerHTML='<div class="dp-sec">Kontaktní a pracovní údaje</div><div class="info-grid">'+addrHtml+fieldsHtml+'</div>';
-  document.getElementById("dp-foot").innerHTML=
-    '<button class="btn btn-blue" onclick="switchToEdit()">&#9998; Upravit</button>'+
-    '<button class="btn btn-out" onclick="closeDetailPanel()">Zavřít</button>'+
-    '<button class="btn btn-out btn-sm btn-red" style="margin-left:auto" onclick="deleteMember()">&#128465; Smazat</button>';
+  var footHtml = '';
+  if(!isGuest()){
+    footHtml += '<button class="btn btn-blue" onclick="switchToEdit()">&#9998; Upravit</button>';
+  }
+  footHtml += '<button class="btn btn-out" onclick="closeDetailPanel()">Zavřít</button>';
+  if(!isGuest()){
+    footHtml += '<button class="btn btn-out btn-sm btn-red" style="margin-left:auto" onclick="deleteMember()">&#128465; Smazat</button>';
+  }
+  document.getElementById("dp-foot").innerHTML = footHtml;
 }
 
 function smenaOpts(val){
@@ -1495,6 +1500,7 @@ function smenaOpts(val){
 }
 
 function switchToEdit(){
+  if(checkGuest("Nemáte oprávnění upravovat členy.")) return;
   var m=detailMember;
   var oddOpts=ODDELENI.map(function(o){ return '<option'+(m.oddeleni===o?' selected':'')+'>'+o+'</option>'; }).join("");
   document.getElementById("dp-body").innerHTML=
@@ -1546,6 +1552,7 @@ function saveEdit(){
   m.smena=document.getElementById("e-smena").value;
   m.linka_smena=m.linka+(m.smena?" / "+m.smena:"");
   m.vedouci=document.getElementById("e-vedouci")?document.getElementById("e-vedouci").value:"";
+  m.skupina=document.getElementById("e-skupina")?document.getElementById("e-skupina").value:"";
   sbFetch("clenove?id=eq."+m.id,{method:"PATCH",body:JSON.stringify(memberToDbRow(m))})
     .then(function(r){
       if(!r.ok){ showToast("Chyba uložení.","err"); return; }
