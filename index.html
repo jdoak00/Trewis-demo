@@ -576,6 +576,10 @@ tbody td{padding:12px 14px;font-size:16px;}
                 <input class="finp" id="set-sms-sender" placeholder="ODBORY" maxlength="16"/>
               </div>
             </div>
+            <div style="display:flex;gap:10px;align-items:center;margin-top:4px;">
+              <button class="btn btn-blue" onclick="saveSettings()">&#10003; Uložit SMS nastavení</button>
+            </div>
+            <div id="set-sms-status" style="display:none;margin-top:10px;padding:10px 14px;border-radius:8px;font-size:13px;"></div>
           </div>
         </div>
 
@@ -1021,6 +1025,8 @@ function addUser(){
       document.getElementById("new-username").value="";
       document.getElementById("new-password").value="";
       showUserStatus("Uživatel vytvořen! Naskenujte QR kód v Google Authenticator.","ok");
+      logChange("Přidán uživatel", username+" (role: "+role+")");
+      setTimeout(loadAuditLog, 500);
       showToast("Uživatel "+username+" vytvořen.","ok");
     }).catch(function(){ showUserStatus("Chyba při vytváření uživatele.","err"); });
 }
@@ -1047,13 +1053,21 @@ function showQrCode(username, secret){
 function toggleUser(id, aktivni){
   if(!TWO_FA_ENABLED) return;
   sbFetch("uzivatele?id=eq."+id,{method:"PATCH",body:JSON.stringify({aktivni:!aktivni})})
-    .then(function(){ loadUsers(); });
+    .then(function(){
+      loadUsers();
+      logChange(aktivni ? "Deaktivován uživatel" : "Aktivován uživatel", "ID: "+id);
+      setTimeout(loadAuditLog, 500);
+    });
 }
 
 function deleteUser(id){
   if(!TWO_FA_ENABLED) return;
   if(!confirm("Opravdu smazat tohoto uživatele?")) return;
-  sbFetch("uzivatele?id=eq."+id,{method:"DELETE"}).then(function(){ loadUsers(); });
+  sbFetch("uzivatele?id=eq."+id,{method:"DELETE"}).then(function(){
+    loadUsers();
+    logChange("Smazán uživatel", "ID: "+id);
+    setTimeout(loadAuditLog, 500);
+  });
 }
 
 // Prihlaseni s 2FA - aktivni pouze kdyz TWO_FA_ENABLED=true
@@ -2029,6 +2043,8 @@ function savePrisEditModal(){
       renderPrispevky();
       logChange("Ruční editace příspěvků", prisEditName+" ("+prisEditOsnum+")");
       setTimeout(loadAuditLog, 500);
+      logChange("Ruční editace příspěvků", prisEditName+" ("+prisEditOsnum+")");
+      setTimeout(loadAuditLog, 500);
       showToast("Příspěvky uloženy.","ok");
     } else {
       showToast("Chyba při ukládání.","err");
@@ -2300,6 +2316,8 @@ function addVyrazeni(){
       vyrazeniData.push(row);
       closeAddVyrModal();
       renderVyrazeni();
+      logChange("Přidán vyřazený člen", prijmeni+" "+jmeno);
+      setTimeout(loadAuditLog, 500);
       logChange("Přidán vyřazený člen", prijmeni+" "+jmeno);
       setTimeout(loadAuditLog, 500);
       showToast("Vyřazený člen přidán.","ok");
@@ -2821,6 +2839,8 @@ function saveSettings(){
       // Taky uloz do localStorage jako zaloha
       localStorage.setItem("sms_api_key", SMS_API_KEY);
       localStorage.setItem("sms_sender", SMS_SENDER);
+      logChange("Upraveno nastavení", "Brevo e-mail a SMS nastavení aktualizováno");
+      setTimeout(loadAuditLog, 500);
       showSetStatus("Nastavení uloženo. Platí na všech zařízeních.", "ok");
       showToast("Nastavení uloženo.", "ok");
     } else {
