@@ -2683,10 +2683,12 @@ function sendSms(){
   if(!msg){ showToast("Napište text SMS.","err"); return; }
 
   // Zkontroluj API klíč
-  var apiKey = localStorage.getItem("sms_api_key")||"";
-  var sender = localStorage.getItem("sms_sender")||"";
+  // Nacti z globalni promenne (nactene ze Supabase) nebo localStorage jako zaloha
+  var apiKey = SMS_API_KEY || localStorage.getItem("sms_api_key")||"";
+  var sender = SMS_SENDER || localStorage.getItem("sms_sender")||"";
   if(!apiKey || !sender){
-    showToast("Nastavte SMS API klíč a odesílatele v záložce SMS → Návod.","err");
+    showToast("Nastavte SMS API klíč a odesílatele v sekci Nastavení.","err");
+    switchPage("nastaveni");
     return;
   }
 
