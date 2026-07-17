@@ -405,7 +405,6 @@ tbody td{padding:12px 14px;font-size:16px;}
             <button class="btn btn-out btn-sm fmt-btn" id="fmt-italic" onclick="emailFormat('italic')" title="Kurzíva"><i>I</i></button>
             <button class="btn btn-out btn-sm fmt-btn" id="fmt-underline" onclick="emailFormat('underline')" title="Podtržení"><u>U</u></button>
             <button class="btn btn-out btn-sm" onclick="insertLink()" title="Hypertextový odkaz">🔗 Odkaz</button>
-            <button class="btn btn-out btn-sm" onclick="insertEmailSignature()" title="Vložit podpis">✍️ Podpis</button>
           </div>
           <div id="email-editor" contenteditable="true" style="min-height:160px;padding:12px;background:var(--panel2);border:1.5px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-family:var(--font);font-size:17px;outline:none;margin-bottom:12px;line-height:1.6;" placeholder="Vážená paní / Vážený pane,..."></div>
 
@@ -852,7 +851,7 @@ var SUPABASE_KEY = "sb_publishable_fuPWp0mgcSFnx6zsZoUgXg_nMcIvdLZ";
 // Nejprve vytvorte tabulku uzivatele v Supabase
 // =====================================================
 var TWO_FA_ENABLED = true;
-var EMAIL_SIGNATURE = '\n<br><br>\n<table cellpadding="0" cellspacing="0" border="0" style="font-family:\'Urbanist\',sans-serif;font-size:14px;">\n<tbody><tr><td>\n<table cellpadding="0" cellspacing="0" border="0">\n<tbody><tr>\n<td style="vertical-align:top;text-align:center;padding-right:20px;">\n<img src="https://odboryhyundai.cz/wp-content/uploads/2026/05/2.png" width="100" style="display:block;margin-bottom:10px;">\n<img src="https://odboryhyundai.cz/wp-content/uploads/2023/12/logo-ODBORYHYUNDAI-tech-gif.gif" width="100" style="display:block;margin-bottom:10px;">\n<a href="https://www.facebook.com/odborykovohmmc" style="display:inline-block;margin-right:4px;"><img src="https://cdn2.hubspot.net/hubfs/53/tools/email-signature-generator/icons/facebook-icon-dark-2x.png" width="22" style="background:#07fa70;border-radius:50%;display:block;"></a>\n<a href="https://www.instagram.com/odboryhyundai/" style="display:inline-block;"><img src="https://cdn2.hubspot.net/hubfs/53/tools/email-signature-generator/icons/instagram-icon-dark-2x.png" width="22" style="background:#07fa70;border-radius:50%;display:block;"></a>\n</td>\n<td style="vertical-align:middle;border-left:1px solid #00EDDF;padding-left:20px;">\n<div style="font-size:16px;font-weight:600;color:#999;">{{JMENO}}</div>\n<div style="font-size:13px;color:#999;">{{ROLE}} #ODBORYHYUNDAI</div>\n<div style="font-size:12px;color:#999;margin-bottom:10px;">IČ: 751 44 816, org. jednotka 03-3078</div>\n<div style="border-bottom:1px solid #00EDDF;margin-bottom:10px;"></div>\n<div style="font-size:13px;color:#999;">📞 +420 596 141 484</div>\n<div style="font-size:13px;color:#999;">✉️ info@odboryhyundai.cz</div>\n<div style="font-size:13px;color:#999;">🌐 www.odboryhyundai.cz</div>\n<div style="font-size:13px;color:#999;">📍 Průmyslová zóna Nošovice 700/1, 739 51</div>\n</td>\n</tr></tbody></table>\n</td></tr></tbody></table>';
+var EMAIL_SIGNATURE = '\n<br><br>\n<table cellpadding="0" cellspacing="0" border="0" style="font-family:\'Urbanist\',sans-serif;font-size:14px;">\n<tbody><tr><td>\n<table cellpadding="0" cellspacing="0" border="0">\n<tbody><tr>\n<td style="vertical-align:top;text-align:center;padding-right:20px;">\n<img src="https://odboryhyundai.cz/wp-content/uploads/2026/05/2.png" width="100" style="display:block;margin-bottom:10px;">\n<img src="https://odboryhyundai.cz/wp-content/uploads/2023/12/logo-ODBORYHYUNDAI-tech-gif.gif" width="100" style="display:block;margin-bottom:10px;">\n<a href="https://www.facebook.com/odborykovohmmc" style="display:inline-block;margin-right:4px;"><img src="https://cdn2.hubspot.net/hubfs/53/tools/email-signature-generator/icons/facebook-icon-dark-2x.png" width="22" style="background:#07fa70;border-radius:50%;display:block;"></a>\n<a href="https://www.instagram.com/odboryhyundai/" style="display:inline-block;"><img src="https://cdn2.hubspot.net/hubfs/53/tools/email-signature-generator/icons/instagram-icon-dark-2x.png" width="22" style="background:#07fa70;border-radius:50%;display:block;"></a>\n</td>\n<td style="vertical-align:middle;border-left:1px solid #00EDDF;padding-left:20px;">\n\n<div style="font-size:13px;color:#999;">#ODBORYHYUNDAI</div>\n<div style="font-size:12px;color:#999;margin-bottom:10px;">IČ: 751 44 816, org. jednotka 03-3078</div>\n<div style="border-bottom:1px solid #00EDDF;margin-bottom:10px;"></div>\n<div style="font-size:13px;color:#999;">📞 +420 596 141 484</div>\n<div style="font-size:13px;color:#999;">✉️ odboryhmmc@email.cz</div>\n<div style="font-size:13px;color:#999;">🌐 www.odboryhyundai.cz</div>\n<div style="font-size:13px;color:#999;">📍 Průmyslová zóna Nošovice 700/1, 739 51</div>\n</td>\n</tr></tbody></table>\n</td></tr></tbody></table>';
 var CURRENT_USER_ROLE = "editor"; // editor = plny pristup, guest = pouze cteni
 
 function isGuest(){ return CURRENT_USER_ROLE === "guest"; }
@@ -2542,7 +2541,7 @@ function sendTestEmail(){
   if(!BREVO_API_KEY || !BREVO_FROM_EMAIL){ showToast("Nastavte API klíč v Nastavení.", "err"); return; }
   var jmeno = document.getElementById("user-name").textContent || "";
   var sig = EMAIL_SIGNATURE.replace("{{JMENO}}", jmeno).replace("{{ROLE}}", CURRENT_USER_ROLE === "editor" ? "Editor" : "Host");
-  var fullHtml = "<div style='font-family:sans-serif;font-size:15px;line-height:1.6'>"+msg+"</div>"+sig;
+  var fullHtml = "<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+msg+"</div>"+sig;
   // Prilohy pro testovaci email
   var attachPromises = emailAttachments.map(function(f){ return fileToBase64(f); });
   Promise.all(attachPromises).then(function(attachBase64){
@@ -2579,7 +2578,7 @@ function sendEmail(){
   // Pridat podpis
   var jmeno=document.getElementById("user-name").textContent||"";
   var sig=EMAIL_SIGNATURE.replace("{{JMENO}}",jmeno).replace("{{ROLE}}",CURRENT_USER_ROLE==="editor"?"Editor":"Host");
-  var htmlMsg="<div style='font-family:sans-serif;font-size:15px;line-height:1.6'>"+msg+"</div>"+sig;
+  var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+msg+"</div>"+sig;
   document.getElementById("email-progress").style.display="block";
   document.getElementById("email-ok").style.display="none";
   document.getElementById("btn-send-email").disabled=true;
