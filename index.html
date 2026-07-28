@@ -843,6 +843,7 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
     </div>
     <div class="modal-f">
       <button class="btn btn-out" onclick="closeAddVyrModal()">Zrušit</button>
+      <button class="btn btn-out btn-red" id="vyr-del-btn" style="display:none;" onclick="deleteCurrentVyr()">&#128465; Smazat</button>
       <button class="btn btn-blue" onclick="addVyrazeni()">&#10003; Přidat vyřazeného</button>
     </div>
   </div>
@@ -2494,9 +2495,8 @@ function renderVyrazeni(){
         '<td style="color:var(--text2)">'+(v.oddeleni||"—")+'</td>'+
         '<td style="color:var(--text2)">'+(v.linka_smena||"—")+'</td>'+
         '<td style="color:var(--text2)">'+(v.duvod_ukonceni||"—")+'</td>'+
-        '<td onclick="event.stopPropagation()" style="white-space:nowrap;">'+
-          '<button class="btn btn-out btn-sm" data-id="'+v.id+'" onclick="openEditVyrModal(parseInt(this.dataset.id))" style="margin-right:4px;">&#9998; Upravit</button>'+
-          '<button class="btn btn-out btn-sm btn-red" data-id="'+v.id+'" data-name="'+v.prijmeni+' '+v.jmeno+'" onclick="deleteVyrazeni(parseInt(this.dataset.id),this.dataset.name)">&#128465; Smazat</button>'+
+        '<td onclick="event.stopPropagation()">'+
+          '<button class="btn btn-out btn-sm" data-id="'+v.id+'" onclick="openEditVyrModal(parseInt(this.dataset.id))">&#9998; Upravit</button>'+
         '</td>'+
       '</tr>';
     }).join("");
@@ -2523,6 +2523,24 @@ function deleteVyrazeni(id,name){
 
 var editVyrId=null;
 
+function deleteCurrentVyr(){
+  if(!editVyrId) return;
+  var v=vyrazeniData.find(function(x){ return x.id===editVyrId; });
+  var name=v?v.prijmeni+" "+v.jmeno:"?";
+  if(!confirm("Opravdu smazat vyřazeného člena: "+name+"?")) return;
+  sbFetch("vyrazeni?id=eq."+editVyrId,{method:"DELETE"}).then(function(r){
+    if(r.ok){
+      vyrazeniData=vyrazeniData.filter(function(x){ return x.id!==editVyrId; });
+      closeAddVyrModal();
+      renderVyrazeni();
+      logChange("Smazán vyřazený člen",name);
+      setTimeout(loadAuditLog,500);
+      showToast("Záznam smazán.","ok");
+      editVyrId=null;
+    }
+  });
+}
+
 function openEditVyrModal(id){
   if(checkGuest("Nemáte oprávnění upravovat záznamy.")) return;
   editVyrId=null;
@@ -2541,6 +2559,7 @@ function openEditVyrModal(id){
   var btn=document.querySelector("#add-vyr-modal .modal-f .btn-blue");
   if(tit) tit.textContent="Upravit vyřazeného člena";
   if(btn){ btn.textContent="✓ Uložit změny"; btn.setAttribute("onclick","saveEditVyr()"); }
+  var delBtn=document.getElementById("vyr-del-btn"); if(delBtn) delBtn.style.display="";
   document.getElementById("add-vyr-modal").classList.add("show");
 }
 
@@ -2580,6 +2599,7 @@ function openAddVyrazeniModal(){
   var btn=document.querySelector("#add-vyr-modal .modal-f .btn-blue");
   if(tit) tit.textContent="Přidat vyřazeného člena";
   if(btn){ btn.textContent="✓ Přidat vyřazeného"; btn.setAttribute("onclick","addVyrazeni()"); }
+  var delBtn=document.getElementById("vyr-del-btn"); if(delBtn) delBtn.style.display="none";
   document.getElementById("add-vyr-modal").classList.add("show");
 }
 
@@ -2675,7 +2695,6 @@ function exportMembersPDF(){
   }).sort(function(a,b){ return a.prijmeni.localeCompare(b.prijmeni,"cs")||a.jmeno.localeCompare(b.jmeno,"cs"); });
   var rows=filtered.map(function(m,i){
     return '<tr>'+
-      '<td style="padding:6px 8px;border:1px solid #ccc;text-align:center;font-size:12px;">'+(i+1)+'</td>'+
       '<td style="padding:6px 8px;border:1px solid #ccc;font-size:12px;"><b>'+m.prijmeni+'</b></td>'+
       '<td style="padding:6px 8px;border:1px solid #ccc;font-size:12px;">'+m.jmeno+'</td>'+
       '<td style="padding:6px 8px;border:1px solid #ccc;font-size:12px;">'+(m.oddeleni||"")+'</td>'+
@@ -2691,7 +2710,7 @@ function exportMembersPDF(){
     '<div style="font-size:12px;color:#666;text-align:right;">Datum: '+new Date().toLocaleDateString("cs-CZ")+'<br>Počet: '+filtered.length+'</div></div>'+
     '<h3 style="text-align:center;margin:0 0 12px;font-size:14px;">SEZNAM ČLENŮ'+(typ?' — '+typ:'')+(odd?' — '+odd:'')+(skupina?' — '+skupina:'')+'</h3>'+
     '<table style="width:100%;border-collapse:collapse;"><thead><tr>'+
-    '<th style="padding:6px 8px;border:1px solid #ccc;background:#1a2332;color:#fff;font-size:11px;width:30px;">#</th>'+
+
     '<th style="padding:6px 8px;border:1px solid #ccc;background:#1a2332;color:#fff;font-size:11px;text-align:left;">Příjmení</th>'+
     '<th style="padding:6px 8px;border:1px solid #ccc;background:#1a2332;color:#fff;font-size:11px;text-align:left;">Jméno</th>'+
     '<th style="padding:6px 8px;border:1px solid #ccc;background:#1a2332;color:#fff;font-size:11px;text-align:left;">Hala</th>'+
@@ -2704,7 +2723,7 @@ function exportMembersPDF(){
 
 // ===== ZIP ZALOHA =====
 function exportZipBackup(){
-  showToast("Připravuji zálohu...","ok");
+  showToast("Připravuji zálohu — stáhnou se 3 CSV soubory...","ok");
   Promise.all([
     sbFetch("clenove?select=*&limit=10000&order=prijmeni.asc").then(function(r){ return r.json(); }),
     sbFetch("vyrazeni?select=*&limit=10000&order=prijmeni.asc").then(function(r){ return r.json(); }),
@@ -2723,27 +2742,16 @@ function exportZipBackup(){
       function(v){ return [v.prijmeni,v.jmeno,v.evidencni_cislo,v.clen_od,v.clen_do,v.oddeleni,v.linka_smena,v.duvod_ukonceni]; });
     var prispevkyCSV=toCSV(prispevky,["OS číslo","Rok","Měsíc","Částka"],
       function(p){ return [p.osobni_cislo,p.rok,p.mesic,p.castka]; });
-    if(typeof JSZip!=="undefined"){
-      var zip=new JSZip();
-      zip.file("clenove_"+datum+".csv",clenoveCSV);
-      zip.file("vyrazeni_"+datum+".csv",vyrazeniCSV);
-      zip.file("prispevky_"+datum+".csv",prispevkyCSV);
-      zip.generateAsync({type:"blob"}).then(function(blob){
-        var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-        a.download="zaloha_odbory_"+datum+".zip"; a.click();
-        showToast("ZIP záloha stažena!","ok");
-        logChange("Záloha databáze","ZIP soubor stažen");
-        setTimeout(loadAuditLog,500);
-      });
-    } else {
-      function dlCSV(data,fn){ var blob=new Blob([data],{type:"text/csv;charset=utf-8;"}); var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fn; a.click(); }
-      setTimeout(function(){ dlCSV(clenoveCSV,"clenove_"+datum+".csv"); },100);
-      setTimeout(function(){ dlCSV(vyrazeniCSV,"vyrazeni_"+datum+".csv"); },700);
-      setTimeout(function(){ dlCSV(prispevkyCSV,"prispevky_"+datum+".csv"); },1300);
-      showToast("Záloha stažena (3 CSV soubory)!","ok");
-      logChange("Záloha databáze","CSV soubory staženy");
-      setTimeout(loadAuditLog,500);
+    function dlCSV(data,fn){
+      var blob=new Blob([data],{type:"text/csv;charset=utf-8;"});
+      var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fn; a.click();
     }
+    setTimeout(function(){ dlCSV(clenoveCSV,"clenove_"+datum+".csv"); },200);
+    setTimeout(function(){ dlCSV(vyrazeniCSV,"vyrazeni_"+datum+".csv"); },900);
+    setTimeout(function(){ dlCSV(prispevkyCSV,"prispevky_"+datum+".csv"); },1600);
+    showToast("Záloha stažena! (3 soubory: Členové, Vyřazení, Příspěvky)","ok");
+    logChange("Záloha databáze","3 CSV soubory staženy");
+    setTimeout(loadAuditLog,500);
   }).catch(function(){ showToast("Chyba při přípravě zálohy.","err"); });
 }
 
