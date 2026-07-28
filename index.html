@@ -375,7 +375,6 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
             </select>
             <button class="btn btn-out" onclick="csvExport()">&#8595; Export CSV</button>
             <button class="btn btn-out" onclick="exportMembersPDF()">&#128424; PDF seznam</button>
-            <button class="btn btn-out" onclick="exportZipBackup()" title="Záloha všech dat">&#128190; ZIP záloha</button>
             <button class="btn btn-out" onclick="document.getElementById('csv-import-inp').click()">&#8593; Import CSV</button>
             <input type="file" id="csv-import-inp" accept=".csv" style="display:none" onchange="importCSV(event)"/>
             <button class="btn btn-blue" onclick="openAddModal()">+ Přidat</button>
@@ -692,6 +691,7 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
               </div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-out" onclick="exportPrispevkyCSV()">&#8595; Export CSV</button>
               <select class="flt" id="pris-mesic-import" style="font-size:15px;">
 <option value="1">Leden</option>
 <option value="2">Únor</option>
@@ -2164,6 +2164,23 @@ function savePrisEditModal(){
 }
 
 // Export PDF pro úřady - vsichni clenove
+function exportPrispevkyCSV(){
+  var rok = parseInt(document.getElementById("pris-rok").value);
+  var header = ["Příjmení","Jméno","Os. číslo"].concat(MESICE_NAMES).concat(["Celkem"]);
+  var rows = members.map(function(m){
+    var pd = prispevkyData[m.osnum]||{};
+    var celkem=0, mesice=[];
+    for(var i=1;i<=12;i++){ var v=pd[i]||0; celkem+=v; mesice.push(v); }
+    return [m.prijmeni,m.jmeno,m.osnum].concat(mesice).concat([celkem]);
+  }).sort(function(a,b){ return a[0].localeCompare(b[0],"cs"); });
+  var lines=[header].concat(rows).map(function(r){
+    return r.map(function(v){ return '"'+String(v||"").replace(/"/g,'""')+'"'; }).join(";");
+  });
+  var blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8;"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="prispevky_"+rok+".csv"; a.click();
+}
+
 function exportPrispevkyPDF(){
   var rok = parseInt(document.getElementById("pris-rok").value);
   var rows = members.map(function(m){
@@ -2359,11 +2376,15 @@ function logChange(akce, detail){
 }
 
 function loadAuditLog(){
+  var el = document.getElementById("audit-log-list");
+  if(!el) return;
+  el.innerHTML='<div style="color:var(--text2);font-size:13px;padding:8px 0;">Načítám...</div>';
   sbFetch("audit_log?select=*&order=created_at.desc&limit=10")
-    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(!r.ok){ throw new Error("HTTP "+r.status); }
+      return r.json();
+    })
     .then(function(data){
-      var el = document.getElementById("audit-log-list");
-      if(!el) return;
       if(!Array.isArray(data)||data.length===0){
         el.innerHTML='<div style="color:var(--text2);font-size:13px;padding:8px 0;">Zatím žádné změny.</div>';
         return;
@@ -2371,14 +2392,17 @@ function loadAuditLog(){
       el.innerHTML = data.map(function(log){
         var dt = log.created_at ? new Date(log.created_at) : null;
         var dtStr = dt ? dt.toLocaleDateString("cs-CZ")+" "+dt.toLocaleTimeString("cs-CZ",{hour:"2-digit",minute:"2-digit"}) : "—";
-        var color = log.akce.indexOf("Smazán")!==-1?"var(--red)":log.akce.indexOf("Přidán")!==-1?"#05c957":log.akce.indexOf("mail")!==-1||log.akce.indexOf("SMS")!==-1?"#087cf4":"var(--text2)";
+        var color = log.akce&&log.akce.indexOf("Smazán")!==-1?"var(--red)":log.akce&&log.akce.indexOf("Přidán")!==-1?"#05c957":log.akce&&(log.akce.indexOf("mail")!==-1||log.akce.indexOf("SMS")!==-1)?"#087cf4":"var(--text2)";
         return '<div style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">'+
           '<div style="min-width:130px;font-size:11px;color:var(--text2);">'+dtStr+'</div>'+
-          '<div style="flex:1;"><span style="font-size:12px;font-weight:700;color:'+color+';">'+log.akce+'</span>'+
+          '<div style="flex:1;"><span style="font-size:12px;font-weight:700;color:'+color+';">'+(log.akce||"")+'</span>'+
           (log.detail?'<span style="font-size:12px;color:var(--text2);"> — '+log.detail+'</span>':'')+
-          '</div><div style="font-size:11px;color:var(--text2);min-width:80px;text-align:right;">'+log.uzivatel+'</div></div>';
+          '</div><div style="font-size:11px;color:var(--text2);min-width:80px;text-align:right;">'+(log.uzivatel||"")+'</div></div>';
       }).join("");
-    }).catch(function(){ });
+    }).catch(function(err){
+      el.innerHTML='<div style="color:var(--text2);font-size:13px;padding:8px 0;">Nepodařilo se načíst změny.</div>';
+      console.error("Audit log error:", err);
+    });
 }
 
 // ===== CSV EXPORT =====
