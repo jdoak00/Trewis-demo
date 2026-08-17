@@ -289,6 +289,7 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="icon" type="image/png" href="https://odboryhyundai.cz/wp-content/uploads/2026/05/2.png"/>
 <link rel="shortcut icon" href="https://odboryhyundai.cz/wp-content/uploads/2026/05/2.png"/>
 </head>
@@ -649,7 +650,7 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
             </div>
             <button class="btn btn-out" onclick="csvExportVyrazeni()">&#8595; Export CSV</button>
             <button class="btn btn-out" onclick="document.getElementById('vyr-import-inp').click()">&#8593; Import CSV</button>
-            <input type="file" id="vyr-import-inp" accept=".csv" style="display:none" onchange="importVyrazeni(event)"/>
+            <input type="file" id="vyr-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importVyrazeni(event)"/>
             <button class="btn btn-blue" onclick="openAddVyrazeniModal()">+ Přidat</button>
           </div>
           <div style="overflow-x:auto;">
@@ -707,7 +708,7 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
 <option value="12">Prosinec</option>
               </select>
               <button class="btn btn-out" onclick="document.getElementById('pris-import-inp').click()">&#8593; Import CSV</button>
-              <input type="file" id="pris-import-inp" accept=".csv" style="display:none" onchange="importPrispevky(event)"/>
+              <input type="file" id="pris-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importPrispevky(event)"/>
               <button class="btn btn-out" onclick="exportPrispevkyPDF()">&#8681; PDF celý rok</button>
             </div>
           </div>
@@ -821,6 +822,19 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
   </div>
 </div>
 
+<!-- INACTIVITY WARNING MODAL -->
+<div id="inactivity-warning" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:var(--panel);border-radius:var(--r-xl);padding:36px 40px;max-width:420px;width:90%;text-align:center;box-shadow:var(--sh-lg);">
+    <div style="font-size:40px;margin-bottom:16px;">⏰</div>
+    <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:10px;">Dlouho jste nevyvíjel aktivitu</div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:24px;">Chcete zůstat přihlášen?</div>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button onclick="doLogout()" style="padding:10px 24px;border-radius:8px;border:1.5px solid var(--border);background:var(--panel2);color:var(--text);font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;">Odhlásit</button>
+      <button onclick="stayLoggedIn()" style="padding:10px 24px;border-radius:8px;border:none;background:#087cf4;color:#fff;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;">Ano, zůstat</button>
+    </div>
+  </div>
+</div>
+
 <!-- ADD VYRAZENI MODAL -->
 <div class="modal-bg" id="add-vyr-modal" onclick="closeAddVyrModal(event)">
   <div class="modal">
@@ -844,6 +858,7 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
     <div class="modal-f">
       <button class="btn btn-out" onclick="closeAddVyrModal()">Zrušit</button>
       <button class="btn btn-out btn-red" id="vyr-del-btn" style="display:none;" onclick="deleteCurrentVyr()">&#128465; Smazat</button>
+      <button class="btn btn-out" id="vyr-restore-btn" style="display:none;border-color:#07fa70;color:#05c957;" onclick="restoreVyrazeni()">&#8635; Obnovit člena</button>
       <button class="btn btn-blue" onclick="addVyrazeni()">&#10003; Přidat vyřazeného</button>
     </div>
   </div>
@@ -929,6 +944,19 @@ var SUPABASE_KEY = "sb_publishable_fuPWp0mgcSFnx6zsZoUgXg_nMcIvdLZ";
 // Nejprve vytvorte tabulku uzivatele v Supabase
 // =====================================================
 var TWO_FA_ENABLED = true;
+
+function showSuccess(msg){
+  var el = document.getElementById("success-overlay");
+  if(!el){
+    el = document.createElement("div");
+    el.id = "success-overlay";
+    el.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:8888;background:#07fa70;color:#1a2332;padding:20px 36px;border-radius:14px;font-size:17px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,.2);text-align:center;display:none;";
+    document.body.appendChild(el);
+  }
+  el.innerHTML = "&#10003; " + msg;
+  el.style.display = "block";
+  setTimeout(function(){ el.style.display = "none"; }, 5000);
+}
 
 // TMAVÝ REŽIM
 function initDarkMode(){
@@ -1377,8 +1405,15 @@ function doLogin(){
         document.getElementById("user-av").textContent=av;
         document.getElementById("user-name").textContent=result.user.username;
         CURRENT_USER_ROLE = result.user.role || "guest";
+        window.CURRENT_USERNAME = result.user.username || "neznámý";
+        // Uloz session do sessionStorage
+        sessionStorage.setItem("session_user", JSON.stringify({
+          username: result.user.username,
+          role: result.user.role,
+          av: av
+        }));
         applyRoleRestrictions();
-        initDarkMode(); loadMembers(); loadSettings(); loadSmsSettings(); resetInactivityTimer(); setTimeout(applyRoleRestrictions, 500); setTimeout(loadAuditLog, 1500); setTimeout(initPrisRok, 300);
+        initDarkMode(); loadMembers(); loadSettings(); loadSmsSettings(); resetInactivityTimer(); setTimeout(applyRoleRestrictions, 500); setTimeout(loadAuditLog, 3500); setTimeout(initPrisRok, 300);
       } else {
         errEl.textContent=result.msg;
         errEl.style.display="block";
@@ -1407,6 +1442,7 @@ document.getElementById("inp-user").onkeydown=function(e){ if(e.key==="Enter") d
 document.getElementById("inp-pass").onkeydown=function(e){ if(e.key==="Enter") doLogin(); };
 document.getElementById("btn-logout").onclick=function(){
   CURRENT_USER_ROLE="guest";
+  sessionStorage.removeItem("session_user");
   document.getElementById("app-screen").style.display="none";
   document.getElementById("login-screen").style.display="flex";
   // Vymazat pole s malym zpozdenim - prepise cache prohlizece
@@ -1643,7 +1679,8 @@ function switchToEdit(){
     '<div><label class="lbl">Typ členství</label><select class="finp" id="e-typ"><option'+(m.typ==="Řádný člen"?' selected':'')+'>Řádný člen</option><option'+(m.typ==="Tajný člen"?' selected':'')+'>Tajný člen</option></select></div>'+
     '<div><label class="lbl">Oddělení</label><select class="finp" id="e-odd">'+oddOpts+'</select></div>'+
     '<div><label class="lbl">Linka</label><input class="finp" id="e-linka" value="'+m.linka+'" placeholder="např. L1"/></div>'+
-    '<div><label class="lbl">Směna</label><select class="finp" id="e-smena">'+smenaOpts(m.smena)+'</select></div>'+'<div><label class="lbl">Vedoucí</label><select class="finp" id="e-vedouci">'+VEDOUCI_OPTS.map(function(v){ return '<option value="'+v+'"'+(m.vedouci===v?' selected':'')+'>'+( v||'— Není vedoucí —')+'</option>'; }).join('')+'</select></div>'+'<div><label class="lbl">Odbory</label><select class="finp" id="e-skupina">'+SKUPINA_OPTS.map(function(s){ return '<option value="'+s+'"'+(m.skupina===s?' selected':'')+'>'+( s||'— Není ve skupině —')+'</option>'; }).join('')+'</select></div>'+'</div></div>';
+    '<div><label class="lbl">Směna</label><select class="finp" id="e-smena">'+smenaOpts(m.smena)+'</select></div>'+'<div><label class="lbl">Vedoucí</label><select class="finp" id="e-vedouci">'+VEDOUCI_OPTS.map(function(v){ return '<option value="'+v+'"'+(m.vedouci===v?' selected':'')+'>'+( v||'— Není vedoucí —')+'</option>'; }).join('')+'</select></div>'+'<div><label class="lbl">Odbory</label><select class="finp" id="e-skupina">'+SKUPINA_OPTS.map(function(s){ return '<option value="'+s+'"'+(m.skupina===s?' selected':'')+'>'+( s||'— Není ve skupině —')+'</option>'; }).join('')+'</select></div>'+
++'<div style="grid-column:1/-1"><label class="lbl">Poznámky</label><textarea class="finp" id="e-poznamky" rows="3" style="resize:vertical;">'+( m.poznamky||"")+"</textarea></div>"+'</div></div>';
   document.getElementById("dp-foot").innerHTML=
     '<button class="btn btn-blue" onclick="saveEdit()">&#10003; Uložit</button>'+
     '<button class="btn btn-out" onclick="renderDetailView()">Zrušit</button>';
@@ -1680,6 +1717,7 @@ function saveEdit(){
   m.linka_smena=m.linka+(m.smena?" / "+m.smena:"");
   m.vedouci=document.getElementById("e-vedouci")?document.getElementById("e-vedouci").value:"";
   m.skupina=document.getElementById("e-skupina")?document.getElementById("e-skupina").value:"";
+  m.poznamky=document.getElementById("e-poznamky")?document.getElementById("e-poznamky").value:"";
   sbFetch("clenove?id=eq."+m.id,{method:"PATCH",body:JSON.stringify(memberToDbRow(m))})
     .then(function(r){
       if(!r.ok){ showToast("Chyba uložení.","err"); return; }
@@ -1688,22 +1726,48 @@ function saveEdit(){
       renderDetailView(); renderStats(); renderTable();
       logChange("Upraven člen", m.prijmeni+" "+m.jmeno+" (OS: "+m.osnum+")");
       setTimeout(loadAuditLog, 500);
+      showSuccess("Údaje člena "+m.prijmeni+" "+m.jmeno+" byly úspěšně uloženy.");
       showToast("Údaje uloženy.","ok");
     });
 }
 
 function deleteMember(){
   if(checkGuest("Nemáte oprávnění mazat členy.")) return;
-  if(!confirm("Opravdu smazat tohoto člena?")) return;
+  var m = detailMember;
+  if(!m) return;
+  // Zeptat se na duvod ukonceni
+  var duvod = prompt("Zadejte důvod ukončení členství:", "");
+  if(duvod === null) return; // zruseno
+  if(!confirm("Opravdu smazat člena "+m.prijmeni+" "+m.jmeno+" a přesunout do Vyřazených?")) return;
+  // Pridat do vyrazenych
+  var dnes = new Date().toISOString().substring(0,10);
+  var vyrRow = {
+    jmeno: m.jmeno,
+    prijmeni: m.prijmeni,
+    evidencni_cislo: m.osnum,
+    oddeleni: m.oddeleni,
+    clen_od: m.datumVstupu || null,
+    clen_do: dnes,
+    linka_smena: m.linka_smena,
+    duvod_ukonceni: duvod || "Smazán ze seznamu členů"
+  };
+  sbFetch("vyrazeni", {method:"POST", extraHeaders:{"Prefer":"return=minimal"}, body:JSON.stringify(vyrRow)})
+    .then(function(){ });
+  // Zapsat poznamku na kartu clena pred smazanim
+  var dtStr = new Date().toLocaleDateString("cs-CZ");
+  var novaPoznamka = (m.poznamky ? m.poznamky+"\n" : "") + "Ukončení členství: "+dtStr+" — důvod: "+(duvod||"neuvedeno");
+  sbFetch("clenove?id=eq."+m.id, {method:"PATCH", extraHeaders:{"Prefer":"return=minimal"}, body:JSON.stringify({poznamky: novaPoznamka})})
+    .then(function(){ });
   sbFetch("clenove?id=eq."+detailMember.id,{method:"DELETE"})
     .then(function(r){
       if(!r.ok){ showToast("Chyba mazání.","err"); return; }
       var dm=detailMember;
       members=members.filter(function(m){ return m.id!==dm.id; });
-      logChange("Smazán člen", dm.prijmeni+" "+dm.jmeno+" (OS: "+dm.osnum+")");
+      logChange("Smazán člen a přesunut do Vyřazených", dm.prijmeni+" "+dm.jmeno+" (OS: "+dm.osnum+")");
       closeDetailPanel(); renderStats(); renderAlpha(); renderTable();
       setTimeout(loadAuditLog, 500);
-      showToast("Člen smazán.","err");
+      showSuccess("Člen "+dm.prijmeni+" "+dm.jmeno+" byl přesunut do Vyřazených.");
+      showToast("Člen přesunut do Vyřazených.","ok");
     });
 }
 
@@ -1794,6 +1858,7 @@ function addMember(){
       closeAddModal(); renderStats(); renderAlpha(); renderTable();
       logChange("Přidán člen", m.prijmeni+" "+m.jmeno+" (OS: "+m.osnum+")");
       setTimeout(loadAuditLog, 500);
+      showSuccess("Člen "+m.prijmeni+" "+m.jmeno+" byl úspěšně přidán.");
       showToast("Člen přidán a uložen.","ok");
     })
     .catch(function(){ showToast("Chyba při ukládání.","err"); });
@@ -1802,9 +1867,7 @@ function addMember(){
 // IMPORT CSV
 function importCSV(event){
   var file=event.target.files[0]; if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var text=e.target.result;
+  readFileAsText(file, function(text){
     var delim=text.indexOf(";")!==-1?";":"	";
     if(text.indexOf(",")!==-1&&delim==="	") delim=",";
     var allLines=text.split("\n"); var lines=[]; 
@@ -1854,8 +1917,7 @@ function importCSV(event){
     if(rows.length===0){ showToast("Žádné záznamy k importu.","err"); return; }
     showToast("Importuji "+rows.length+" záznamů...","ok");
     insertBatch(rows,0,function(total){ loadMembers(); showToast("Import dokončen: "+total+" členů nahráno.","ok"); });
-  };
-  reader.readAsText(file,"UTF-8");
+  });
   event.target.value="";
 }
 
@@ -2011,9 +2073,7 @@ function importPrispevky(event){
   var rok = parseInt(document.getElementById("pris-rok").value);
   var mesicName = MESICE_NAMES[mesic-1];
   
-  var reader = new FileReader();
-  reader.onload = function(e){
-    var text = e.target.result;
+  readFileAsText(file, function(text){
     var delim = text.indexOf(";")!==-1?";":"\t";
     var lines = text.split("\n").map(function(l){ return l.replace("\r",""); }).filter(function(l){ return l.trim(); });
     if(lines.length<2){ showToast("CSV je prázdné.","err"); return; }
@@ -2093,8 +2153,7 @@ function importPrispevky(event){
     } else {
       doImport();
     }
-  };
-  reader.readAsText(file,"UTF-8");
+  });
   event.target.value="";
 }
 
@@ -2369,7 +2428,7 @@ function deleteStatData(id){
 
 // ===== AUDIT LOG =====
 function logChange(akce, detail){
-  var uzivatel = document.getElementById("user-name") ? document.getElementById("user-name").textContent : "neznámý";
+  var uzivatel = (window.CURRENT_USERNAME || document.getElementById("user-name").textContent || "neznámý").trim();
   sbFetch("audit_log", {method:"POST", extraHeaders:{"Prefer":"return=minimal"}, body:JSON.stringify({
     uzivatel: uzivatel, akce: akce, detail: detail
   })}).catch(function(){ });
@@ -2379,8 +2438,13 @@ function loadAuditLog(){
   var el = document.getElementById("audit-log-list");
   if(!el) return;
   el.innerHTML='<div style="color:var(--text2);font-size:13px;padding:8px 0;">Načítám...</div>';
-  sbFetch("audit_log?select=*&order=created_at.desc&limit=10")
-    .then(function(r){
+  fetch(SUPABASE_URL+"/rest/v1/audit_log?select=*&order=created_at.desc&limit=10", {
+    headers:{
+      "apikey": SUPABASE_KEY,
+      "Authorization": "Bearer "+SUPABASE_KEY,
+      "Content-Type": "application/json"
+    }
+  }).then(function(r){
       if(!r.ok){ throw new Error("HTTP "+r.status); }
       return r.json();
     })
@@ -2416,11 +2480,28 @@ function csvExport(){
   var a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="clenove.csv"; a.click();
 }
 
+function readFileAsText(file, callback){
+  // Podporuje CSV i XLSX
+  var ext = file.name.split(".").pop().toLowerCase();
+  if(ext === "xlsx" || ext === "xls"){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var wb = XLSX.read(e.target.result, {type:"binary"});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var csv = XLSX.utils.sheet_to_csv(ws, {FS:";"});
+      callback(csv);
+    };
+    reader.readAsBinaryString(file);
+  } else {
+    var reader = new FileReader();
+    reader.onload = function(e){ callback(e.target.result); };
+    reader.readAsText(file,"UTF-8");
+  }
+}
+
 function csvImport(event){
   var file = event.target.files[0]; if(!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e){
-    var text = e.target.result;
+  readFileAsText(file, function(text){
     var delim = text.indexOf(";")!==-1?";":"\t";
     var lines = text.split("\n").map(function(l){ return l.replace("\r",""); }).filter(function(l){ return l.trim(); });
     if(lines.length<2){ showToast("CSV je prázdné.","err"); return; }
@@ -2476,8 +2557,7 @@ function csvImport(event){
         .then(function(r){ if(r.ok) insertBatch(offset+100); else showToast("Chyba importu.","err"); });
     }
     insertBatch(0);
-  };
-  reader.readAsText(file,"UTF-8");
+  });
   event.target.value="";
 }
 
@@ -2547,6 +2627,75 @@ function deleteVyrazeni(id,name){
 
 var editVyrId=null;
 
+function restoreVyrazeni(){
+  if(!editVyrId) return;
+  var v = vyrazeniData.find(function(x){ return x.id===editVyrId; });
+  if(!v) return;
+  // Zeptat se na datum vstupu
+  var datumStr = prompt("Zadejte nové datum vstupu člena (DD.MM.RRRR):", new Date().toLocaleDateString("cs-CZ"));
+  if(!datumStr) return;
+  var datumIso = parseDate(datumStr);
+  if(!datumIso){ showToast("Neplatné datum.","err"); return; }
+
+  // Zkontroluj jestli clen existuje podle evidencniho cisla
+  var existujici = members.find(function(m){ return m.osnum === v.evidencni_cislo; });
+  
+  if(existujici){
+    // Clen uz existuje - jen aktualizuj datum a poznamku
+    var dnes = new Date().toLocaleDateString("cs-CZ");
+    var novaPoznamka = (existujici.poznamky ? existujici.poznamky+"\n" : "") + "Obnovení členství: "+dnes;
+    sbFetch("clenove?id=eq."+existujici.id, {
+      method:"PATCH",
+      extraHeaders:{"Prefer":"return=minimal"},
+      body:JSON.stringify({clen_od: datumIso, poznamky: novaPoznamka})
+    }).then(function(r){
+      if(r.ok){
+        // Smaz z vyrazenych
+        sbFetch("vyrazeni?id=eq."+editVyrId,{method:"DELETE"}).then(function(){
+          vyrazeniData = vyrazeniData.filter(function(x){ return x.id!==editVyrId; });
+          closeAddVyrModal();
+          renderVyrazeni();
+          loadMembers();
+          logChange("Obnoven člen", v.prijmeni+" "+v.jmeno);
+          setTimeout(loadAuditLog, 500);
+          showSuccess("Člen "+v.prijmeni+" "+v.jmeno+" byl úspěšně obnoven.");
+          editVyrId=null;
+        });
+      }
+    });
+  } else {
+    // Clen neexistuje - vytvor noveho
+    var dnes = new Date().toLocaleDateString("cs-CZ");
+    var novyClen = {
+      jmeno: v.jmeno,
+      prijmeni: v.prijmeni,
+      osobni_cislo: v.evidencni_cislo||"",
+      oddeleni: v.oddeleni||"",
+      linka_smena: v.linka_smena||"",
+      clen_od: datumIso,
+      typ_clenstvi: "Řádný člen",
+      poznamky: "Obnovení členství: "+dnes,
+      vedouci: "",
+      skupina: ""
+    };
+    sbFetch("clenove",{method:"POST",body:JSON.stringify(novyClen)})
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        // Smaz z vyrazenych
+        sbFetch("vyrazeni?id=eq."+editVyrId,{method:"DELETE"}).then(function(){
+          vyrazeniData = vyrazeniData.filter(function(x){ return x.id!==editVyrId; });
+          closeAddVyrModal();
+          renderVyrazeni();
+          loadMembers();
+          logChange("Obnoven člen", v.prijmeni+" "+v.jmeno);
+          setTimeout(loadAuditLog, 500);
+          showSuccess("Člen "+v.prijmeni+" "+v.jmeno+" byl úspěšně obnoven.");
+          editVyrId=null;
+        });
+      });
+  }
+}
+
 function deleteCurrentVyr(){
   if(!editVyrId) return;
   var v=vyrazeniData.find(function(x){ return x.id===editVyrId; });
@@ -2584,6 +2733,7 @@ function openEditVyrModal(id){
   if(tit) tit.textContent="Upravit vyřazeného člena";
   if(btn){ btn.textContent="✓ Uložit změny"; btn.setAttribute("onclick","saveEditVyr()"); }
   var delBtn=document.getElementById("vyr-del-btn"); if(delBtn) delBtn.style.display="";
+  var restBtn=document.getElementById("vyr-restore-btn"); if(restBtn) restBtn.style.display="";
   document.getElementById("add-vyr-modal").classList.add("show");
 }
 
@@ -2624,6 +2774,7 @@ function openAddVyrazeniModal(){
   if(tit) tit.textContent="Přidat vyřazeného člena";
   if(btn){ btn.textContent="✓ Přidat vyřazeného"; btn.setAttribute("onclick","addVyrazeni()"); }
   var delBtn=document.getElementById("vyr-del-btn"); if(delBtn) delBtn.style.display="none";
+  var restBtn=document.getElementById("vyr-restore-btn"); if(restBtn) restBtn.style.display="none";
   document.getElementById("add-vyr-modal").classList.add("show");
 }
 
@@ -2670,9 +2821,7 @@ function csvExportVyrazeni(){
 
 function importVyrazeni(event){
   var file=event.target.files[0]; if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var text=e.target.result;
+  readFileAsText(file, function(text){
     var delim=text.indexOf(";")!==-1?";":"\t";
     var lines=text.split("\n").map(function(l){ return l.replace("\r",""); }).filter(function(l){ return l.trim(); });
     if(lines.length<2){ showToast("CSV je prázdné.","err"); return; }
@@ -2701,8 +2850,7 @@ function importVyrazeni(event){
         .then(function(r){ if(r.ok) insertVyrBatch(offset+50); });
     }
     insertVyrBatch(0);
-  };
-  reader.readAsText(file,"UTF-8");
+  });
   event.target.value="";
 }
 
