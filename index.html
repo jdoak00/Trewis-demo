@@ -1433,6 +1433,16 @@ function dpPrevYear(){ dpCurrent.setFullYear(dpCurrent.getFullYear()-1); dpRende
 function dpNextYear(){ var n=new Date(dpCurrent.getFullYear()+1,dpCurrent.getMonth(),1); if(n<=TODAY){ dpCurrent=n; dpRender(); } }
 function dpMonthChange(){ dpCurrent.setMonth(parseInt(document.getElementById("dp-month-sel").value)); if(dpCurrent>TODAY) dpCurrent=new Date(TODAY.getFullYear(),TODAY.getMonth(),1); dpRender(); }
 function dpYearChange(){ dpCurrent.setFullYear(parseInt(document.getElementById("dp-year-sel").value)); if(dpCurrent>TODAY) dpCurrent=new Date(TODAY.getFullYear(),TODAY.getMonth(),1); dpRender(); }
+function dpSetMonth(val){
+  dpCurrent = new Date(dpCurrent.getFullYear(), parseInt(val), 1);
+  dpRender();
+}
+
+function dpSetYear(val){
+  dpCurrent = new Date(parseInt(val), dpCurrent.getMonth(), 1);
+  dpRender();
+}
+
 function dpSelectDay(y,m,d){ var dt=new Date(y,m,d); if(dt>TODAY) return; dpSelected=dt; dpRender(); }
 function dpRender(){
   var y=dpCurrent.getFullYear(), m=dpCurrent.getMonth();
@@ -1813,6 +1823,12 @@ function deleteMember(){
   if(!confirm("Opravdu smazat člena "+m.prijmeni+" "+m.jmeno+" a přesunout do Vyřazených?")) return;
   // Pridat do vyrazenych
   var dnes = new Date().toISOString().substring(0,10);
+  // Uloz extra udaje do pole duvod_ukonceni jako suffix JSON
+  var extraData = JSON.stringify({
+    email: m.email||"", telefon: m.telefon||"",
+    adresa: m.adresa||"", vedouci: m.vedouci||"",
+    skupina: m.skupina||"", typ: m.typ||""
+  });
   var vyrRow = {
     jmeno: m.jmeno,
     prijmeni: m.prijmeni,
@@ -1820,8 +1836,8 @@ function deleteMember(){
     oddeleni: m.oddeleni,
     clen_od: m.datumVstupu || null,
     clen_do: dnes,
-    linka_smena: m.linka_smena,
-    duvod_ukonceni: duvod || "Smazán ze seznamu členů"
+    linka_smena: (m.linka||"")+(m.smena?" / "+m.smena:""),
+    duvod_ukonceni: (duvod || "Smazán ze seznamu členů")+"||"+extraData
   };
   sbFetch("vyrazeni", {method:"POST", extraHeaders:{"Prefer":"return=minimal"}, body:JSON.stringify(vyrRow)})
     .then(function(){ });
@@ -3321,9 +3337,20 @@ function restoreVyrazeni(){
   if(!datumIso){ showToast("Neplatné datum.","err"); return; }
   var existujici=members.find(function(m){ return m.osnum===v.evidencni_cislo; });
   var dnes=new Date().toLocaleDateString("cs-CZ");
+  // Nacti extra udaje z duvod_ukonceni pokud jsou ulozeny
+  var extra = {};
+  if(v.duvod_ukonceni && v.duvod_ukonceni.indexOf("||{") !== -1){
+    try { extra = JSON.parse(v.duvod_ukonceni.split("||")[1]); } catch(e){}
+  }
   if(existujici){
     var novaPoznamka=(existujici.poznamky?existujici.poznamky+"\n":"")+"Obnovení členství: "+dnes;
-    sbFetch("clenove?id=eq."+existujici.id,{method:"PATCH",extraHeaders:{"Prefer":"return=minimal"},body:JSON.stringify({clen_od:datumIso,poznamky:novaPoznamka})})
+    var patchData = {clen_od:datumIso, poznamky:novaPoznamka};
+    if(extra.email) patchData.email = extra.email;
+    if(extra.telefon) patchData.mobil = extra.telefon;
+    if(extra.adresa) patchData.adresa = extra.adresa;
+    if(extra.vedouci) patchData.vedouci = extra.vedouci;
+    if(extra.skupina) patchData.skupina = extra.skupina;
+    sbFetch("clenove?id=eq."+existujici.id,{method:"PATCH",extraHeaders:{"Prefer":"return=minimal"},body:JSON.stringify(patchData)})
       .then(function(r){
         if(r.ok){
           sbFetch("vyrazeni?id=eq."+editVyrId,{method:"DELETE"}).then(function(){
@@ -3337,9 +3364,16 @@ function restoreVyrazeni(){
         }
       });
   } else {
-    var novyClen={jmeno:v.jmeno,prijmeni:v.prijmeni,osobni_cislo:v.evidencni_cislo||"",
-      oddeleni:v.oddeleni||"",linka_smena:v.linka_smena||"",clen_od:datumIso,
-      typ_clenstvi:"Řádný člen",poznamky:"Obnovení členství: "+dnes,vedouci:"",skupina:""};
+    var ls = (v.linka_smena||"").split(" / ");
+    var novyClen={
+      jmeno:v.jmeno, prijmeni:v.prijmeni, osobni_cislo:v.evidencni_cislo||"",
+      oddeleni:v.oddeleni||"", linka_smena:v.linka_smena||"", clen_od:datumIso,
+      typ_clenstvi:extra.typ||"Řádný člen",
+      email:extra.email||"", mobil:extra.telefon||"",
+      adresa:extra.adresa||"", vedouci:extra.vedouci||"",
+      skupina:extra.skupina||"",
+      poznamky:"Obnovení členství: "+dnes
+    };
     sbFetch("clenove",{method:"POST",body:JSON.stringify(novyClen)})
       .then(function(r){ return r.json(); })
       .then(function(){
