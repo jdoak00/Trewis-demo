@@ -308,7 +308,7 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
       <label class="lbl">Ověřovací kód (Google Authenticator)</label>
       <input class="inp" id="inp-totp" placeholder="123456" maxlength="6" autocomplete="one-time-code"/>
     </div>
-    <button class="btn-login" id="btn-login">Přihlásit se</button>
+    <button class="btn-login" id="btn-login" onclick="doLogin()">Přihlásit se</button>
     <div class="demo-tip" id="demo-tip" style="display:none">Demo: <code>admin</code> / <code>odbory2024</code></div>
   </div>
 </div>
@@ -1446,9 +1446,11 @@ function dpRender(){
 
 // LOGIN
 function doLogin(){
+  console.log("doLogin called");
   var u=(document.getElementById("inp-user").value||"").trim();
   var p=(document.getElementById("inp-pass").value||"").trim();
   var errEl=document.getElementById("login-err");
+  if(!errEl){ console.error("login-err not found"); return; }
 
   // Kdyz je 2FA aktivni, pouzij novy system
   if(TWO_FA_ENABLED){
