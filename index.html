@@ -958,6 +958,64 @@ function showSuccess(msg){
   setTimeout(function(){ el.style.display = "none"; }, 5000);
 }
 
+// ===== INACTIVITY & SESSION =====
+var INACTIVITY_LIMIT = 10 * 60 * 1000; // 10 minut
+var inactivityTimer = null;
+var inactivityWarningTimer = null;
+
+function doLogout(){
+  clearTimeout(inactivityTimer);
+  clearTimeout(inactivityWarningTimer);
+  document.getElementById("inp-user").value = "";
+  document.getElementById("inp-pass").value = "";
+  var totpEl = document.getElementById("inp-totp");
+  if(totpEl) totpEl.value = "";
+  CURRENT_USER_ROLE = "guest";
+  sessionStorage.removeItem("session_user");
+  var wm = document.getElementById("inactivity-warning");
+  if(wm) wm.style.display = "none";
+  document.getElementById("app-screen").style.display = "none";
+  document.getElementById("login-screen").style.display = "flex";
+}
+
+function stayLoggedIn(){
+  var wm = document.getElementById("inactivity-warning");
+  if(wm) wm.style.display = "none";
+  resetInactivityTimer();
+}
+
+function resetInactivityTimer(){
+  clearTimeout(inactivityTimer);
+  clearTimeout(inactivityWarningTimer);
+  var wm = document.getElementById("inactivity-warning");
+  if(wm) wm.style.display = "none";
+
+  inactivityWarningTimer = setTimeout(function(){
+    if(document.getElementById("app-screen").style.display !== "none"){
+      var w = document.getElementById("inactivity-warning");
+      if(w) w.style.display = "flex";
+    }
+  }, 9 * 60 * 1000);
+
+  inactivityTimer = setTimeout(function(){
+    if(document.getElementById("app-screen").style.display !== "none"){
+      var w = document.getElementById("inactivity-warning");
+      if(w) w.style.display = "none";
+      doLogout();
+      showToast("Byli jste odhlášeni z důvodu nečinnosti.", "err");
+    }
+  }, INACTIVITY_LIMIT);
+}
+
+["mousemove","keydown","click","touchstart"].forEach(function(ev){
+  document.addEventListener(ev, function(){
+    if(document.getElementById("app-screen") &&
+       document.getElementById("app-screen").style.display !== "none"){
+      resetInactivityTimer();
+    }
+  }, {passive:true});
+});
+
 // TMAVÝ REŽIM
 function initDarkMode(){
   var dark = localStorage.getItem("dark_mode") === "1";
@@ -1194,7 +1252,7 @@ function deleteUser(id){
 }
 
 // Prihlaseni s 2FA - aktivni pouze kdyz TWO_FA_ENABLED=true
-async function doLogin2FA(username, password, totpInput){
+async async function doLogin2FA(username, password, totpInput){
   var passwordHash=btoa(password+"_hmmc_salt_2024");
   var r=await sbFetch("uzivatele?username=eq."+encodeURIComponent(username)+"&password_hash=eq."+encodeURIComponent(passwordHash)+"&aktivni=eq.true&select=*");
   var data=await r.json();
