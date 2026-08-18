@@ -285,6 +285,14 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
 
 .finp.error{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(220,38,38,.1);}
 .inp.error{border-color:var(--red)!important;}
+
+.dp-day{width:100%;aspect-ratio:1;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-family:var(--font);background:none;color:var(--text);transition:.1s;}
+.dp-day:hover:not(:disabled){background:var(--blue-light);color:var(--blue);}
+.dp-day.sel{background:var(--blue);color:#fff;font-weight:700;}
+.dp-day.today{background:var(--blue-light);color:var(--blue);font-weight:700;}
+.dp-day.other{color:var(--text3);}
+.dp-day.disabled{opacity:.3;cursor:default;}
+.dp-dname{text-align:center;font-size:11px;font-weight:700;color:var(--text2);padding:4px 0;}
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -2855,7 +2863,7 @@ function exportMembersPDF(){
     "</tr>";
   }).join("");
   var html="<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Seznam členů</title>"+
-    "<style>body{font-family:Arial,sans-serif;margin:20px;font-size:13px;} @media print{.no-print{display:none!important;}}</style></head><body>"+
+    "<style>body{font-family:Arial,sans-serif;margin:20px;font-size:13px;}</style></head><body>"+
     "<div class='no-print' style='text-align:right;margin-bottom:16px;'>"+
     "<button onclick='window.print()' style='padding:8px 16px;background:#087cf4;color:#fff;border:none;border-radius:6px;cursor:pointer;'>🖨️ Tisk / PDF</button></div>"+
     "<div style='display:flex;justify-content:space-between;margin-bottom:16px;'>"+
@@ -2888,24 +2896,19 @@ function csvExport(){
 
 <!-- DATEPICKER MODAL -->
 <div class="modal-bg" id="dp-modal" onclick="if(event.target===this)this.classList.remove('show')">
-  <div class="modal" style="max-width:340px;padding:0;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);">
-      <button onclick="dpPrev()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text2);padding:4px 8px;">&#8249;</button>
-      <div id="dp-title" style="font-weight:700;font-size:15px;color:var(--text);"></div>
-      <button onclick="dpNext()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text2);padding:4px 8px;">&#8250;</button>
-    </div>
-    <div style="padding:8px 12px;">
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;">
-        <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text2);padding:4px;">Po</div>
-        <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text2);padding:4px;">Út</div>
-        <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text2);padding:4px;">St</div>
-        <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text2);padding:4px;">Čt</div>
-        <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text2);padding:4px;">Pá</div>
-        <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text2);padding:4px;">So</div>
-        <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text2);padding:4px;">Ne</div>
+  <div class="modal" style="max-width:360px;padding:0;overflow:hidden;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);background:var(--panel2);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <select id="dp-month-sel" onchange="dpSetMonth(this.value)" style="flex:1;padding:6px 8px;border-radius:7px;border:1.5px solid var(--border);background:var(--panel);color:var(--text);font-family:var(--font);font-size:14px;"></select>
+        <select id="dp-year-sel" onchange="dpSetYear(this.value)" style="width:90px;padding:6px 8px;border-radius:7px;border:1.5px solid var(--border);background:var(--panel);color:var(--text);font-family:var(--font);font-size:14px;"></select>
       </div>
-      <div id="dp-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <button onclick="dpPrev()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text2);padding:4px 10px;border-radius:6px;">&#8249;</button>
+        <div id="dp-selected-display" style="font-size:13px;color:var(--blue);font-weight:600;">Vyberte datum</div>
+        <button onclick="dpNext()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text2);padding:4px 10px;border-radius:6px;">&#8250;</button>
+      </div>
     </div>
+    <div id="dp-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:8px;"></div>
     <div style="padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;">
       <button class="btn btn-out btn-sm" onclick="document.getElementById('dp-modal').classList.remove('show')">Zrušit</button>
       <button class="btn btn-blue btn-sm" onclick="dpConfirm()">Potvrdit</button>
