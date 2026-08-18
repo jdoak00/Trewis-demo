@@ -806,7 +806,7 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
         <div><label class="lbl">Jméno</label><input class="finp" id="add-jmeno" placeholder="Jana"/></div>
         <div><label class="lbl">Příjmení</label><input class="finp" id="add-prijmeni" placeholder="Novakova"/></div>
         <div><label class="lbl">E-mail</label><input class="finp" id="add-email" placeholder="jana@email.cz"/></div>
-        <div><label class="lbl">Telefon</label><input class="finp" id="add-telefon" placeholder="+420 xxx xxx xxx"/></div>
+        <div><label class="lbl">Telefon</label><input class="finp" id="add-telefon" placeholder="+420 xxx xxx xxx" value="+420"/></div>
         <div><label class="lbl">Osobní číslo</label><input class="finp" id="add-osnum" value="1810"/></div>
         
         <div style="grid-column:1/-1"><label class="lbl">Adresa</label><input class="finp" id="add-adresa" placeholder="Ulice 1, Město"/></div>
@@ -1395,8 +1395,9 @@ function loadMembersPage(offset){
         renderStats(); renderAlpha(); renderTable(); updateEmailRcpt(); updateSmsRcpt();
       }
     })
-    .catch(function(){
-      showToast("Chyba připojení k databázi.","err");
+    .catch(function(err){
+      console.error("loadMembers error:", err);
+      showToast("Chyba připojení k databázi: "+err.message,"err");
       document.getElementById("tbl-loading").style.display="none";
     });
 }
