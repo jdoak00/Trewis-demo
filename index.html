@@ -2399,6 +2399,491 @@ function generatePotvrzeniPDF(m, rok, celkem){
   else showToast("Povolte vyskakovací okna v prohlížeči.","err");
 }
 
+
+// ===== TOAST & UI HELPERS =====
+function showToast(msg, type){
+  var el = document.getElementById("toast");
+  if(!el){
+    el = document.createElement("div");
+    el.id = "toast";
+    el.style.cssText = "position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;font-family:var(--font);box-shadow:0 4px 20px rgba(0,0,0,.15);display:none;max-width:320px;";
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.background = type==="err" ? "#dc2626" : type==="ok" ? "#07fa70" : "#087cf4";
+  el.style.color = type==="ok" ? "#1a2332" : "#fff";
+  el.style.display = "block";
+  clearTimeout(el._t);
+  el._t = setTimeout(function(){ el.style.display="none"; }, 3500);
+}
+
+function showSetStatus(msg, type){
+  var el = document.getElementById("set-status");
+  if(!el) return;
+  el.textContent = msg;
+  el.style.display = "block";
+  el.style.background = type==="err" ? "rgba(220,38,38,.1)" : "rgba(7,250,112,.1)";
+  el.style.color = type==="err" ? "#dc2626" : "#05c957";
+  el.style.padding = "10px 14px";
+  el.style.borderRadius = "8px";
+  el.style.fontSize = "13px";
+}
+
+function showSmsSetStatus(msg, type){
+  var el = document.getElementById("set-sms-status");
+  if(!el) return;
+  el.textContent = msg;
+  el.style.display = "block";
+  el.style.background = type==="err" ? "rgba(220,38,38,.1)" : "rgba(7,250,112,.1)";
+  el.style.color = type==="err" ? "#dc2626" : "#05c957";
+  el.style.padding = "10px 14px";
+  el.style.borderRadius = "8px";
+  el.style.fontSize = "13px";
+}
+
+function checkGuest(msg){
+  if(CURRENT_USER_ROLE === "guest"){ showToast(msg||"Nemáte oprávnění.","err"); return true; }
+  return false;
+}
+
+function applyRoleRestrictions(){
+  var isEditor = CURRENT_USER_ROLE === "editor";
+  ["btn-add","btn-import","btn-export-zip"].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.display = isEditor ? "" : "none";
+  });
+  document.querySelectorAll(".editor-only").forEach(function(el){
+    el.style.display = isEditor ? "" : "none";
+  });
+}
+
+// ===== NASTAVENI =====
+var BREVO_API_KEY = "";
+var BREVO_FROM_EMAIL = "";
+var BREVO_FROM_NAME = "Odbory HMMC";
+var SMS_API_KEY = "";
+var SMS_SENDER = "";
+
+function loadSettings(){
+  sbFetch("nastaveni?id=eq.1&select=*")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(Array.isArray(data) && data.length > 0){
+        var s = data[0];
+        BREVO_API_KEY = s.brevo_api_key || "";
+        BREVO_FROM_EMAIL = s.brevo_from_email || "";
+        BREVO_FROM_NAME = s.brevo_from_name || "Odbory HMMC";
+        SMS_API_KEY = s.sms_api_key || "";
+        SMS_SENDER = s.sms_sender || "";
+      }
+      var keyEl = document.getElementById("set-apikey");
+      var emailEl = document.getElementById("set-email");
+      var nameEl = document.getElementById("set-name");
+      if(keyEl) keyEl.value = BREVO_API_KEY;
+      if(emailEl) emailEl.value = BREVO_FROM_EMAIL;
+      if(nameEl) nameEl.value = BREVO_FROM_NAME;
+      var smsKeyEl = document.getElementById("set-sms-apikey");
+      var smsSenderEl = document.getElementById("set-sms-sender");
+      if(smsKeyEl) smsKeyEl.value = SMS_API_KEY;
+      if(smsSenderEl) smsSenderEl.value = SMS_SENDER;
+    })
+    .catch(function(){ });
+}
+
+function loadSmsSettings(){
+  SMS_API_KEY = localStorage.getItem("sms_api_key") || SMS_API_KEY || "";
+  SMS_SENDER = localStorage.getItem("sms_sender") || SMS_SENDER || "";
+}
+
+function saveSettings(){
+  BREVO_API_KEY = (document.getElementById("set-apikey").value || "").trim();
+  BREVO_FROM_EMAIL = (document.getElementById("set-email").value || "").trim();
+  BREVO_FROM_NAME = (document.getElementById("set-name").value || "Odbory HMMC").trim();
+  var smsKey = document.getElementById("set-sms-apikey");
+  var smsSender = document.getElementById("set-sms-sender");
+  if(smsKey) SMS_API_KEY = smsKey.value.trim();
+  if(smsSender) SMS_SENDER = smsSender.value.trim();
+  showSetStatus("Ukládám...","ok");
+  sbFetch("nastaveni?id=eq.1",{
+    method:"PATCH",
+    body:JSON.stringify({
+      brevo_api_key:BREVO_API_KEY, brevo_from_email:BREVO_FROM_EMAIL,
+      brevo_from_name:BREVO_FROM_NAME, sms_api_key:SMS_API_KEY, sms_sender:SMS_SENDER
+    })
+  }).then(function(r){
+    if(r.ok){
+      localStorage.setItem("sms_api_key", SMS_API_KEY);
+      localStorage.setItem("sms_sender", SMS_SENDER);
+      logChange("Upraveno nastavení","Brevo e-mail a SMS nastavení aktualizováno");
+      setTimeout(loadAuditLog,500);
+      showSetStatus("Nastavení uloženo. Platí na všech zařízeních.","ok");
+      showToast("Nastavení uloženo.","ok");
+    } else { showSetStatus("Chyba při ukládání.","err"); }
+  }).catch(function(){ showSetStatus("Chyba připojení.","err"); });
+}
+
+function toggleApiKey(){
+  var el=document.getElementById("set-apikey");
+  var btn=document.getElementById("btn-eye");
+  if(el.type==="password"){ el.type="text"; btn.textContent="Skrýt"; }
+  else { el.type="password"; btn.textContent="Zobrazit"; }
+}
+
+function toggleSmsApiKey(){
+  var el=document.getElementById("set-sms-apikey");
+  var btn=document.getElementById("btn-sms-eye");
+  if(el.type==="password"){ el.type="text"; btn.textContent="Skrýt"; }
+  else { el.type="password"; btn.textContent="Zobrazit"; }
+}
+
+function testEmail(){
+  if(!BREVO_API_KEY||!BREVO_FROM_EMAIL){ showSetStatus("Nejprve uložte nastavení Brevo.","err"); return; }
+  showSetStatus("Odesílám testovací e-mail...","ok");
+  sendBrevoEmail([{email:BREVO_FROM_EMAIL,name:"Test"}],"[TEST] Odbory HMMC","<p>Testovací e-mail z aplikace Odbory HMMC.</p>")
+    .then(function(ok){
+      if(ok) showSetStatus("Testovací e-mail odeslán na "+BREVO_FROM_EMAIL,"ok");
+      else showSetStatus("Chyba při odesílání testovacího e-mailu.","err");
+    });
+}
+
+// ===== EMAIL =====
+var emailAttachments = [];
+
+function sendBrevoEmail(recipients, subject, htmlContent, attachments){
+  if(!BREVO_API_KEY||!BREVO_FROM_EMAIL) return Promise.resolve(false);
+  var body={sender:{name:BREVO_FROM_NAME,email:BREVO_FROM_EMAIL},to:recipients,subject:subject,htmlContent:htmlContent};
+  if(attachments&&attachments.length>0) body.attachment=attachments.map(function(a){ return {name:a.name,content:a.content}; });
+  return fetch("https://api.brevo.com/v3/smtp/email",{
+    method:"POST",
+    headers:{"accept":"application/json","api-key":BREVO_API_KEY,"content-type":"application/json"},
+    body:JSON.stringify(body)
+  }).then(function(r){ return r.ok; }).catch(function(){ return false; });
+}
+
+function fileToBase64(file){
+  return new Promise(function(resolve,reject){
+    var reader=new FileReader();
+    reader.onload=function(e){ var b64=e.target.result.split(",")[1]; resolve({name:file.name,content:b64}); };
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function readFileAsText(file, callback){
+  var ext=file.name.split(".").pop().toLowerCase();
+  if(ext==="xlsx"||ext==="xls"){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var wb=XLSX.read(e.target.result,{type:"binary"});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var csv=XLSX.utils.sheet_to_csv(ws,{FS:";"});
+      callback(csv);
+    };
+    reader.readAsBinaryString(file);
+  } else {
+    var reader=new FileReader();
+    reader.onload=function(e){ callback(e.target.result); };
+    reader.readAsText(file,"UTF-8");
+  }
+}
+
+// ===== SMS =====
+function updateSmsRcpt(){
+  var val=(document.getElementById("sms-typ")||{value:""}).value;
+  var n=members.filter(function(m){
+    if(!m.telefon) return false;
+    if(!val) return true;
+    if(val.indexOf("typ:")===0) return m.typ===val.substring(4);
+    if(val.indexOf("skupina:")===0) return m.skupina===val.substring(8);
+    return true;
+  }).length;
+  var rcptEl=document.getElementById("sms-rcpt-n");
+  var btnEl=document.getElementById("btn-send-sms");
+  if(rcptEl) rcptEl.textContent=n;
+  if(btnEl) btnEl.textContent="Odeslat SMS ("+n+")";
+}
+
+function saveSmsSettings(){
+  var key=(document.getElementById("sms-api-key")||{value:""}).value.trim();
+  var sender=(document.getElementById("sms-sender")||{value:""}).value.trim();
+  if(!key||!sender){ showToast("Vyplňte API klíč a odesílatele.","err"); return; }
+  localStorage.setItem("sms_api_key",key);
+  localStorage.setItem("sms_sender",sender);
+  showToast("SMS nastavení uloženo.","ok");
+}
+
+function sendSmsManager(phone, text, apiKey, sender){
+  var url="/.netlify/functions/send-sms";
+  return fetch(url,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({phone:phone,text:text,apiKey:apiKey,sender:sender})
+  }).then(function(r){
+    return r.json().then(function(data){
+      if(data&&data.error){ console.error("SMS error:",data.error); return false; }
+      return data&&data.accepted&&data.accepted.length>0;
+    });
+  }).catch(function(e){ console.error("SMS fetch error:",e); return false; });
+}
+
+function sendSms(){
+  if(checkGuest("Nemáte oprávnění odesílat SMS.")) return;
+  var msg=(document.getElementById("sms-msg")||{value:""}).value.trim();
+  if(!msg){ showToast("Napište text SMS.","err"); return; }
+  var apiKey=SMS_API_KEY||localStorage.getItem("sms_api_key")||"";
+  var sender=SMS_SENDER||localStorage.getItem("sms_sender")||"";
+  if(!apiKey||!sender){ showToast("Nastavte SMS API klíč v sekci Nastavení.","err"); return; }
+  var val=(document.getElementById("sms-typ")||{value:""}).value;
+  var rcpt=members.filter(function(m){
+    if(!m.telefon) return false;
+    if(!val) return true;
+    if(val.indexOf("typ:")===0) return m.typ===val.substring(4);
+    if(val.indexOf("skupina:")===0) return m.skupina===val.substring(8);
+    return true;
+  });
+  var total=rcpt.length;
+  if(!total){ showToast("Žádní příjemci SMS.","err"); return; }
+  var smsTypLabel=(document.getElementById("sms-typ")||{}).options ? document.getElementById("sms-typ").options[document.getElementById("sms-typ").selectedIndex].text : "";
+  if(!confirm("Opravdu odeslat SMS "+total+" příjemcům?\n\nSkupina: "+smsTypLabel+"\n\nText: "+msg.substring(0,100))) return;
+  var progEl=document.getElementById("sms-progress");
+  var okEl=document.getElementById("sms-ok");
+  var progBar=document.getElementById("sms-prog-bar");
+  var progTxt=document.getElementById("sms-prog-txt");
+  var sendBtn=document.getElementById("btn-send-sms");
+  if(progEl) progEl.style.display="block";
+  if(okEl) okEl.style.display="none";
+  if(progBar) progBar.style.width="0%";
+  if(progTxt) progTxt.textContent="Odesílám 0/"+total+"...";
+  if(sendBtn) sendBtn.disabled=true;
+  var sent=0, errors=0;
+  function sendNext(idx){
+    if(idx>=rcpt.length){
+      if(progEl) progEl.style.display="none";
+      var resultMsg="Hotovo! SMS odesláno "+sent+" příjemcům.";
+      if(errors>0) resultMsg+=" Chyb: "+errors;
+      if(okEl){ okEl.style.display="block"; okEl.textContent=resultMsg; }
+      if(sendBtn){ sendBtn.disabled=false; sendBtn.style.opacity="1"; sendBtn.style.cursor="pointer"; }
+      logChange("Odeslána hromadná SMS","Příjemců: "+sent+", chyb: "+errors);
+      setTimeout(loadAuditLog,500);
+      showToast("SMS odesláno "+sent+" příjemcům!","ok");
+      return;
+    }
+    var m=rcpt[idx];
+    var phone=(m.telefon||"").replace(/\s/g,"").replace(/^00420/,"+420").replace(/^420/,"+420");
+    if(!phone.startsWith("+")) phone="+420"+phone;
+    sendSmsManager(phone,msg,apiKey,sender).then(function(ok){
+      if(ok) sent++; else errors++;
+      var pct=Math.round((idx+1)/total*100);
+      var pt=document.getElementById("sms-prog-txt");
+      var pb=document.getElementById("sms-prog-bar");
+      if(pt) pt.textContent="Odesílám "+(idx+1)+"/"+total+"... "+pct+"%";
+      if(pb) pb.style.width=pct+"%";
+      setTimeout(function(){ sendNext(idx+1); },100);
+    });
+  }
+  sendNext(0);
+}
+
+// ===== DETAIL PANEL =====
+function openDetailPanel(m){
+  detailMember=m;
+  renderDetailView(m);
+  document.getElementById("side-panel").classList.add("open");
+}
+
+// ===== EDIT MODAL =====
+function openEditModal(){
+  if(checkGuest("Nemáte oprávnění upravovat členy.")) return;
+  if(!detailMember) return;
+  var m=detailMember;
+  document.getElementById("edit-modal").classList.add("show");
+  renderEditForm(m);
+}
+
+function closeEditModal(){
+  document.getElementById("edit-modal").classList.remove("show");
+}
+
+function resetAddModal(){
+  ["add-jmeno","add-prijmeni","add-email","add-adresa","add-osnum","add-linka","add-vedouci"].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.value="";
+  });
+  var telEl=document.getElementById("add-telefon"); if(telEl) telEl.value="+420";
+  var vstupEl=document.getElementById("add-vstup"); if(vstupEl){ vstupEl.value=""; vstupEl.dataset.isoValue=""; }
+  var typEl=document.getElementById("add-typ"); if(typEl) typEl.value="Řádný člen";
+  var oddEl=document.getElementById("add-odd"); if(oddEl) oddEl.value="";
+  var smenaEl=document.getElementById("add-smena"); if(smenaEl) smenaEl.value="";
+  var skupinaEl=document.getElementById("add-skupina"); if(skupinaEl) skupinaEl.value="";
+}
+
+// ===== AUDIT LOG =====
+function logChange(akce, detail){
+  var uzivatel=(window.CURRENT_USERNAME||"neznámý").trim();
+  sbFetch("audit_log",{method:"POST",extraHeaders:{"Prefer":"return=minimal"},body:JSON.stringify({uzivatel:uzivatel,akce:akce,detail:detail})}).catch(function(){});
+}
+
+function loadAuditLog(){
+  var el=document.getElementById("audit-log-list");
+  if(!el) return;
+  el.innerHTML="<div style='color:var(--text2);font-size:13px;padding:8px 0;'>Načítám...</div>";
+  fetch(SUPABASE_URL+"/rest/v1/audit_log?select=*&order=created_at.desc&limit=10",{
+    headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"}
+  }).then(function(r){
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return r.json();
+  }).then(function(data){
+    if(!Array.isArray(data)||data.length===0){
+      el.innerHTML="<div style='color:var(--text2);font-size:13px;padding:8px 0;'>Zatím žádné změny.</div>";
+      return;
+    }
+    el.innerHTML=data.map(function(log){
+      var dt=log.created_at?new Date(log.created_at):null;
+      var dtStr=dt?dt.toLocaleDateString("cs-CZ")+" "+dt.toLocaleTimeString("cs-CZ",{hour:"2-digit",minute:"2-digit"}):"—";
+      var color=log.akce&&log.akce.indexOf("Smazán")!==-1?"var(--red)":log.akce&&log.akce.indexOf("Přidán")!==-1?"#05c957":log.akce&&(log.akce.indexOf("mail")!==-1||log.akce.indexOf("SMS")!==-1)?"#087cf4":"var(--text2)";
+      return "<div style='display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);'>"+
+        "<div style='min-width:130px;font-size:11px;color:var(--text2);'>"+dtStr+"</div>"+
+        "<div style='flex:1;'><span style='font-size:12px;font-weight:700;color:"+color+";'>"+(log.akce||"")+"</span>"+
+        (log.detail?"<span style='font-size:12px;color:var(--text2);'> — "+log.detail+"</span>":"")+
+        "</div><div style='font-size:11px;color:var(--text2);min-width:80px;text-align:right;'>"+(log.uzivatel||"")+"</div></div>";
+    }).join("");
+  }).catch(function(err){
+    el.innerHTML="<div style='color:var(--text2);font-size:13px;padding:8px 0;'>Nepodařilo se načíst změny.</div>";
+  });
+}
+
+// ===== STATISTIKY =====
+var statistikyData=[];
+var statChart=null;
+var MESICE_SHORT=["Led","Úno","Bře","Dub","Kvě","Čer","Čvc","Srp","Zář","Říj","Lis","Pro"];
+
+function loadStatistiky(){
+  sbFetch("statistiky_clenu?select=*&order=rok.asc,mesic.asc&limit=1000")
+    .then(function(r){ return r.json(); })
+    .then(function(data){ statistikyData=Array.isArray(data)?data:[]; renderStatistiky(); })
+    .catch(function(){ showToast("Chyba načítání statistik.","err"); });
+}
+
+function renderStatistiky(){
+  var view=(document.getElementById("stat-view")||{value:"mesic"}).value;
+  var tbody=document.getElementById("stat-tbody");
+  var canvas=document.getElementById("stat-chart");
+  var empty=document.getElementById("stat-empty");
+  if(!statistikyData.length){
+    if(canvas) canvas.style.display="none";
+    if(empty) empty.style.display="block";
+    if(tbody) tbody.innerHTML="<tr><td colspan='6' style='text-align:center;padding:20px;color:var(--text2)'>Žádná data.</td></tr>";
+    return;
+  }
+  if(canvas) canvas.style.display="block";
+  if(empty) empty.style.display="none";
+  var labels=[],radnych=[],tajnych=[],celkem=[];
+  if(view==="mesic"){
+    statistikyData.forEach(function(d){
+      labels.push(MESICE_SHORT[d.mesic-1]+" "+d.rok);
+      radnych.push(d.pocet_radnych); tajnych.push(d.pocet_tajnych);
+      celkem.push(d.pocet_radnych+d.pocet_tajnych);
+    });
+  } else {
+    var roky={};
+    statistikyData.forEach(function(d){ roky[d.rok]=d; });
+    Object.keys(roky).sort().forEach(function(r){
+      var d=roky[r]; labels.push(r);
+      radnych.push(d.pocet_radnych); tajnych.push(d.pocet_tajnych);
+      celkem.push(d.pocet_radnych+d.pocet_tajnych);
+    });
+  }
+  if(statChart) statChart.destroy();
+  if(typeof Chart!=="undefined"){
+    var ctx=canvas.getContext("2d");
+    statChart=new Chart(ctx,{type:"line",data:{labels:labels,datasets:[
+      {label:"Celkem",data:celkem,borderColor:"#087cf4",backgroundColor:"rgba(8,124,244,.1)",tension:.3,fill:true,pointRadius:4},
+      {label:"Řádní",data:radnych,borderColor:"#00eddf",tension:.3,fill:false,pointRadius:4},
+      {label:"Tajní",data:tajnych,borderColor:"#07fa70",tension:.3,fill:false,pointRadius:4}
+    ]},options:{responsive:true,plugins:{legend:{position:"top"},tooltip:{mode:"index",intersect:false}},scales:{y:{beginAtZero:false}}}});
+  }
+  if(tbody){
+    tbody.innerHTML=statistikyData.slice().reverse().map(function(d){
+      return "<tr><td>"+d.rok+"</td><td>"+MESICE_SHORT[d.mesic-1]+"</td>"+
+        "<td style='color:#00eddf'>"+d.pocet_radnych+"</td>"+
+        "<td style='color:#07fa70'>"+d.pocet_tajnych+"</td>"+
+        "<td style='font-weight:700;color:#087cf4'>"+(d.pocet_radnych+d.pocet_tajnych)+"</td>"+
+        "<td><button class='btn btn-out btn-sm btn-red' onclick='deleteStatData("+d.id+")'>&#128465;</button></td></tr>";
+    }).join("");
+  }
+}
+
+function openAddStatModal(){
+  var now=new Date();
+  document.getElementById("stat-rok").value=now.getFullYear();
+  document.getElementById("stat-mesic").value=now.getMonth()+1;
+  document.getElementById("stat-radnych").value=members.filter(function(m){ return m.typ==="Řádný člen"; }).length||"";
+  document.getElementById("stat-tajnych").value=members.filter(function(m){ return m.typ==="Tajný člen"; }).length||"";
+  document.getElementById("stat-modal").classList.add("show");
+}
+
+function saveStatData(){
+  var rok=parseInt(document.getElementById("stat-rok").value);
+  var mesic=parseInt(document.getElementById("stat-mesic").value);
+  var r2=parseInt(document.getElementById("stat-radnych").value)||0;
+  var t2=parseInt(document.getElementById("stat-tajnych").value)||0;
+  if(!rok||!mesic){ showToast("Vyplňte rok a měsíc.","err"); return; }
+  sbFetch("statistiky_clenu",{method:"POST",extraHeaders:{"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({rok:rok,mesic:mesic,pocet_radnych:r2,pocet_tajnych:t2})})
+    .then(function(r){ if(r.ok){ document.getElementById("stat-modal").classList.remove("show"); loadStatistiky(); showToast("Data uložena.","ok"); } });
+}
+
+function deleteStatData(id){
+  if(!confirm("Smazat tento záznam?")) return;
+  sbFetch("statistiky_clenu?id=eq."+id,{method:"DELETE"}).then(function(){ loadStatistiky(); showToast("Smazáno.","ok"); });
+}
+
+// ===== PDF SEZNAM CLENU =====
+function exportMembersPDF(){
+  var typ=(document.getElementById("typ-flt")||{value:""}).value;
+  var odd=(document.getElementById("odd-flt")||{value:""}).value;
+  var skupina=(document.getElementById("skupina-flt")||{value:""}).value;
+  var q=(document.getElementById("srch-inp")||{value:""}).value.toLowerCase();
+  var filtered=members.filter(function(m){
+    var s=(m.jmeno+" "+m.prijmeni+" "+m.osnum).toLowerCase();
+    return s.indexOf(q)!==-1&&(!typ||m.typ===typ)&&(!odd||m.oddeleni===odd)&&(!skupina||m.skupina===skupina);
+  }).sort(function(a,b){ return a.prijmeni.localeCompare(b.prijmeni,"cs")||a.jmeno.localeCompare(b.jmeno,"cs"); });
+  var rows=filtered.map(function(m){
+    return "<tr>"+
+      "<td style='padding:6px 8px;border:1px solid #ccc;font-size:12px;'><b>"+m.prijmeni+"</b></td>"+
+      "<td style='padding:6px 8px;border:1px solid #ccc;font-size:12px;'>"+m.jmeno+"</td>"+
+      "<td style='padding:6px 8px;border:1px solid #ccc;font-size:12px;'>"+(m.oddeleni||"")+"</td>"+
+      "<td style='padding:6px 8px;border:1px solid #ccc;min-width:120px;'></td>"+
+    "</tr>";
+  }).join("");
+  var html="<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Seznam členů</title>"+
+    "<style>body{font-family:Arial,sans-serif;margin:20px;font-size:13px;} @media print{.no-print{display:none!important;}}</style></head><body>"+
+    "<div class='no-print' style='text-align:right;margin-bottom:16px;'>"+
+    "<button onclick='window.print()' style='padding:8px 16px;background:#087cf4;color:#fff;border:none;border-radius:6px;cursor:pointer;'>🖨️ Tisk / PDF</button></div>"+
+    "<div style='display:flex;justify-content:space-between;margin-bottom:16px;'>"+
+    "<div><b>Základní organizace OS KOVO Hyundai Czech</b><br><span style='font-size:12px;color:#666;'>Hyundai 700/1, Nižní Lhoty, 739 51</span></div>"+
+    "<div style='font-size:12px;color:#666;text-align:right;'>Datum: "+new Date().toLocaleDateString("cs-CZ")+"<br>Počet: "+filtered.length+"</div></div>"+
+    "<h3 style='text-align:center;margin:0 0 12px;font-size:14px;'>SEZNAM ČLENŮ"+(typ?" — "+typ:"")+(odd?" — "+odd:"")+(skupina?" — "+skupina:"")+"</h3>"+
+    "<table style='width:100%;border-collapse:collapse;'><thead><tr>"+
+    "<th style='padding:6px 8px;border:1px solid #ccc;background:#1a2332;color:#fff;font-size:11px;text-align:left;'>Příjmení</th>"+
+    "<th style='padding:6px 8px;border:1px solid #ccc;background:#1a2332;color:#fff;font-size:11px;text-align:left;'>Jméno</th>"+
+    "<th style='padding:6px 8px;border:1px solid #ccc;background:#1a2332;color:#fff;font-size:11px;text-align:left;'>Hala</th>"+
+    "<th style='padding:6px 8px;border:1px solid #ccc;background:#1a2332;color:#fff;font-size:11px;text-align:left;'>Podpis</th>"+
+    "</tr></thead><tbody>"+rows+"</tbody></table></body></html>";
+  var win=window.open("","_blank");
+  if(win){ win.document.write(html); win.document.close(); }
+  else showToast("Povolte vyskakovací okna.","err");
+}
+
+// ===== CSV EXPORT =====
+function csvExport(){
+  var rows=getSorted();
+  var header=["Příjmení","Jméno","OS číslo","E-mail","Telefon","Adresa","Člen od","Typ","Oddělení","Linka","Směna","Vedoucí","Odbory"];
+  var lines=[header].concat(rows.map(function(m){
+    return [m.prijmeni,m.jmeno,m.osnum,m.email,m.telefon,m.adresa,m.datumVstupu,m.typ,m.oddeleni,m.linka,m.smena,m.vedouci,m.skupina];
+  })).map(function(r){ return r.map(function(v){ return '"'+String(v||"").replace(/"/g,'\"')+'"'; }).join(";"); });
+  var blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8;"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="clenove.csv"; a.click();
+}
+
 </script>
 
 <!-- DATEPICKER MODAL -->
