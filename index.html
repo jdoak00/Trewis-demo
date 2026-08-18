@@ -2,8 +2,11 @@
 <html lang="cs">
 <head>
 <meta charset="UTF-8"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Odbory Hyundai</title>
+<title>Odbory Hyundai v2.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -3073,6 +3076,288 @@ function renderEditForm(m){
     "</div>";
   var container=document.getElementById("edit-form-container");
   if(container) container.innerHTML=html;
+}
+
+
+// ===== VYRAZENI =====
+var vyrazeniData = [];
+var vyrPage = 1;
+var VYR_PAGE_SZ = 20;
+
+function loadVyrazeni(){
+  var tbody = document.getElementById("vyr-body");
+  if(tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text2)">Načítám...</td></tr>';
+  sbFetch("vyrazeni?select=*&order=prijmeni.asc,jmeno.asc&limit=3000")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      vyrazeniData = Array.isArray(data) ? data : [];
+      renderVyrazeni();
+    }).catch(function(){ showToast("Chyba načítání vyřazených.","err"); });
+}
+
+function filterVyrazeni(){ vyrPage=1; renderVyrazeni(); }
+
+function renderVyrazeni(){
+  var q = (document.getElementById("vyr-srch")||{value:""}).value.toLowerCase();
+  var filtered = vyrazeniData.filter(function(v){
+    return (v.prijmeni+" "+v.jmeno+" "+(v.evidencni_cislo||"")+" "+(v.oddeleni||"")).toLowerCase().indexOf(q) !== -1;
+  });
+  var pages = Math.max(1, Math.ceil(filtered.length/VYR_PAGE_SZ));
+  if(vyrPage > pages) vyrPage = 1;
+  var slice = filtered.slice((vyrPage-1)*VYR_PAGE_SZ, vyrPage*VYR_PAGE_SZ);
+  var tbody = document.getElementById("vyr-body");
+  if(!tbody) return;
+  if(slice.length === 0){
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--text2)">Žádné záznamy</td></tr>';
+  } else {
+    tbody.innerHTML = slice.map(function(v){
+      return '<tr>'+
+        '<td><b>'+v.prijmeni+' '+v.jmeno+'</b></td>'+
+        '<td style="color:var(--text2)">'+(v.evidencni_cislo||"—")+'</td>'+
+        '<td style="color:var(--text2)">'+formatDate(v.clen_od)+'</td>'+
+        '<td style="color:var(--text2)">'+formatDate(v.clen_do)+'</td>'+
+        '<td style="color:var(--text2)">'+(v.oddeleni||"—")+'</td>'+
+        '<td style="color:var(--text2)">'+(v.linka_smena||"—")+'</td>'+
+        '<td style="color:var(--text2)">'+(v.duvod_ukonceni||"—")+'</td>'+
+        '<td onclick="event.stopPropagation()">'+
+          '<button class="btn btn-out btn-sm" data-id="'+v.id+'" onclick="openEditVyrModal(parseInt(this.dataset.id))">&#9998; Upravit</button>'+
+        '</td>'+
+      '</tr>';
+    }).join("");
+  }
+  var pagHtml = "";
+  for(var i=1;i<=pages;i++) pagHtml += '<button class="pg-b'+(i===vyrPage?" on":"")+'" onclick="vyrPage='+i+';renderVyrazeni()">'+i+'</button>';
+  pagHtml += '<div class="pg-info">'+slice.length+' z '+filtered.length+' záznamů</div>';
+  var pagEl = document.getElementById("vyr-pag");
+  if(pagEl) pagEl.innerHTML = pagHtml;
+}
+
+function deleteVyrazeni(id, name){
+  if(checkGuest("Nemáte oprávnění mazat záznamy.")) return;
+  if(!confirm("Opravdu smazat vyřazeného člena: "+name+"?")) return;
+  sbFetch("vyrazeni?id=eq."+id, {method:"DELETE"}).then(function(r){
+    if(r.ok){
+      vyrazeniData = vyrazeniData.filter(function(v){ return v.id !== id; });
+      renderVyrazeni();
+      logChange("Smazán vyřazený člen", name);
+      setTimeout(loadAuditLog, 500);
+      showToast("Záznam smazán.","ok");
+    }
+  });
+}
+
+var editVyrId = null;
+
+function openEditVyrModal(id){
+  if(checkGuest("Nemáte oprávnění upravovat záznamy.")) return;
+  editVyrId = null;
+  var v = vyrazeniData.find(function(x){ return x.id === id; });
+  if(!v) return;
+  editVyrId = id;
+  var jEl = document.getElementById("vyr-jmeno"); if(jEl) jEl.value = v.jmeno||"";
+  var pEl = document.getElementById("vyr-prijmeni"); if(pEl) pEl.value = v.prijmeni||"";
+  var eEl = document.getElementById("vyr-evid"); if(eEl) eEl.value = v.evidencni_cislo||"";
+  var oEl = document.getElementById("vyr-oddeleni"); if(oEl) oEl.value = v.oddeleni||"";
+  var lEl = document.getElementById("vyr-linka-smena"); if(lEl) lEl.value = v.linka_smena||"";
+  var dEl = document.getElementById("vyr-duvod"); if(dEl) dEl.value = v.duvod_ukonceni||"";
+  var od = document.getElementById("vyr-clen-od");
+  if(od){ od.value = v.clen_od ? formatDate(v.clen_od) : ""; od.dataset.isoValue = v.clen_od||""; }
+  var doo = document.getElementById("vyr-clen-do");
+  if(doo){ doo.value = v.clen_do ? formatDate(v.clen_do) : ""; doo.dataset.isoValue = v.clen_do||""; }
+  var tit = document.querySelector("#add-vyr-modal .modal-t");
+  var btn = document.querySelector("#add-vyr-modal .modal-f .btn-blue");
+  if(tit) tit.textContent = "Upravit vyřazeného člena";
+  if(btn){ btn.textContent = "✓ Uložit změny"; btn.setAttribute("onclick","saveEditVyr()"); }
+  var delBtn = document.getElementById("vyr-del-btn"); if(delBtn) delBtn.style.display = "";
+  var restBtn = document.getElementById("vyr-restore-btn"); if(restBtn) restBtn.style.display = "";
+  document.getElementById("add-vyr-modal").classList.add("show");
+}
+
+function saveEditVyr(){
+  if(!editVyrId) return;
+  var row = {
+    jmeno: (document.getElementById("vyr-jmeno")||{value:""}).value.trim(),
+    prijmeni: (document.getElementById("vyr-prijmeni")||{value:""}).value.trim(),
+    evidencni_cislo: (document.getElementById("vyr-evid")||{value:""}).value.trim(),
+    oddeleni: (document.getElementById("vyr-oddeleni")||{value:""}).value,
+    clen_od: getIsoDate(document.getElementById("vyr-clen-od"))||null,
+    clen_do: getIsoDate(document.getElementById("vyr-clen-do"))||null,
+    linka_smena: (document.getElementById("vyr-linka-smena")||{value:""}).value.trim(),
+    duvod_ukonceni: (document.getElementById("vyr-duvod")||{value:""}).value.trim()
+  };
+  sbFetch("vyrazeni?id=eq."+editVyrId, {method:"PATCH", body:JSON.stringify(row)}).then(function(r){
+    if(r.ok){
+      var idx = vyrazeniData.findIndex(function(x){ return x.id === editVyrId; });
+      if(idx !== -1) vyrazeniData[idx] = Object.assign(vyrazeniData[idx], row);
+      closeAddVyrModal();
+      renderVyrazeni();
+      logChange("Upraven vyřazený člen", row.prijmeni+" "+row.jmeno);
+      setTimeout(loadAuditLog, 500);
+      showToast("Záznam upraven.","ok");
+      editVyrId = null;
+    }
+  });
+}
+
+function openAddVyrazeniModal(){
+  if(checkGuest("Nemáte oprávnění přidávat záznamy.")) return;
+  editVyrId = null;
+  ["vyr-jmeno","vyr-prijmeni","vyr-evid","vyr-linka-smena","vyr-duvod"].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.value = "";
+  });
+  var od = document.getElementById("vyr-clen-od"); if(od){ od.value=""; od.dataset.isoValue=""; }
+  var doo = document.getElementById("vyr-clen-do"); if(doo){ doo.value=""; doo.dataset.isoValue=""; }
+  var tit = document.querySelector("#add-vyr-modal .modal-t");
+  var btn = document.querySelector("#add-vyr-modal .modal-f .btn-blue");
+  if(tit) tit.textContent = "Přidat vyřazeného člena";
+  if(btn){ btn.textContent = "✓ Přidat vyřazeného"; btn.setAttribute("onclick","addVyrazeni()"); }
+  var delBtn = document.getElementById("vyr-del-btn"); if(delBtn) delBtn.style.display = "none";
+  var restBtn = document.getElementById("vyr-restore-btn"); if(restBtn) restBtn.style.display = "none";
+  document.getElementById("add-vyr-modal").classList.add("show");
+}
+
+function closeAddVyrModal(e){
+  if(!e || e.target === document.getElementById("add-vyr-modal"))
+    document.getElementById("add-vyr-modal").classList.remove("show");
+}
+
+function addVyrazeni(){
+  if(checkGuest("Nemáte oprávnění přidávat záznamy.")) return;
+  var jmeno = (document.getElementById("vyr-jmeno")||{value:""}).value.trim();
+  var prijmeni = (document.getElementById("vyr-prijmeni")||{value:""}).value.trim();
+  if(!jmeno||!prijmeni){ showToast("Vyplňte jméno a příjmení.","err"); return; }
+  var row = {
+    jmeno:jmeno, prijmeni:prijmeni,
+    evidencni_cislo:(document.getElementById("vyr-evid")||{value:""}).value.trim(),
+    oddeleni:(document.getElementById("vyr-oddeleni")||{value:""}).value,
+    clen_od:getIsoDate(document.getElementById("vyr-clen-od"))||null,
+    clen_do:getIsoDate(document.getElementById("vyr-clen-do"))||null,
+    linka_smena:(document.getElementById("vyr-linka-smena")||{value:""}).value.trim(),
+    duvod_ukonceni:(document.getElementById("vyr-duvod")||{value:""}).value.trim()
+  };
+  sbFetch("vyrazeni", {method:"POST", body:JSON.stringify(row)})
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var saved = Array.isArray(data) ? data[0] : data;
+      if(saved && saved.id){ row.id = saved.id; vyrazeniData.push(row); }
+      closeAddVyrModal();
+      renderVyrazeni();
+      logChange("Přidán vyřazený člen", prijmeni+" "+jmeno);
+      setTimeout(loadAuditLog, 500);
+      showToast("Vyřazený člen přidán.","ok");
+    });
+}
+
+function csvExportVyrazeni(){
+  var h=["Příjmení","Jméno","Evid. číslo","Člen od","Člen do","Oddělení","Linka a směna","Důvod ukončení"];
+  var rows=vyrazeniData.map(function(v){
+    return [v.prijmeni,v.jmeno,v.evidencni_cislo,formatDate(v.clen_od),formatDate(v.clen_do),v.oddeleni,v.linka_smena,v.duvod_ukonceni];
+  });
+  var lines=[h].concat(rows).map(function(r){ return r.map(function(v){ return '"'+String(v||"").replace(/"/g,'""')+'"'; }).join(";"); });
+  var blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8;"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="vyrazeni.csv"; a.click();
+}
+
+function importVyrazeni(event){
+  var file=event.target.files[0]; if(!file) return;
+  readFileAsText(file, function(text){
+    var delim=text.indexOf(";")!==-1?";":"\t";
+    var lines=text.split("\n").map(function(l){ return l.replace("\r",""); }).filter(function(l){ return l.trim(); });
+    if(lines.length<2){ showToast("CSV je prázdné.","err"); return; }
+    var header=parseCSVLine(lines[0],delim).map(function(h){ return h.trim().toLowerCase(); });
+    function col(names){ for(var i=0;i<names.length;i++){ var idx=header.indexOf(names[i]); if(idx!==-1) return idx; } return -1; }
+    var map={
+      prijmeni:col(["příjmení","prijmeni"]),jmeno:col(["jméno","jmeno"]),
+      evid:col(["evid. číslo","evidenční číslo","evid_cislo"]),
+      clen_od:col(["člen od","clen od"]),clen_do:col(["člen do","clen do"]),
+      oddeleni:col(["oddělení","oddeleni"]),linka:col(["linka a směna","linka_smena"]),
+      duvod:col(["důvod ukončení","duvod_ukonceni","důvod"])
+    };
+    var rows=[];
+    for(var i=1;i<lines.length;i++){
+      var cols=parseCSVLine(lines[i],delim); if(cols.length<2) continue;
+      function g(key){ var idx=map[key]; return(idx!==-1&&idx<cols.length)?cols[idx].trim():""; }
+      rows.push({prijmeni:g("prijmeni"),jmeno:g("jmeno"),evidencni_cislo:g("evid"),
+        clen_od:parseDate(g("clen_od"))||null,clen_do:parseDate(g("clen_do"))||null,
+        oddeleni:g("oddeleni"),linka_smena:g("linka"),duvod_ukonceni:g("duvod")});
+    }
+    if(!rows.length){ showToast("Žádné záznamy k importu.","err"); return; }
+    showToast("Importuji "+rows.length+" záznamů...","ok");
+    function insertVyrBatch(offset){
+      var chunk=rows.slice(offset,offset+50); if(!chunk.length){ loadVyrazeni(); showToast("Import dokončen.","ok"); return; }
+      sbFetch("vyrazeni",{method:"POST",extraHeaders:{"Prefer":"return=minimal"},body:JSON.stringify(chunk)})
+        .then(function(r){ if(r.ok) insertVyrBatch(offset+50); });
+    }
+    insertVyrBatch(0);
+  });
+  event.target.value="";
+}
+
+function deleteCurrentVyr(){
+  if(!editVyrId) return;
+  var v=vyrazeniData.find(function(x){ return x.id===editVyrId; });
+  var name=v?v.prijmeni+" "+v.jmeno:"?";
+  if(!confirm("Opravdu smazat vyřazeného člena: "+name+"?")) return;
+  sbFetch("vyrazeni?id=eq."+editVyrId,{method:"DELETE"}).then(function(r){
+    if(r.ok){
+      vyrazeniData=vyrazeniData.filter(function(x){ return x.id!==editVyrId; });
+      closeAddVyrModal();
+      renderVyrazeni();
+      logChange("Smazán vyřazený člen",name);
+      setTimeout(loadAuditLog,500);
+      showToast("Záznam smazán.","ok");
+      editVyrId=null;
+    }
+  });
+}
+
+function restoreVyrazeni(){
+  if(!editVyrId) return;
+  var v=vyrazeniData.find(function(x){ return x.id===editVyrId; });
+  if(!v) return;
+  var datumStr=prompt("Zadejte nové datum vstupu člena (DD.MM.RRRR):", new Date().toLocaleDateString("cs-CZ"));
+  if(!datumStr) return;
+  var datumIso=parseDate(datumStr);
+  if(!datumIso){ showToast("Neplatné datum.","err"); return; }
+  var existujici=members.find(function(m){ return m.osnum===v.evidencni_cislo; });
+  var dnes=new Date().toLocaleDateString("cs-CZ");
+  if(existujici){
+    var novaPoznamka=(existujici.poznamky?existujici.poznamky+"\n":"")+"Obnovení členství: "+dnes;
+    sbFetch("clenove?id=eq."+existujici.id,{method:"PATCH",extraHeaders:{"Prefer":"return=minimal"},body:JSON.stringify({clen_od:datumIso,poznamky:novaPoznamka})})
+      .then(function(r){
+        if(r.ok){
+          sbFetch("vyrazeni?id=eq."+editVyrId,{method:"DELETE"}).then(function(){
+            vyrazeniData=vyrazeniData.filter(function(x){ return x.id!==editVyrId; });
+            closeAddVyrModal(); renderVyrazeni(); loadMembers();
+            logChange("Obnoven člen",v.prijmeni+" "+v.jmeno);
+            setTimeout(loadAuditLog,500);
+            showSuccess("Člen "+v.prijmeni+" "+v.jmeno+" byl úspěšně obnoven.");
+            editVyrId=null;
+          });
+        }
+      });
+  } else {
+    var novyClen={jmeno:v.jmeno,prijmeni:v.prijmeni,osobni_cislo:v.evidencni_cislo||"",
+      oddeleni:v.oddeleni||"",linka_smena:v.linka_smena||"",clen_od:datumIso,
+      typ_clenstvi:"Řádný člen",poznamky:"Obnovení členství: "+dnes,vedouci:"",skupina:""};
+    sbFetch("clenove",{method:"POST",body:JSON.stringify(novyClen)})
+      .then(function(r){ return r.json(); })
+      .then(function(){
+        sbFetch("vyrazeni?id=eq."+editVyrId,{method:"DELETE"}).then(function(){
+          vyrazeniData=vyrazeniData.filter(function(x){ return x.id!==editVyrId; });
+          closeAddVyrModal(); renderVyrazeni(); loadMembers();
+          logChange("Obnoven člen",v.prijmeni+" "+v.jmeno);
+          setTimeout(loadAuditLog,500);
+          showSuccess("Člen "+v.prijmeni+" "+v.jmeno+" byl úspěšně obnoven.");
+          editVyrId=null;
+        });
+      });
+  }
+}
+
+function closePrisEdit(){
+  var el=document.getElementById("pris-edit-modal");
+  if(el) el.classList.remove("show");
 }
 
 </script>
