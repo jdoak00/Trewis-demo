@@ -2893,6 +2893,188 @@ function csvExport(){
   var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="clenove.csv"; a.click();
 }
 
+
+// ===== SEARCH =====
+function search(){
+  currentLetter = "";
+  document.querySelectorAll(".a-btn").forEach(function(b){ b.classList.remove("on"); });
+  renderTable();
+}
+
+function filterMembers(){ renderTable(); }
+
+function resetFilters(){
+  ["srch-inp","typ-flt","odd-flt","smena-flt","skupina-flt","vedouci-flt"].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.value="";
+  });
+  currentLetter="";
+  document.querySelectorAll(".a-btn").forEach(function(b){ b.classList.remove("on"); });
+  renderTable();
+}
+
+// ===== EMAIL RCPT =====
+function updateEmailRcpt(){
+  var val=(document.getElementById("email-typ")||{value:""}).value;
+  var n=members.filter(function(m){
+    if(!m.email) return false;
+    if(!val) return true;
+    if(val.indexOf("typ:")===0) return m.typ===val.substring(4);
+    if(val.indexOf("skupina:")===0) return m.skupina===val.substring(8);
+    return true;
+  }).length;
+  var rcptEl=document.getElementById("email-rcpt-n");
+  var btnEl=document.getElementById("btn-send-email");
+  if(rcptEl) rcptEl.textContent=n;
+  if(btnEl) btnEl.textContent="Odeslat e-mail ("+n+")";
+}
+
+// ===== EMAIL SEND =====
+var emailAttachments = [];
+
+function addEmailAttachment(){
+  var inp=document.createElement("input");
+  inp.type="file";
+  inp.accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg";
+  inp.onchange=function(){
+    var file=inp.files[0]; if(!file) return;
+    if(file.size > 10*1024*1024){ showToast("Soubor je příliš velký (max 10 MB).","err"); return; }
+    emailAttachments.push(file);
+    renderAttachments();
+  };
+  inp.click();
+}
+
+function removeEmailAttachment(i){
+  emailAttachments.splice(i,1);
+  renderAttachments();
+}
+
+function renderAttachments(){
+  var el=document.getElementById("email-attachments");
+  if(!el) return;
+  el.innerHTML=emailAttachments.map(function(f,i){
+    return "<div style='display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;'>"+
+      "<span>📎 "+f.name+"</span>"+
+      "<button onclick='removeEmailAttachment("+i+")' style='background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;'>×</button>"+
+      "</div>";
+  }).join("");
+}
+
+function insertEmailSignature(){
+  var jmeno=(document.getElementById("user-name")||{textContent:""}).textContent||"";
+  var sig="\n\n---\n"+jmeno+"\nOdbory HMMC";
+  var ta=document.getElementById("email-msg");
+  if(ta){ ta.value+=sig; }
+}
+
+function sendTestEmail(){
+  if(checkGuest("Nemáte oprávnění odesílat e-maily.")) return;
+  var sub=(document.getElementById("email-sub")||{value:""}).value.trim();
+  var msg=(document.getElementById("email-msg")||{value:""}).value.trim();
+  if(!sub||!msg){ showToast("Vyplňte předmět a text e-mailu.","err"); return; }
+  var jmeno=(document.getElementById("user-name")||{textContent:""}).textContent||"";
+  var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+msg.replace(/\n/g,"<br>")+"</div>";
+  var attachPromises=emailAttachments.map(function(f){ return fileToBase64(f); });
+  Promise.all(attachPromises).then(function(attachBase64){
+    sendBrevoEmail([{email:"odboryhmmc@email.cz",name:"Kontrolní e-mail"}],"[KONTROLNÍ] "+sub,htmlMsg,attachBase64)
+      .then(function(ok){
+        if(ok) showToast("Kontrolní e-mail odeslán na odboryhmmc@email.cz"+(attachBase64.length>0?" s "+attachBase64.length+" přílohou":""),"ok");
+        else showToast("Chyba při odesílání kontrolního e-mailu.","err");
+      });
+  });
+}
+
+function sendEmail(){
+  if(checkGuest("Nemáte oprávnění odesílat e-maily.")) return;
+  var sub=(document.getElementById("email-sub")||{value:""}).value.trim();
+  var msg=(document.getElementById("email-msg")||{value:""}).value.trim();
+  if(!sub||!msg){ showToast("Vyplňte předmět a text e-mailu.","err"); return; }
+  if(!BREVO_API_KEY||!BREVO_FROM_EMAIL){ showToast("Nastavte Brevo API klíč v sekci Nastavení.","err"); return; }
+  var val=(document.getElementById("email-typ")||{value:""}).value;
+  var rcpt=members.filter(function(m){
+    if(!m.email) return false;
+    if(!val) return true;
+    if(val.indexOf("typ:")===0) return m.typ===val.substring(4);
+    if(val.indexOf("skupina:")===0) return m.skupina===val.substring(8);
+    return true;
+  });
+  var total=rcpt.length;
+  if(!total){ showToast("Žádní příjemci e-mailu.","err"); return; }
+  var smsTypLabel=(document.getElementById("email-typ")||{}).options?document.getElementById("email-typ").options[document.getElementById("email-typ").selectedIndex].text:"";
+  if(!confirm("Opravdu odeslat e-mail "+total+" příjemcům?\nSkupina: "+smsTypLabel)) return;
+  var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+msg.replace(/\n/g,"<br>")+"</div>";
+  var progEl=document.getElementById("email-progress");
+  var okEl=document.getElementById("email-ok");
+  var sendBtn=document.getElementById("btn-send-email");
+  if(progEl) progEl.style.display="block";
+  if(okEl) okEl.style.display="none";
+  if(sendBtn) sendBtn.disabled=true;
+  var sent=0;
+  var attachPromises=emailAttachments.map(function(f){ return fileToBase64(f); });
+  Promise.all(attachPromises).then(function(attachBase64){
+    function sendBatch(offset){
+      var batch=rcpt.slice(offset,offset+50);
+      if(batch.length===0){
+        if(progEl) progEl.style.display="none";
+        if(okEl){ okEl.style.display="block"; okEl.textContent="Hotovo! Odesláno "+sent+" e-mailů."+(attachBase64.length>0?" ("+attachBase64.length+" příloha)":""); }
+        if(sendBtn){ sendBtn.disabled=false; }
+        logChange("Odeslán hromadný e-mail","Příjemců: "+sent+(attachBase64.length>0?", příloh: "+attachBase64.length:""));
+        setTimeout(loadAuditLog,500);
+        showToast("E-mail odeslán "+sent+" příjemcům!","ok");
+        return;
+      }
+      var to=batch.map(function(m){ return {email:m.email,name:m.prijmeni+" "+m.jmeno}; });
+      sendBrevoEmail(to,sub,htmlMsg,attachBase64).then(function(ok){
+        if(ok) sent+=batch.length;
+        var pct=Math.round(Math.min(sent,total)/total*100);
+        var pt=document.getElementById("email-prog-txt");
+        var pb=document.getElementById("email-prog-bar");
+        if(pt) pt.textContent="Odesílám "+Math.min(sent,total)+"/"+total+"... "+pct+"%";
+        if(pb) pb.style.width=pct+"%";
+        setTimeout(function(){ sendBatch(offset+50); },500);
+      });
+    }
+    sendBatch(0);
+  });
+}
+
+// ===== EDIT FORM =====
+function renderEditForm(m){
+  var SMENA_OPTS=["","A","B","C","Ranní","12A","12B","12C","12D"];
+  var SKUPINA_OPTS=["","VýborZO","DaRK","Důvěrníci"];
+  var VEDOUCI_OPTS=["","G/L","T/L","M/T"];
+  var ODDELENI_OPTS=["","Stamping","Welding","Paint","Assembly","Quality Control","Quality Assurance","Maintenance","Production Control","Admin","není zaměstnanec HMMC"];
+  var html=
+    "<div style='display:grid;grid-template-columns:1fr 1fr;gap:12px;'>"+
+    "<div><label class='lbl'>Jméno</label><input class='finp' id='e-jmeno' value='"+( m.jmeno||"")+"'/></div>"+
+    "<div><label class='lbl'>Příjmení</label><input class='finp' id='e-prijmeni' value='"+( m.prijmeni||"")+"'/></div>"+
+    "<div><label class='lbl'>E-mail</label><input class='finp' id='e-email' type='email' value='"+( m.email||"")+"'/></div>"+
+    "<div><label class='lbl'>Telefon</label><input class='finp' id='e-telefon' value='"+(m.telefon||"+420")+"'/></div>"+
+    "<div style='grid-column:1/-1'><label class='lbl'>Adresa</label><input class='finp' id='e-adresa' value='"+( m.adresa||"")+"'/></div>"+
+    "<div><label class='lbl'>Osobní číslo</label><input class='finp' id='e-osnum' value='"+( m.osnum||"")+"'/></div>"+
+    "<div><label class='lbl'>Datum vstupu</label><input class='finp' id='e-vstup' value='"+formatDate(m.datumVstupu)+"' readonly onclick='dpOpen(this)' style='cursor:pointer' data-iso-value='"+( m.datumVstupu||"")+"'/></div>"+
+    "<div><label class='lbl'>Typ členství</label><select class='finp' id='e-typ'>"+
+      ["Řádný člen","Tajný člen"].map(function(t){ return "<option"+(m.typ===t?" selected":"")+">"+t+"</option>"; }).join("")+
+    "</select></div>"+
+    "<div><label class='lbl'>Oddělení</label><select class='finp' id='e-oddeleni'>"+
+      ODDELENI_OPTS.map(function(o){ return "<option value='"+o+"'"+(m.oddeleni===o?" selected":"")+">"+( o||"— Vyberte —")+"</option>"; }).join("")+
+    "</select></div>"+
+    "<div><label class='lbl'>Linka</label><input class='finp' id='e-linka' value='"+( m.linka||"")+"'/></div>"+
+    "<div><label class='lbl'>Směna</label><select class='finp' id='e-smena'>"+
+      SMENA_OPTS.map(function(s){ return "<option value='"+s+"'"+(m.smena===s?" selected":"")+">"+( s||"— Vyberte —")+"</option>"; }).join("")+
+    "</select></div>"+
+    "<div><label class='lbl'>Vedoucí</label><select class='finp' id='e-vedouci'>"+
+      VEDOUCI_OPTS.map(function(v){ return "<option value='"+v+"'"+(m.vedouci===v?" selected":"")+">"+( v||"— Není —")+"</option>"; }).join("")+
+    "</select></div>"+
+    "<div><label class='lbl'>Odbory</label><select class='finp' id='e-skupina'>"+
+      SKUPINA_OPTS.map(function(s){ return "<option value='"+s+"'"+(m.skupina===s?" selected":"")+">"+( s||"— Není ve skupině —")+"</option>"; }).join("")+
+    "</select></div>"+
+    "<div style='grid-column:1/-1'><label class='lbl'>Poznámky</label><textarea class='finp' id='e-poznamky' rows='3' style='resize:vertical;'>"+( m.poznamky||"")+"</textarea></div>"+
+    "</div>";
+  var container=document.getElementById("edit-form-container");
+  if(container) container.innerHTML=html;
+}
+
 </script>
 
 <!-- DATEPICKER MODAL -->
