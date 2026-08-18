@@ -3134,7 +3134,7 @@ function renderVyrazeni(){
         '<td style="color:var(--text2)">'+formatDate(v.clen_do)+'</td>'+
         '<td style="color:var(--text2)">'+(v.oddeleni||"—")+'</td>'+
         '<td style="color:var(--text2)">'+(v.linka_smena||"—")+'</td>'+
-        '<td style="color:var(--text2)">'+(v.duvod_ukonceni||"—")+'</td>'+
+        '<td style="color:var(--text2)">'+((v.duvod_ukonceni||"—").split("||{")[0].trim()||"—")+'</td>'+
         '<td onclick="event.stopPropagation()">'+
           '<button class="btn btn-out btn-sm" data-id="'+v.id+'" onclick="openEditVyrModal(parseInt(this.dataset.id))">&#9998; Upravit</button>'+
         '</td>'+
@@ -3175,7 +3175,7 @@ function openEditVyrModal(id){
   var eEl = document.getElementById("vyr-evid"); if(eEl) eEl.value = v.evidencni_cislo||"";
   var oEl = document.getElementById("vyr-oddeleni"); if(oEl) oEl.value = v.oddeleni||"";
   var lEl = document.getElementById("vyr-linka-smena"); if(lEl) lEl.value = v.linka_smena||"";
-  var dEl = document.getElementById("vyr-duvod"); if(dEl) dEl.value = v.duvod_ukonceni||"";
+  var dEl = document.getElementById("vyr-duvod"); if(dEl) dEl.value = (v.duvod_ukonceni||" ").split("||{")[0].trim();
   var od = document.getElementById("vyr-clen-od");
   if(od){ od.value = v.clen_od ? formatDate(v.clen_od) : ""; od.dataset.isoValue = v.clen_od||""; }
   var doo = document.getElementById("vyr-clen-do");
@@ -3199,7 +3199,13 @@ function saveEditVyr(){
     clen_od: getIsoDate(document.getElementById("vyr-clen-od"))||null,
     clen_do: getIsoDate(document.getElementById("vyr-clen-do"))||null,
     linka_smena: (document.getElementById("vyr-linka-smena")||{value:""}).value.trim(),
-    duvod_ukonceni: (document.getElementById("vyr-duvod")||{value:""}).value.trim()
+    duvod_ukonceni: (function(){
+      var d=(document.getElementById("vyr-duvod")||{value:""}).value.trim();
+      // Zachovat JSON suffix pokud existuje
+      var orig=vyrazeniData.find(function(x){ return x.id===editVyrId; });
+      var suffix = orig&&orig.duvod_ukonceni&&orig.duvod_ukonceni.indexOf("||{")!==-1 ? "||{"+orig.duvod_ukonceni.split("||{")[1] : "";
+      return d+suffix;
+    })()
   };
   sbFetch("vyrazeni?id=eq."+editVyrId, {method:"PATCH", body:JSON.stringify(row)}).then(function(r){
     if(r.ok){
