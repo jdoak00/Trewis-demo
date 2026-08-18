@@ -1252,7 +1252,7 @@ function deleteUser(id){
 }
 
 // Prihlaseni s 2FA - aktivni pouze kdyz TWO_FA_ENABLED=true
-async async function doLogin2FA(username, password, totpInput){
+async function doLogin2FA(username, password, totpInput){
   var passwordHash=btoa(password+"_hmmc_salt_2024");
   var r=await sbFetch("uzivatele?username=eq."+encodeURIComponent(username)+"&password_hash=eq."+encodeURIComponent(passwordHash)+"&aktivni=eq.true&select=*");
   var data=await r.json();
@@ -2398,6 +2398,8 @@ function generatePotvrzeniPDF(m, rok, celkem){
   if(win){ win.document.write(html); win.document.close(); }
   else showToast("Povolte vyskakovací okna v prohlížeči.","err");
 }
+
+</script>
 
 <!-- DATEPICKER MODAL -->
 <div class="modal-bg" id="dp-modal" onclick="if(event.target===this)this.classList.remove('show')">
