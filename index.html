@@ -1869,7 +1869,7 @@ function openAddModal(){
   // Reset všech polí na výchozí hodnoty
   var defaults = {
     "add-jmeno":"", "add-prijmeni":"", "add-email":"", "add-adresa":"",
-    "add-telefon":"", "add-osnum":"1810"
+    "add-telefon":"+420", "add-osnum":"1810"
   };
   Object.keys(defaults).forEach(function(id){
     var el=document.getElementById(id); if(el){ el.value=defaults[id]; el.style.borderColor=""; }
@@ -3399,6 +3399,38 @@ function closePrisEdit(){
   var el=document.getElementById("pris-edit-modal");
   if(el) el.classList.remove("show");
 }
+
+// ===== SESSION RESTORE PO F5 =====
+(function(){
+  var savedSession = sessionStorage.getItem("session_user");
+  if(savedSession){
+    try {
+      var sess = JSON.parse(savedSession);
+      CURRENT_USER_ROLE = sess.role || "guest";
+      window.CURRENT_USERNAME = sess.username || "neznámý";
+      // Nastav UI
+      var avEl = document.getElementById("user-av");
+      var nameEl = document.getElementById("user-name");
+      var loginEl = document.getElementById("login-screen");
+      var appEl = document.getElementById("app-screen");
+      if(avEl) avEl.textContent = sess.av || "U";
+      if(nameEl) nameEl.textContent = sess.username || "";
+      if(loginEl) loginEl.style.display = "none";
+      if(appEl) appEl.style.display = "block";
+      // Inicializuj aplikaci
+      initDarkMode();
+      loadMembers();
+      loadSettings();
+      loadSmsSettings();
+      resetInactivityTimer();
+      setTimeout(applyRoleRestrictions, 300);
+      setTimeout(loadAuditLog, 3500);
+      setTimeout(initPrisRok, 500);
+    } catch(e) {
+      sessionStorage.removeItem("session_user");
+    }
+  }
+})();
 
 </script>
 
