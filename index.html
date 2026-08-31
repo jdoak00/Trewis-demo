@@ -796,6 +796,10 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
       </div>
     </div>
     <div class="sp-body" id="dp-body"></div>
+    <div style="padding:14px 22px;border-top:1px solid var(--border);">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:6px;">Poznámky</div>
+      <div id="dp-poznamky"><div style="font-size:13px;color:var(--text3);font-style:italic;">Žádné poznámky</div></div>
+    </div>
     <div class="sp-foot" id="dp-foot"></div>
   </div>
 </div>
@@ -1734,6 +1738,13 @@ function renderDetailView(){
   footHtml += '<button class="btn btn-out" onclick="closeDetailPanel()">Zavřít</button>';
   if(!isGuest()){
     footHtml += '<button class="btn btn-out btn-sm btn-red" style="margin-left:auto" onclick="deleteMember()">&#128465; Smazat</button>';
+  }
+  // Zobrazit poznamky
+  var pozEl = document.getElementById("dp-poznamky");
+  if(pozEl){
+    pozEl.innerHTML = m.poznamky ?
+      '<div style="font-size:13px;color:var(--text2);white-space:pre-wrap;line-height:1.6;">'+m.poznamky+'</div>' :
+      '<div style="font-size:13px;color:var(--text3);font-style:italic;">Žádné poznámky</div>';
   }
   document.getElementById("dp-foot").innerHTML = footHtml;
 }
@@ -3155,7 +3166,7 @@ var VYR_PAGE_SZ = 20;
 function loadVyrazeni(){
   var tbody = document.getElementById("vyr-body");
   if(tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text2)">Načítám...</td></tr>';
-  sbFetch("vyrazeni?select=*&order=prijmeni.asc,jmeno.asc&limit=3000")
+  sbFetch("vyrazeni?select=*&order=clen_do.desc.nullslast&limit=3000")
     .then(function(r){ return r.json(); })
     .then(function(data){
       vyrazeniData = Array.isArray(data) ? data : [];
