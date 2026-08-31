@@ -969,6 +969,17 @@ function showError(msg){
   showCenterMsg(msg, "err");
 }
 
+// Cisteni textu zkopirovaného z Wordu
+function cleanPaste(str){
+  if(!str) return "";
+  return str
+    .replace(/[\u200B-\u200D\uFEFF\u00AD\u200E\u200F]/g, "") // neviditelne znaky
+    .replace(/\u00A0/g, " ")  // nezalomitelna mezera
+    .replace(/[\u2018\u2019]/g, "'")  // smart apostrofy
+    .replace(/[\u201C\u201D]/g, '"')  // smart uvozovky
+    .trim();
+}
+
 function showCenterMsg(msg, type){
   var el = document.getElementById("center-msg-overlay");
   if(!el){
@@ -2739,7 +2750,7 @@ function sendSmsManager(phone, text, apiKey, sender){
 
 function sendSms(){
   if(checkGuest("Nemáte oprávnění odesílat SMS.")) return;
-  var msg=(document.getElementById("sms-msg")||{value:""}).value.trim();
+  var msg=cleanPaste((document.getElementById("sms-msg")||{value:""}).value);
   if(!msg){ showError("Napište text SMS."); return; }
   var apiKey=SMS_API_KEY||localStorage.getItem("sms_api_key")||"";
   var sender=SMS_SENDER||localStorage.getItem("sms_sender")||"";
