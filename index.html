@@ -1914,7 +1914,7 @@ function addMember(){
         // Nacti extra udaje z duvod_ukonceni
         var extra = {};
         if(duplicate.duvod_ukonceni && duplicate.duvod_ukonceni.indexOf("||{") !== -1){
-          try { extra = JSON.parse(duplicate.duvod_ukonceni.split("||{")[1].replace(/^{/,"{")); } catch(e){}
+          try { extra = JSON.parse("{"+duplicate.duvod_ukonceni.split("||{")[1]); } catch(e){}
         }
         var novyClen = {
           jmeno: duplicate.jmeno, prijmeni: duplicate.prijmeni,
@@ -3398,7 +3398,7 @@ function restoreVyrazeni(){
   // Nacti extra udaje z duvod_ukonceni pokud jsou ulozeny
   var extra = {};
   if(v.duvod_ukonceni && v.duvod_ukonceni.indexOf("||{") !== -1){
-    try { extra = JSON.parse(v.duvod_ukonceni.split("||")[1]); } catch(e){}
+    try { var jsonPart = v.duvod_ukonceni.indexOf("||{") !== -1 ? v.duvod_ukonceni.split("||{")[1] : v.duvod_ukonceni.split("||")[1]; extra = JSON.parse("{"+jsonPart); } catch(e){}
   }
   if(existujici){
     var novaPoznamka=(existujici.poznamky?existujici.poznamky+"\n":"")+"Obnovení členství: "+dnes;
