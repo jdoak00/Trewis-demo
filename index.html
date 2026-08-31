@@ -3086,7 +3086,7 @@ function sendTestEmail(){
   var msg=(document.getElementById("email-msg")||{value:""}).value.trim();
   if(!sub||!msg){ showError("Vyplňte předmět a text e-mailu."); return; }
   var jmeno=(document.getElementById("user-name")||{textContent:""}).textContent||"";
-  var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+msg.replace(/\n/g,"<br>")+"</div>";
+  var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+(msgHtml||msg.replace(/\n/g,"<br>"))+"</div>";
   var attachPromises=emailAttachments.map(function(f){ return fileToBase64(f); });
   Promise.all(attachPromises).then(function(attachBase64){
     sendBrevoEmail([{email:"odboryhmmc@email.cz",name:"Kontrolní e-mail"}],"[KONTROLNÍ] "+sub,htmlMsg,attachBase64)
@@ -3099,9 +3099,11 @@ function sendTestEmail(){
 
 function sendEmail(){
   if(checkGuest("Nemáte oprávnění odesílat e-maily.")) return;
-  var sub=(document.getElementById("email-sub")||{value:""}).value.trim();
-  var msg=(document.getElementById("email-msg")||{value:""}).value.trim();
-  if(!sub||!msg){ showError("Vyplňte předmět a text e-mailu."); return; }
+  var sub=cleanPaste((document.getElementById("email-sub")||{value:""}).value);
+  var editorEl=document.getElementById("email-editor");
+  var msg=cleanPaste(editorEl ? (editorEl.innerText||editorEl.textContent||"") : "");
+  var msgHtml=editorEl ? editorEl.innerHTML : "";
+  if(!sub||!msg.trim()){ showError("Vyplňte předmět a text e-mailu."); return; }
   if(!BREVO_API_KEY||!BREVO_FROM_EMAIL){ showError("Nastavte Brevo API klíč v sekci Nastavení."); return; }
   var val=(document.getElementById("email-typ")||{value:""}).value;
   var rcpt=members.filter(function(m){
@@ -3115,7 +3117,7 @@ function sendEmail(){
   if(!total){ showError("Žádní příjemci e-mailu."); return; }
   var smsTypLabel=(document.getElementById("email-typ")||{}).options?document.getElementById("email-typ").options[document.getElementById("email-typ").selectedIndex].text:"";
   if(!confirm("Opravdu odeslat e-mail "+total+" příjemcům?\nSkupina: "+smsTypLabel)) return;
-  var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+msg.replace(/\n/g,"<br>")+"</div>";
+  var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+(msgHtml||msg.replace(/\n/g,"<br>"))+"</div>";
   var progEl=document.getElementById("email-progress");
   var okEl=document.getElementById("email-ok");
   var sendBtn=document.getElementById("btn-send-email");
