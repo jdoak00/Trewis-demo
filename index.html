@@ -962,16 +962,33 @@ var SUPABASE_KEY = "sb_publishable_fuPWp0mgcSFnx6zsZoUgXg_nMcIvdLZ";
 var TWO_FA_ENABLED = true;
 
 function showSuccess(msg){
-  var el = document.getElementById("success-overlay");
+  showCenterMsg(msg, "ok");
+}
+
+function showError(msg){
+  showCenterMsg(msg, "err");
+}
+
+function showCenterMsg(msg, type){
+  var el = document.getElementById("center-msg-overlay");
   if(!el){
     el = document.createElement("div");
-    el.id = "success-overlay";
-    el.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:8888;background:#07fa70;color:#1a2332;padding:20px 36px;border-radius:14px;font-size:17px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,.2);text-align:center;display:none;";
+    el.id = "center-msg-overlay";
+    el.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;padding:20px 36px;border-radius:14px;font-size:16px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,.25);text-align:center;display:none;max-width:480px;width:90%;line-height:1.5;";
     document.body.appendChild(el);
   }
-  el.innerHTML = "&#10003; " + msg;
+  if(type === "err"){
+    el.style.background = "#dc2626";
+    el.style.color = "#fff";
+    el.innerHTML = "&#10007; " + msg;
+  } else {
+    el.style.background = "#07fa70";
+    el.style.color = "#1a2332";
+    el.innerHTML = "&#10003; " + msg;
+  }
   el.style.display = "block";
-  setTimeout(function(){ el.style.display = "none"; }, 5000);
+  clearTimeout(el._t);
+  el._t = setTimeout(function(){ el.style.display = "none"; }, 5000);
 }
 
 // ===== INACTIVITY & SESSION =====
@@ -1823,7 +1840,7 @@ function saveEdit(){
       logChange("Upraven člen", m.prijmeni+" "+m.jmeno+" (OS: "+m.osnum+")");
       setTimeout(loadAuditLog, 500);
       showSuccess("Údaje člena "+m.prijmeni+" "+m.jmeno+" byly úspěšně uloženy.");
-      showToast("Údaje uloženy.","ok");
+      showSuccess("Údaje člena byly úspěšně uloženy.");
     });
 }
 
@@ -1869,7 +1886,7 @@ function deleteMember(){
       closeDetailPanel(); renderStats(); renderAlpha(); renderTable();
       setTimeout(loadAuditLog, 500);
       showSuccess("Člen "+dm.prijmeni+" "+dm.jmeno+" byl přesunut do Vyřazených.");
-      showToast("Člen přesunut do Vyřazených.","ok");
+      showSuccess("Člen byl přesunut do Vyřazených.");
     });
 }
 
@@ -1923,7 +1940,7 @@ function addMember(){
         var datumStr = prompt("Zadejte nové datum vstupu člena (DD.MM.RRRR):", new Date().toLocaleDateString("cs-CZ"));
         if(!datumStr) return;
         var datumIso = parseDate(datumStr);
-        if(!datumIso){ showToast("Neplatné datum.","err"); return; }
+        if(!datumIso){ showError("Neplatné datum. Zadejte ve formátu DD.MM.RRRR."); return; }
         var dnes = new Date().toLocaleDateString("cs-CZ");
         // Nacti extra udaje z duvod_ukonceni
         var extra = {};
@@ -1938,7 +1955,7 @@ function addMember(){
           email: extra.email||"", mobil: extra.telefon||"",
           adresa: extra.adresa||"", vedouci: extra.vedouci||"",
           skupina: extra.skupina||"",
-          poznamky: "Obnovení členství: "+dnes
+          poznamky: "Ukončení členství: "+(duplicate.clen_do?formatDate(duplicate.clen_do):"neuvedeno")+" — důvod: "+(duplicate.duvod_ukonceni?duplicate.duvod_ukonceni.split("||")[0].trim():"neuvedeno")+"\nObnovení členství: "+dnes
         };
         sbFetch("clenove", {method:"POST", body:JSON.stringify(novyClen)})
           .then(function(r){ return r.json(); })
@@ -2013,9 +2030,9 @@ function addMember(){
       logChange("Přidán člen", m.prijmeni+" "+m.jmeno+" (OS: "+m.osnum+")");
       setTimeout(loadAuditLog, 500);
       showSuccess("Člen "+m.prijmeni+" "+m.jmeno+" byl úspěšně přidán.");
-      showToast("Člen přidán a uložen.","ok");
+      showSuccess("Člen byl úspěšně přidán.");
     })
-    .catch(function(){ showToast("Chyba při ukládání.","err"); });
+    .catch(function(){ showError("Chyba při ukládání. Zkuste to znovu."); });
 }
 
 // IMPORT CSV
@@ -2371,7 +2388,7 @@ function savePrisEditModal(){
       setTimeout(loadAuditLog, 500);
       showToast("Příspěvky uloženy.","ok");
     } else {
-      showToast("Chyba při ukládání.","err");
+      showError("Chyba při ukládání. Zkuste to znovu.");
     }
   }).catch(function(){ showToast("Chyba připojení.","err"); });
 }
@@ -2611,7 +2628,7 @@ function saveSettings(){
       logChange("Upraveno nastavení","Brevo e-mail a SMS nastavení aktualizováno");
       setTimeout(loadAuditLog,500);
       showSetStatus("Nastavení uloženo. Platí na všech zařízeních.","ok");
-      showToast("Nastavení uloženo.","ok");
+      showSuccess("Nastavení bylo uloženo.");
     } else { showSetStatus("Chyba při ukládání.","err"); }
   }).catch(function(){ showSetStatus("Chyba připojení.","err"); });
 }
@@ -2703,7 +2720,7 @@ function saveSmsSettings(){
   if(!key||!sender){ showToast("Vyplňte API klíč a odesílatele.","err"); return; }
   localStorage.setItem("sms_api_key",key);
   localStorage.setItem("sms_sender",sender);
-  showToast("SMS nastavení uloženo.","ok");
+  showSuccess("SMS nastavení bylo uloženo.");
 }
 
 function sendSmsManager(phone, text, apiKey, sender){
@@ -2723,10 +2740,10 @@ function sendSmsManager(phone, text, apiKey, sender){
 function sendSms(){
   if(checkGuest("Nemáte oprávnění odesílat SMS.")) return;
   var msg=(document.getElementById("sms-msg")||{value:""}).value.trim();
-  if(!msg){ showToast("Napište text SMS.","err"); return; }
+  if(!msg){ showError("Napište text SMS."); return; }
   var apiKey=SMS_API_KEY||localStorage.getItem("sms_api_key")||"";
   var sender=SMS_SENDER||localStorage.getItem("sms_sender")||"";
-  if(!apiKey||!sender){ showToast("Nastavte SMS API klíč v sekci Nastavení.","err"); return; }
+  if(!apiKey||!sender){ showError("Nastavte SMS API klíč v sekci Nastavení."); return; }
   var val=(document.getElementById("sms-typ")||{value:""}).value;
   var rcpt=members.filter(function(m){
     if(!m.telefon) return false;
@@ -2736,7 +2753,7 @@ function sendSms(){
     return true;
   });
   var total=rcpt.length;
-  if(!total){ showToast("Žádní příjemci SMS.","err"); return; }
+  if(!total){ showError("Žádní příjemci SMS."); return; }
   var smsTypLabel=(document.getElementById("sms-typ")||{}).options ? document.getElementById("sms-typ").options[document.getElementById("sms-typ").selectedIndex].text : "";
   if(!confirm("Opravdu odeslat SMS "+total+" příjemcům?\n\nSkupina: "+smsTypLabel+"\n\nText: "+msg.substring(0,100))) return;
   var progEl=document.getElementById("sms-progress");
@@ -3056,7 +3073,7 @@ function sendTestEmail(){
   if(checkGuest("Nemáte oprávnění odesílat e-maily.")) return;
   var sub=(document.getElementById("email-sub")||{value:""}).value.trim();
   var msg=(document.getElementById("email-msg")||{value:""}).value.trim();
-  if(!sub||!msg){ showToast("Vyplňte předmět a text e-mailu.","err"); return; }
+  if(!sub||!msg){ showError("Vyplňte předmět a text e-mailu."); return; }
   var jmeno=(document.getElementById("user-name")||{textContent:""}).textContent||"";
   var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+msg.replace(/\n/g,"<br>")+"</div>";
   var attachPromises=emailAttachments.map(function(f){ return fileToBase64(f); });
@@ -3073,8 +3090,8 @@ function sendEmail(){
   if(checkGuest("Nemáte oprávnění odesílat e-maily.")) return;
   var sub=(document.getElementById("email-sub")||{value:""}).value.trim();
   var msg=(document.getElementById("email-msg")||{value:""}).value.trim();
-  if(!sub||!msg){ showToast("Vyplňte předmět a text e-mailu.","err"); return; }
-  if(!BREVO_API_KEY||!BREVO_FROM_EMAIL){ showToast("Nastavte Brevo API klíč v sekci Nastavení.","err"); return; }
+  if(!sub||!msg){ showError("Vyplňte předmět a text e-mailu."); return; }
+  if(!BREVO_API_KEY||!BREVO_FROM_EMAIL){ showError("Nastavte Brevo API klíč v sekci Nastavení."); return; }
   var val=(document.getElementById("email-typ")||{value:""}).value;
   var rcpt=members.filter(function(m){
     if(!m.email) return false;
@@ -3084,7 +3101,7 @@ function sendEmail(){
     return true;
   });
   var total=rcpt.length;
-  if(!total){ showToast("Žádní příjemci e-mailu.","err"); return; }
+  if(!total){ showError("Žádní příjemci e-mailu."); return; }
   var smsTypLabel=(document.getElementById("email-typ")||{}).options?document.getElementById("email-typ").options[document.getElementById("email-typ").selectedIndex].text:"";
   if(!confirm("Opravdu odeslat e-mail "+total+" příjemcům?\nSkupina: "+smsTypLabel)) return;
   var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+msg.replace(/\n/g,"<br>")+"</div>";
@@ -3223,7 +3240,7 @@ function deleteVyrazeni(id, name){
       renderVyrazeni();
       logChange("Smazán vyřazený člen", name);
       setTimeout(loadAuditLog, 500);
-      showToast("Záznam smazán.","ok");
+      showSuccess("Záznam byl smazán.");
     }
   });
 }
@@ -3281,7 +3298,7 @@ function saveEditVyr(){
       renderVyrazeni();
       logChange("Upraven vyřazený člen", row.prijmeni+" "+row.jmeno);
       setTimeout(loadAuditLog, 500);
-      showToast("Záznam upraven.","ok");
+      showSuccess("Záznam byl úspěšně upraven.");
       editVyrId = null;
     }
   });
@@ -3313,7 +3330,7 @@ function addVyrazeni(){
   if(checkGuest("Nemáte oprávnění přidávat záznamy.")) return;
   var jmeno = (document.getElementById("vyr-jmeno")||{value:""}).value.trim();
   var prijmeni = (document.getElementById("vyr-prijmeni")||{value:""}).value.trim();
-  if(!jmeno||!prijmeni){ showToast("Vyplňte jméno a příjmení.","err"); return; }
+  if(!jmeno||!prijmeni){ showError("Vyplňte jméno a příjmení."); return; }
   var row = {
     jmeno:jmeno, prijmeni:prijmeni,
     evidencni_cislo:(document.getElementById("vyr-evid")||{value:""}).value.trim(),
@@ -3332,7 +3349,7 @@ function addVyrazeni(){
       renderVyrazeni();
       logChange("Přidán vyřazený člen", prijmeni+" "+jmeno);
       setTimeout(loadAuditLog, 500);
-      showToast("Vyřazený člen přidán.","ok");
+      showSuccess("Vyřazený člen byl přidán.");
     });
 }
 
@@ -3372,7 +3389,7 @@ function importVyrazeni(event){
     if(!rows.length){ showToast("Žádné záznamy k importu.","err"); return; }
     showToast("Importuji "+rows.length+" záznamů...","ok");
     function insertVyrBatch(offset){
-      var chunk=rows.slice(offset,offset+50); if(!chunk.length){ loadVyrazeni(); showToast("Import dokončen.","ok"); return; }
+      var chunk=rows.slice(offset,offset+50); if(!chunk.length){ loadVyrazeni(); showSuccess("Import byl dokončen."); return; }
       sbFetch("vyrazeni",{method:"POST",extraHeaders:{"Prefer":"return=minimal"},body:JSON.stringify(chunk)})
         .then(function(r){ if(r.ok) insertVyrBatch(offset+50); });
     }
@@ -3393,7 +3410,7 @@ function deleteCurrentVyr(){
       renderVyrazeni();
       logChange("Smazán vyřazený člen",name);
       setTimeout(loadAuditLog,500);
-      showToast("Záznam smazán.","ok");
+      showSuccess("Záznam byl smazán.");
       editVyrId=null;
     }
   });
@@ -3406,7 +3423,7 @@ function restoreVyrazeni(){
   var datumStr=prompt("Zadejte nové datum vstupu člena (DD.MM.RRRR):", new Date().toLocaleDateString("cs-CZ"));
   if(!datumStr) return;
   var datumIso=parseDate(datumStr);
-  if(!datumIso){ showToast("Neplatné datum.","err"); return; }
+  if(!datumIso){ showError("Neplatné datum. Zadejte ve formátu DD.MM.RRRR."); return; }
   var existujici=members.find(function(m){ return m.osnum===v.evidencni_cislo; });
   var dnes=new Date().toLocaleDateString("cs-CZ");
   // Nacti extra udaje z duvod_ukonceni pokud jsou ulozeny
@@ -3415,7 +3432,10 @@ function restoreVyrazeni(){
     try { var jsonPart = v.duvod_ukonceni.indexOf("||{") !== -1 ? v.duvod_ukonceni.split("||{")[1] : v.duvod_ukonceni.split("||")[1]; extra = JSON.parse("{"+jsonPart); } catch(e){}
   }
   if(existujici){
-    var novaPoznamka=(existujici.poznamky?existujici.poznamky+"\n":"")+"Obnovení členství: "+dnes;
+    // Nacti duvod vyrazeni (bez JSON suffixu)
+  var duvodVyrazeni = v.duvod_ukonceni ? v.duvod_ukonceni.split("||")[0].trim() : "neuvedeno";
+  var datumVyrazeni = v.clen_do ? formatDate(v.clen_do) : "neuvedeno";
+  var novaPoznamka=(existujici.poznamky?existujici.poznamky+"\n":"")+"Ukončení členství: "+datumVyrazeni+" — důvod: "+duvodVyrazeni+"\nObnovení členství: "+dnes;
     var patchData = {clen_od:datumIso, poznamky:novaPoznamka};
     if(extra.email) patchData.email = extra.email;
     if(extra.telefon) patchData.mobil = extra.telefon;
