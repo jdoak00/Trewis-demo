@@ -812,6 +812,7 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
         <div><label class="lbl">Jméno</label><input class="finp" id="add-jmeno" placeholder="Jana"/></div>
         <div><label class="lbl">Příjmení</label><input class="finp" id="add-prijmeni" placeholder="Novakova"/></div>
+        <div><label class="lbl">za svobodna <span style="color:var(--text2);font-size:11px;">(nepovinné)</span></label><input class="finp" id="add-za-svobodna" placeholder="Dívčí příjmení"/></div>
         <div><label class="lbl">E-mail</label><input class="finp" id="add-email" placeholder="jana@email.cz"/></div>
         <div><label class="lbl">Telefon</label><input class="finp" id="add-telefon" placeholder="+420 xxx xxx xxx" value="+420"/></div>
         <div><label class="lbl">Osobní číslo</label><input class="finp" id="add-osnum" value="1810"/></div>
@@ -1359,7 +1360,7 @@ function dbRowToMember(r){
     datumVstupu:r.clen_od||"", typ:r.typ_clenstvi||"Řádný člen",
     oddeleni:r.oddeleni||"", linka:linka, smena:smena,
     linka_smena:ls, osnum:r.osobni_cislo||"", prispevky:r.prispevky||"ano",
-    vedouci:r.vedouci||"", skupina:r.skupina||""
+    vedouci:r.vedouci||"", skupina:r.skupina||"", poznamky:r.poznamky||"", za_svobodna:r.za_svobodna||""
   };
 }
 
@@ -1369,7 +1370,7 @@ function memberToDbRow(m){
     jmeno:m.jmeno, prijmeni:m.prijmeni, email:m.email, mobil:m.telefon,
     adresa:m.adresa, clen_od:m.datumVstupu||null, typ_clenstvi:m.typ,
     oddeleni:m.oddeleni, linka_smena:ls, osobni_cislo:m.osnum, prispevky:m.prispevky,
-    vedouci:m.vedouci||"", skupina:m.skupina||""
+    vedouci:m.vedouci||"", skupina:m.skupina||"", poznamky:m.poznamky||"", za_svobodna:m.za_svobodna||""
   };
 }
 
@@ -1722,6 +1723,7 @@ function renderDetailView(){
   var m=detailMember;
   var fields=[
     ["E-mail",m.email],["Telefon",m.telefon],
+    ["za svobodna",m.za_svobodna||"—"],
     ["Osobní číslo",m.osnum],["Datum vstupu",formatDate(m.datumVstupu)],
     ["Typ členství",m.typ],["Oddělení",m.oddeleni],
     ["Linka",m.linka],["Směna",m.smena],
@@ -1810,6 +1812,7 @@ function saveEdit(){
   m.linka_smena=m.linka+(m.smena?" / "+m.smena:"");
   m.vedouci=document.getElementById("e-vedouci")?document.getElementById("e-vedouci").value:"";
   m.skupina=document.getElementById("e-skupina")?document.getElementById("e-skupina").value:"";
+  m.za_svobodna=document.getElementById("e-za-svobodna")?document.getElementById("e-za-svobodna").value.trim():"";
   m.poznamky=document.getElementById("e-poznamky")?document.getElementById("e-poznamky").value:"";
   sbFetch("clenove?id=eq."+m.id,{method:"PATCH",body:JSON.stringify(memberToDbRow(m))})
     .then(function(r){
@@ -1880,7 +1883,7 @@ function openAddModal(){
   // Reset všech polí na výchozí hodnoty
   var defaults = {
     "add-jmeno":"", "add-prijmeni":"", "add-email":"", "add-adresa":"",
-    "add-telefon":"+420", "add-osnum":"1810"
+    "add-telefon":"+420", "add-osnum":"1810", "add-za-svobodna":""
   };
   Object.keys(defaults).forEach(function(id){
     var el=document.getElementById(id); if(el){ el.value=defaults[id]; el.style.borderColor=""; }
