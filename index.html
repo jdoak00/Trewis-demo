@@ -3087,7 +3087,9 @@ function sendTestEmail(){
   var msg=editorEl ? cleanPaste(editorEl.innerText||editorEl.textContent||"") : "";
   var msgHtml=editorEl ? editorEl.innerHTML : "";
   if(!sub||!msg.trim()){ showError("Vyplňte předmět a text e-mailu."); return; }
-  var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+(msgHtml||msg.replace(/\n/g,"<br>"))+"</div>";
+  var jmeno=(document.getElementById("user-name")||{textContent:""}).textContent||"";
+  var sig=EMAIL_SIGNATURE.replace("{{JMENO}}",jmeno).replace("{{ROLE}}","#ODBORYHYUNDAI");
+  var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+(msgHtml||msg.replace(/\n/g,"<br>"))+"</div>"+sig;
   var attachPromises=emailAttachments.map(function(f){ return fileToBase64(f); });
   Promise.all(attachPromises).then(function(attachBase64){
     sendBrevoEmail([{email:"odboryhmmc@email.cz",name:"Kontrolní e-mail"}],"[KONTROLNÍ] "+sub,htmlMsg,attachBase64)
@@ -3118,7 +3120,9 @@ function sendEmail(){
   if(!total){ showError("Žádní příjemci e-mailu."); return; }
   var smsTypLabel=(document.getElementById("email-typ")||{}).options?document.getElementById("email-typ").options[document.getElementById("email-typ").selectedIndex].text:"";
   if(!confirm("Opravdu odeslat e-mail "+total+" příjemcům?\nSkupina: "+smsTypLabel)) return;
-  var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+(msgHtml||msg.replace(/\n/g,"<br>"))+"</div>";
+  var jmeno=(document.getElementById("user-name")||{textContent:""}).textContent||"";
+  var sig=EMAIL_SIGNATURE.replace("{{JMENO}}",jmeno).replace("{{ROLE}}","#ODBORYHYUNDAI");
+  var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+(msgHtml||msg.replace(/\n/g,"<br>"))+"</div>"+sig;
   var progEl=document.getElementById("email-progress");
   var okEl=document.getElementById("email-ok");
   var sendBtn=document.getElementById("btn-send-email");
