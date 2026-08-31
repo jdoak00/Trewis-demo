@@ -667,7 +667,7 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
           <div style="overflow-x:auto;">
             <table>
               <thead><tr>
-                <th>Příjmení a jméno</th><th>Evid. číslo</th><th>Člen od</th>
+                <th>Příjmení a jméno</th><th>Osobní číslo</th><th>Člen od</th>
                 <th>Člen do</th><th>Oddělení</th><th>Linka a směna</th>
                 <th>Důvod ukončení</th><th></th>
               </tr></thead>
@@ -854,7 +854,7 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;">
         <div><label class="lbl">Jméno</label><input class="finp" id="vyr-jmeno" placeholder="Jana"/></div>
         <div><label class="lbl">Příjmení</label><input class="finp" id="vyr-prijmeni" placeholder="Nováková"/></div>
-        <div><label class="lbl">Evidenční číslo</label><input class="finp" id="vyr-evid" placeholder="1810"/></div>
+        <div><label class="lbl">Osobní číslo</label><input class="finp" id="vyr-evid" placeholder="1810"/></div>
         <div><label class="lbl">Oddělení</label><select class="finp" id="vyr-oddeleni">
           <option>Stamping</option><option>Welding</option><option>Paint</option><option>Assembly</option>
           <option>Quality Control</option><option>Quality Assurance</option><option>Maintenance</option>
@@ -1891,6 +1891,58 @@ function closeAddModal(e){
 }
 function addMember(){
   if(checkGuest("Nemáte oprávnění přidávat členy.")) return;
+  // Nacti hodnoty z formulare
+  var jmeno = (document.getElementById("add-jmeno")||{value:""}).value.trim();
+  var prijmeni = (document.getElementById("add-prijmeni")||{value:""}).value.trim();
+  var osnum = (document.getElementById("add-osnum")||{value:""}).value.trim();
+
+  // Zkontroluj duplicitu ve Vyrazenych - shoda vsech tri
+  if(jmeno && prijmeni && osnum){
+    var duplicate = vyrazeniData.find(function(v){
+      return v.jmeno.trim().toLowerCase() === jmeno.toLowerCase() &&
+             v.prijmeni.trim().toLowerCase() === prijmeni.toLowerCase() &&
+             (v.evidencni_cislo||"").trim() === osnum;
+    });
+    if(duplicate){
+      if(confirm("Člen "+prijmeni+" "+jmeno+" (OS: "+osnum+") byl dříve evidován jako vyřazený.\n\nChcete ho obnovit z původního záznamu?")){
+        // Obnovit ze Vyrazenych - stejny postup jako restoreVyrazeni
+        var datumStr = prompt("Zadejte nové datum vstupu člena (DD.MM.RRRR):", new Date().toLocaleDateString("cs-CZ"));
+        if(!datumStr) return;
+        var datumIso = parseDate(datumStr);
+        if(!datumIso){ showToast("Neplatné datum.","err"); return; }
+        var dnes = new Date().toLocaleDateString("cs-CZ");
+        // Nacti extra udaje z duvod_ukonceni
+        var extra = {};
+        if(duplicate.duvod_ukonceni && duplicate.duvod_ukonceni.indexOf("||{") !== -1){
+          try { extra = JSON.parse(duplicate.duvod_ukonceni.split("||{")[1].replace(/^{/,"{")); } catch(e){}
+        }
+        var novyClen = {
+          jmeno: duplicate.jmeno, prijmeni: duplicate.prijmeni,
+          osobni_cislo: duplicate.evidencni_cislo||"",
+          oddeleni: duplicate.oddeleni||"", linka_smena: duplicate.linka_smena||"",
+          clen_od: datumIso, typ_clenstvi: extra.typ||"Řádný člen",
+          email: extra.email||"", mobil: extra.telefon||"",
+          adresa: extra.adresa||"", vedouci: extra.vedouci||"",
+          skupina: extra.skupina||"",
+          poznamky: "Obnovení členství: "+dnes
+        };
+        sbFetch("clenove", {method:"POST", body:JSON.stringify(novyClen)})
+          .then(function(r){ return r.json(); })
+          .then(function(){
+            sbFetch("vyrazeni?id=eq."+duplicate.id, {method:"DELETE"}).then(function(){
+              vyrazeniData = vyrazeniData.filter(function(x){ return x.id !== duplicate.id; });
+              closeAddModal();
+              loadMembers();
+              logChange("Obnoven člen ze Vyřazených", duplicate.prijmeni+" "+duplicate.jmeno);
+              setTimeout(loadAuditLog, 500);
+              showSuccess("Člen "+duplicate.prijmeni+" "+duplicate.jmeno+" byl úspěšně obnoven.");
+            });
+          });
+        return; // Nezadat jako noveho
+      }
+      // Uzivatel rekl Ne - pokracuj jako novy clen
+    }
+  }
   var jmeno=document.getElementById("add-jmeno").value.trim();
   var prijmeni=document.getElementById("add-prijmeni").value.trim();
   var email=document.getElementById("add-email").value.trim();
@@ -3271,7 +3323,7 @@ function addVyrazeni(){
 }
 
 function csvExportVyrazeni(){
-  var h=["Příjmení","Jméno","Evid. číslo","Člen od","Člen do","Oddělení","Linka a směna","Důvod ukončení"];
+  var h=["Příjmení","Jméno","Osobní číslo","Člen od","Člen do","Oddělení","Linka a směna","Důvod ukončení"];
   var rows=vyrazeniData.map(function(v){
     return [v.prijmeni,v.jmeno,v.evidencni_cislo,formatDate(v.clen_od),formatDate(v.clen_do),v.oddeleni,v.linka_smena,v.duvod_ukonceni];
   });
@@ -3290,7 +3342,7 @@ function importVyrazeni(event){
     function col(names){ for(var i=0;i<names.length;i++){ var idx=header.indexOf(names[i]); if(idx!==-1) return idx; } return -1; }
     var map={
       prijmeni:col(["příjmení","prijmeni"]),jmeno:col(["jméno","jmeno"]),
-      evid:col(["evid. číslo","evidenční číslo","evid_cislo"]),
+      evid:col(["evid. číslo","osobní číslo","evid_cislo"]),
       clen_od:col(["člen od","clen od"]),clen_do:col(["člen do","clen do"]),
       oddeleni:col(["oddělení","oddeleni"]),linka:col(["linka a směna","linka_smena"]),
       duvod:col(["důvod ukončení","duvod_ukonceni","důvod"])
