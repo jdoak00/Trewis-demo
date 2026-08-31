@@ -3082,17 +3082,18 @@ function insertEmailSignature(){
 
 function sendTestEmail(){
   if(checkGuest("Nemáte oprávnění odesílat e-maily.")) return;
-  var sub=(document.getElementById("email-sub")||{value:""}).value.trim();
-  var msg=(document.getElementById("email-msg")||{value:""}).value.trim();
-  if(!sub||!msg){ showError("Vyplňte předmět a text e-mailu."); return; }
-  var jmeno=(document.getElementById("user-name")||{textContent:""}).textContent||"";
+  var sub=cleanPaste((document.getElementById("email-sub")||{value:""}).value);
+  var editorEl=document.getElementById("email-editor");
+  var msg=editorEl ? cleanPaste(editorEl.innerText||editorEl.textContent||"") : "";
+  var msgHtml=editorEl ? editorEl.innerHTML : "";
+  if(!sub||!msg.trim()){ showError("Vyplňte předmět a text e-mailu."); return; }
   var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+(msgHtml||msg.replace(/\n/g,"<br>"))+"</div>";
   var attachPromises=emailAttachments.map(function(f){ return fileToBase64(f); });
   Promise.all(attachPromises).then(function(attachBase64){
     sendBrevoEmail([{email:"odboryhmmc@email.cz",name:"Kontrolní e-mail"}],"[KONTROLNÍ] "+sub,htmlMsg,attachBase64)
       .then(function(ok){
-        if(ok) showToast("Kontrolní e-mail odeslán na odboryhmmc@email.cz"+(attachBase64.length>0?" s "+attachBase64.length+" přílohou":""),"ok");
-        else showToast("Chyba při odesílání kontrolního e-mailu.","err");
+        if(ok) showSuccess("Kontrolní e-mail odeslán na odboryhmmc@email.cz");
+        else showError("Chyba při odesílání kontrolního e-mailu.");
       });
   });
 }
