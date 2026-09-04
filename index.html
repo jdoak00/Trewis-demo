@@ -786,7 +786,7 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
     </div>
     <div class="modal-f">
       <button class="btn btn-out" onclick="document.getElementById('pris-edit-modal').classList.remove('show')">Zrušit</button>
-      <button class="btn btn-blue" onclick="savePrisEditModal()">&#10003; Uložit příspěvky</button>
+      <button class="btn btn-blue" onclick="savePrisEdit()">&#10003; Uložit příspěvek</button>
     </div>
   </div>
 </div>
@@ -2369,70 +2369,33 @@ function openPrisEdit(osnum, name){
   var rokOpts = '';
   for(var r=2020; r<=2030; r++) rokOpts += '<option value="'+r+'"'+(r===rok?' selected':'')+'>'+r+'</option>';
   
-  var fields = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">'+
-    '<div><label class="lbl">Měsíc</label>'+
-    '<select class="finp" id="pris-edit-mesic">'+mesiceOpts+'</select></div>'+
-    '<div><label class="lbl">Rok</label>'+
+  var fields = 
+    '<div style="margin-bottom:16px;">'+
+    '<label class="lbl" style="margin-bottom:8px;">Vyberte měsíc</label>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;" id="pris-mesic-grid">'+
+    MESICE_NAMES.map(function(m,i){
+      return '<button type="button" onclick="prisSelectMesic('+(i+1)+')" id="pris-m-btn-'+(i+1)+'" '+
+        'style="padding:8px 4px;border-radius:8px;border:2px solid var(--border);background:var(--panel2);'+
+        'color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;">'+
+        m+'</button>';
+    }).join('')+
+    '</div></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">'+
+    '<input type="hidden" id="pris-edit-mesic" value=""/>'+
+    '<div style="grid-column:1/-1"><label class="lbl">Rok</label>'+
     '<select class="finp" id="pris-edit-rok">'+rokOpts+'</select></div>'+
     '</div>'+
     '<div><label class="lbl">Částka (Kč)</label>'+
-    '<input class="finp" id="pris-edit-castka" type="number" min="0" max="9999" step="1" placeholder="0" style="font-size:20px;font-weight:700;"/></div>';
+    '<input class="finp" id="pris-edit-castka" type="number" min="0" max="9999" step="1" placeholder="0" style="font-size:22px;font-weight:700;text-align:center;"/></div>';
   
-  // Nastav aktualni hodnotu po vyberu mesice
   document.getElementById("pris-edit-fields").innerHTML = fields;
-  
-  // Po vyberu mesice nacti aktualni hodnotu
-  document.getElementById("pris-edit-mesic").onchange = function(){
-    var m = parseInt(this.value);
-    var r = parseInt(document.getElementById("pris-edit-rok").value);
-    if(m){ document.getElementById("pris-edit-castka").value = pd[m]||0; }
-  };
-  document.getElementById("pris-edit-rok").onchange = function(){
-    var m = parseInt(document.getElementById("pris-edit-mesic").value);
-    if(m){ document.getElementById("pris-edit-castka").value = (prispevkyData[osnum]||{})[m]||0; }
-  };
+
   
   document.getElementById("pris-edit-title").textContent = "Příspěvky — "+name;
   document.getElementById("pris-edit-name").textContent = osnum;
   document.getElementById("pris-edit-modal").classList.add("show");
 }
 
-function savePrisEditModal(){
-  if(!prisEditOsnum) return;
-  var rok = parseInt(document.getElementById("pris-rok").value);
-  var rows = [];
-  for(var i=1;i<=12;i++){
-    var el = document.getElementById("pris-m-"+i);
-    var castka = parseFloat(el.value)||0;
-    rows.push({osobni_cislo:prisEditOsnum, rok:rok, mesic:i, castka:castka});
-  }
-  
-  // Upsert - nejdrive smaz existujici zaznamy, pak vloz nove
-  var rok = parseInt(document.getElementById("pris-rok").value);
-  sbFetch("prispevky?osobni_cislo=eq."+encodeURIComponent(prisEditOsnum)+"&rok=eq."+rok, {
-    method:"DELETE"
-  }).then(function(){
-    return sbFetch("prispevky", {
-      method:"POST",
-      extraHeaders:{"Prefer":"return=minimal"},
-      body:JSON.stringify(rows)
-    });
-  }).then(function(r){
-    if(r.ok){
-      prispevkyData[prisEditOsnum] = prispevkyData[prisEditOsnum]||{};
-      rows.forEach(function(row){ prispevkyData[prisEditOsnum][row.mesic] = row.castka; });
-      document.getElementById("pris-edit-modal").classList.remove("show");
-      renderPrispevky();
-      logChange("Ruční editace příspěvků", prisEditName+" ("+prisEditOsnum+")");
-      setTimeout(loadAuditLog, 500);
-      logChange("Ruční editace příspěvků", prisEditName+" ("+prisEditOsnum+")");
-      setTimeout(loadAuditLog, 500);
-      showToast("Příspěvky uloženy.","ok");
-    } else {
-      showError("Chyba při ukládání. Zkuste to znovu.");
-    }
-  }).catch(function(){ showToast("Chyba připojení.","err"); });
-}
 
 // Export PDF pro úřady - vsichni clenove
 function exportPrispevkyCSV(){
@@ -3560,6 +3523,27 @@ function savePrisEdit(){
       showError("Chyba při ukládání příspěvku.");
     }
   });
+}
+
+function prisSelectMesic(mesic){
+  // Zrusit predchozi vybrani
+  for(var i=1;i<=12;i++){
+    var btn=document.getElementById("pris-m-btn-"+i);
+    if(btn){ btn.style.background="var(--panel2)"; btn.style.color="var(--text)"; btn.style.borderColor="var(--border)"; }
+  }
+  // Oznacit vybrani
+  var sel=document.getElementById("pris-m-btn-"+mesic);
+  if(sel){ sel.style.background="var(--blue)"; sel.style.color="#fff"; sel.style.borderColor="var(--blue)"; }
+  // Uloz hodnotu
+  var hidEl=document.getElementById("pris-edit-mesic");
+  if(hidEl) hidEl.value=mesic;
+  // Nacti aktualni hodnotu pro tento mesic
+  var rok=parseInt((document.getElementById("pris-edit-rok")||{value:""}).value);
+  var castkaEl=document.getElementById("pris-edit-castka");
+  if(castkaEl && prisEditOsnum){
+    castkaEl.value=(prispevkyData[prisEditOsnum]||{})[mesic]||0;
+    castkaEl.focus();
+  }
 }
 
 function closePrisEdit(){
