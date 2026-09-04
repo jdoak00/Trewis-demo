@@ -716,6 +716,7 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               <button class="btn btn-out" onclick="exportPrispevkyCSV()">&#8595; Export CSV</button>
               <select class="flt" id="pris-mesic-import" style="font-size:15px;">
+<option value="">-- Vyberte měsíc --</option>
 <option value="1">Leden</option>
 <option value="2">Únor</option>
 <option value="3">Březen</option>
@@ -2105,7 +2106,7 @@ function importCSV(event){
         linka_smena:lv+(sv?" / "+sv:""), typ_clenstvi:typClenstvi, prispevky:"ano"
       });
     }
-    if(rows.length===0){ showToast("Žádné záznamy k importu.","err"); return; }
+    if(rows.length===0){ showError("Žádné záznamy k importu."); return; }
     showToast("Importuji "+rows.length+" záznamů...","ok");
     insertBatch(rows,0,function(total){ loadMembers(); showToast("Import dokončen: "+total+" členů nahráno.","ok"); });
   });
@@ -2262,12 +2263,14 @@ function importPrispevky(event){
   var file = event.target.files[0]; if(!file) return;
   var mesic = parseInt(document.getElementById("pris-mesic-import").value);
   var rok = parseInt(document.getElementById("pris-rok").value);
+  if(!mesic || isNaN(mesic)){ showError("Vyberte měsíc před importem příspěvků."); event.target.value=""; return; }
+  if(!rok || isNaN(rok)){ showError("Vyberte rok před importem příspěvků."); event.target.value=""; return; }
   var mesicName = MESICE_NAMES[mesic-1];
   
   readFileAsText(file, function(text){
     var delim = text.indexOf(";")!==-1?";":"\t";
     var lines = text.split("\n").map(function(l){ return l.replace("\r",""); }).filter(function(l){ return l.trim(); });
-    if(lines.length<2){ showToast("CSV je prázdné.","err"); return; }
+    if(lines.length<2){ showError("CSV je prázdné."); return; }
     
     var header = parseCSVLine(lines[0],delim).map(function(h){ return h.trim().toLowerCase(); });
     function col(names){ for(var i=0;i<names.length;i++){ var idx=header.indexOf(names[i]); if(idx!==-1) return idx; } return -1; }
@@ -2276,7 +2279,7 @@ function importPrispevky(event){
     var castkaCol = col(["částka","castka","amount","kč","czk","příspěvek"]);
     
     if(idCol===-1||castkaCol===-1){
-      showToast("CSV musí obsahovat sloupce ID a Částka.","err"); return;
+      showError("CSV musí obsahovat sloupce ID a Částka."); return;
     }
     
     var rows = [];
@@ -2288,7 +2291,7 @@ function importPrispevky(event){
       if(osnum) rows.push({osnum:osnum, castka:castka});
     }
     
-    if(!rows.length){ showToast("Žádné záznamy k importu.","err"); return; }
+    if(!rows.length){ showError("Žádné záznamy k importu."); return; }
     
     // Zkontroluj existenci zaznamu pro tento mesic/rok
     var existingCount = 0;
@@ -2297,7 +2300,7 @@ function importPrispevky(event){
     });
     
     var doImport = function(){
-      showToast("Importuji "+mesicName+" "+rok+"...","ok");
+      showSuccess("Importuji "+mesicName+" "+rok+"...");
       
       // Vytvor mapu z CSV - osnum -> castka
       var csvMap = {};
@@ -2320,7 +2323,7 @@ function importPrispevky(event){
           loadPrispevky();
           logChange("Import příspěvků", mesicName+" "+rok+", záznamů: "+upsertRows.length);
           setTimeout(loadAuditLog, 500);
-          showToast("Import "+mesicName+" "+rok+" dokončen!","ok");
+          showSuccess("Import dokončen — "+mesicName+" "+rok+": nahráno "+upsertRows.length+" záznamů.");
           return;
         }
         sbFetch("prispevky", {
@@ -2329,7 +2332,7 @@ function importPrispevky(event){
           body:JSON.stringify(chunk)
         }).then(function(r){
           if(r.ok) upsertBatch(offset+100);
-          else showToast("Chyba při importu.","err");
+          else showError("Chyba při importu.");
         });
       }
       upsertBatch(0);
@@ -2359,20 +2362,38 @@ function openPrisEdit(osnum, name){
   var rok = parseInt(document.getElementById("pris-rok").value);
   var pd = prispevkyData[osnum]||{};
   
-  document.getElementById("pris-edit-title").textContent = "Příspěvky — "+rok;
-  document.getElementById("pris-edit-name").textContent = name+" ("+osnum+")";
+  // Sestavit selecty pro mesic a rok
+  var mesiceOpts = '<option value="">-- Vyberte měsíc --</option>';
+  MESICE_NAMES.forEach(function(m, i){ mesiceOpts += '<option value="'+(i+1)+'">'+m+'</option>'; });
   
-  var fields = "";
-  MESICE_NAMES.forEach(function(m, i){
-    var mesic = i+1;
-    var val = pd[mesic]||0;
-    fields += '<div>'+
-      '<label class="lbl" style="margin-bottom:4px;">'+m+'</label>'+
-      '<input class="finp" id="pris-m-'+mesic+'" type="number" min="0" max="9999" step="1" value="'+val+'" placeholder="0"/>'+
-    '</div>';
-  });
+  var rokOpts = '';
+  for(var r=2020; r<=2030; r++) rokOpts += '<option value="'+r+'"'+(r===rok?' selected':'')+'>'+r+'</option>';
   
+  var fields = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">'+
+    '<div><label class="lbl">Měsíc</label>'+
+    '<select class="finp" id="pris-edit-mesic">'+mesiceOpts+'</select></div>'+
+    '<div><label class="lbl">Rok</label>'+
+    '<select class="finp" id="pris-edit-rok">'+rokOpts+'</select></div>'+
+    '</div>'+
+    '<div><label class="lbl">Částka (Kč)</label>'+
+    '<input class="finp" id="pris-edit-castka" type="number" min="0" max="9999" step="1" placeholder="0" style="font-size:20px;font-weight:700;"/></div>';
+  
+  // Nastav aktualni hodnotu po vyberu mesice
   document.getElementById("pris-edit-fields").innerHTML = fields;
+  
+  // Po vyberu mesice nacti aktualni hodnotu
+  document.getElementById("pris-edit-mesic").onchange = function(){
+    var m = parseInt(this.value);
+    var r = parseInt(document.getElementById("pris-edit-rok").value);
+    if(m){ document.getElementById("pris-edit-castka").value = pd[m]||0; }
+  };
+  document.getElementById("pris-edit-rok").onchange = function(){
+    var m = parseInt(document.getElementById("pris-edit-mesic").value);
+    if(m){ document.getElementById("pris-edit-castka").value = (prispevkyData[osnum]||{})[m]||0; }
+  };
+  
+  document.getElementById("pris-edit-title").textContent = "Příspěvky — "+name;
+  document.getElementById("pris-edit-name").textContent = osnum;
   document.getElementById("pris-edit-modal").classList.add("show");
 }
 
@@ -3395,7 +3416,7 @@ function importVyrazeni(event){
   readFileAsText(file, function(text){
     var delim=text.indexOf(";")!==-1?";":"\t";
     var lines=text.split("\n").map(function(l){ return l.replace("\r",""); }).filter(function(l){ return l.trim(); });
-    if(lines.length<2){ showToast("CSV je prázdné.","err"); return; }
+    if(lines.length<2){ showError("CSV je prázdné."); return; }
     var header=parseCSVLine(lines[0],delim).map(function(h){ return h.trim().toLowerCase(); });
     function col(names){ for(var i=0;i<names.length;i++){ var idx=header.indexOf(names[i]); if(idx!==-1) return idx; } return -1; }
     var map={
@@ -3413,7 +3434,7 @@ function importVyrazeni(event){
         clen_od:parseDate(g("clen_od"))||null,clen_do:parseDate(g("clen_do"))||null,
         oddeleni:g("oddeleni"),linka_smena:g("linka"),duvod_ukonceni:g("duvod")});
     }
-    if(!rows.length){ showToast("Žádné záznamy k importu.","err"); return; }
+    if(!rows.length){ showError("Žádné záznamy k importu."); return; }
     showToast("Importuji "+rows.length+" záznamů...","ok");
     function insertVyrBatch(offset){
       var chunk=rows.slice(offset,offset+50); if(!chunk.length){ loadVyrazeni(); showSuccess("Import byl dokončen."); return; }
@@ -3506,6 +3527,39 @@ function restoreVyrazeni(){
         });
       });
   }
+}
+
+function savePrisEdit(){
+  if(!prisEditOsnum) return;
+  var mesicEl = document.getElementById("pris-edit-mesic");
+  var rokEl = document.getElementById("pris-edit-rok");
+  var castkaEl = document.getElementById("pris-edit-castka");
+  if(!mesicEl||!rokEl||!castkaEl) return;
+  var mesic = parseInt(mesicEl.value);
+  var rok = parseInt(rokEl.value);
+  var castka = parseFloat(castkaEl.value)||0;
+  if(!mesic){ showError("Vyberte měsíc."); return; }
+  if(!rok){ showError("Vyberte rok."); return; }
+  
+  // Uloz do DB
+  sbFetch("prispevky", {
+    method:"POST",
+    extraHeaders:{"Prefer":"resolution=merge-duplicates,return=minimal"},
+    body:JSON.stringify({osobni_cislo:prisEditOsnum, rok:rok, mesic:mesic, castka:castka})
+  }).then(function(r){
+    if(r.ok){
+      // Aktualizuj lokalni data
+      if(!prispevkyData[prisEditOsnum]) prispevkyData[prisEditOsnum]={};
+      prispevkyData[prisEditOsnum][mesic] = castka;
+      closePrisEdit();
+      renderPrispevky();
+      logChange("Ruční editace příspěvků", prisEditName+" ("+prisEditOsnum+") — "+MESICE_NAMES[mesic-1]+" "+rok+": "+castka+" Kč");
+      setTimeout(loadAuditLog, 500);
+      showSuccess("Příspěvek uložen — "+MESICE_NAMES[mesic-1]+" "+rok+": "+castka+" Kč");
+    } else {
+      showError("Chyba při ukládání příspěvku.");
+    }
+  });
 }
 
 function closePrisEdit(){
