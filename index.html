@@ -2373,12 +2373,16 @@ function openPrisEdit(osnum, name){
     '<div style="margin-bottom:16px;">'+
     '<label class="lbl" style="margin-bottom:8px;">Vyberte měsíc</label>'+
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;" id="pris-mesic-grid">'+
-    MESICE_NAMES.map(function(m,i){
-      return '<button type="button" onclick="prisSelectMesic('+(i+1)+')" id="pris-m-btn-'+(i+1)+'" '+
-        'style="padding:8px 4px;border-radius:8px;border:2px solid var(--border);background:var(--panel2);'+
-        'color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;">'+
-        m+'</button>';
-    }).join('')+
+    (function(){
+      var btns='';
+      for(var mi=0;mi<MESICE_NAMES.length;mi++){
+        btns+='<button type="button" onclick="prisSelectMesic('+(mi+1)+')" id="pris-m-btn-'+(mi+1)+'" '+
+          'style="padding:8px 4px;border-radius:8px;border:2px solid var(--border);background:var(--panel2);'+
+          'color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;">'+
+          MESICE_NAMES[mi]+'</button>';
+      }
+      return btns;
+    })()+
     '</div></div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">'+
     '<input type="hidden" id="pris-edit-mesic" value=""/>'+
@@ -3505,12 +3509,18 @@ function savePrisEdit(){
   if(!rok){ showError("Vyberte rok."); return; }
   
   // Uloz do DB
-  sbFetch("prispevky", {
+  // Pouzijeme primo fetch - sbFetch prida Prefer:return=representation co konflikuje s upsert
+  fetch(SUPABASE_URL+"/rest/v1/prispevky", {
     method:"POST",
-    extraHeaders:{"Prefer":"resolution=merge-duplicates,return=minimal"},
+    headers:{
+      "apikey": SUPABASE_KEY,
+      "Authorization": "Bearer "+SUPABASE_KEY,
+      "Content-Type": "application/json",
+      "Prefer": "resolution=merge-duplicates,return=minimal"
+    },
     body:JSON.stringify({osobni_cislo:prisEditOsnum, rok:rok, mesic:mesic, castka:castka})
   }).then(function(r){
-    if(r.ok){
+    if(r.ok||r.status===201||r.status===204){
       // Aktualizuj lokalni data
       if(!prispevkyData[prisEditOsnum]) prispevkyData[prisEditOsnum]={};
       prispevkyData[prisEditOsnum][mesic] = castka;
