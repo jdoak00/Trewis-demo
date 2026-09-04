@@ -3507,34 +3507,54 @@ function savePrisEdit(){
   var castka = parseFloat(castkaEl.value)||0;
   if(!mesic){ showError("Vyberte měsíc."); return; }
   if(!rok){ showError("Vyberte rok."); return; }
-  
-  // Uloz do DB
-  // Pouzijeme primo fetch - sbFetch prida Prefer:return=representation co konflikuje s upsert
-  fetch(SUPABASE_URL+"/rest/v1/prispevky", {
-    method:"POST",
+
+  function onSuccess(){
+    if(!prispevkyData[prisEditOsnum]) prispevkyData[prisEditOsnum]={};
+    prispevkyData[prisEditOsnum][mesic] = castka;
+    closePrisEdit();
+    renderPrispevky();
+    logChange("Ruční editace příspěvků", prisEditName+" ("+prisEditOsnum+") — "+MESICE_NAMES[mesic-1]+" "+rok+": "+castka+" Kč");
+    setTimeout(loadAuditLog, 500);
+    showSuccess("Příspěvek uložen — "+MESICE_NAMES[mesic-1]+" "+rok+": "+castka+" Kč");
+  }
+
+  // 1. Zkus PATCH - aktualizace existujiciho zaznamu
+  var patchUrl = SUPABASE_URL+"/rest/v1/prispevky?osobni_cislo=eq."+encodeURIComponent(prisEditOsnum)+"&rok=eq."+rok+"&mesic=eq."+mesic;
+  fetch(patchUrl, {
+    method:"PATCH",
     headers:{
-      "apikey": SUPABASE_KEY,
-      "Authorization": "Bearer "+SUPABASE_KEY,
-      "Content-Type": "application/json",
-      "Prefer": "resolution=merge-duplicates,return=minimal"
+      "apikey":SUPABASE_KEY, "Authorization":"Bearer "+SUPABASE_KEY,
+      "Content-Type":"application/json", "Prefer":"return=minimal"
     },
-    body:JSON.stringify({osobni_cislo:prisEditOsnum, rok:rok, mesic:mesic, castka:castka})
+    body:JSON.stringify({castka:castka})
   }).then(function(r){
-    if(r.ok||r.status===201||r.status===204){
-      // Aktualizuj lokalni data
-      if(!prispevkyData[prisEditOsnum]) prispevkyData[prisEditOsnum]={};
-      prispevkyData[prisEditOsnum][mesic] = castka;
-      closePrisEdit();
-      renderPrispevky();
-      logChange("Ruční editace příspěvků", prisEditName+" ("+prisEditOsnum+") — "+MESICE_NAMES[mesic-1]+" "+rok+": "+castka+" Kč");
-      setTimeout(loadAuditLog, 500);
-      showSuccess("Příspěvek uložen — "+MESICE_NAMES[mesic-1]+" "+rok+": "+castka+" Kč");
+    if(r.status===204||r.status===200){
+      // PATCH uspesny
+      onSuccess();
     } else {
-      showError("Chyba při ukládání příspěvku.");
+      // Zaznam neexistuje - zkus POST s on_conflict pro upsert
+      fetch(SUPABASE_URL+"/rest/v1/prispevky?on_conflict=osobni_cislo,rok,mesic", {
+        method:"POST",
+        headers:{
+          "apikey":SUPABASE_KEY, "Authorization":"Bearer "+SUPABASE_KEY,
+          "Content-Type":"application/json",
+          "Prefer":"resolution=merge-duplicates,return=minimal"
+        },
+        body:JSON.stringify({osobni_cislo:prisEditOsnum, rok:rok, mesic:mesic, castka:castka})
+      }).then(function(r2){
+        if(r2.ok||r2.status===201||r2.status===204){
+          onSuccess();
+        } else {
+          r2.text().then(function(t){ console.error("POST error:",t); });
+          showError("Chyba při ukládání příspěvku.");
+        }
+      });
     }
+  }).catch(function(e){
+    console.error("savePrisEdit error:", e);
+    showError("Chyba při ukládání příspěvku.");
   });
 }
-
 function prisSelectMesic(mesic){
   // Zrusit predchozi vybrani
   for(var i=1;i<=12;i++){
