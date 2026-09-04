@@ -398,8 +398,8 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
             </select>
             <button class="btn btn-out" onclick="csvExport()">&#8595; Export CSV</button>
             <button class="btn btn-out" onclick="exportMembersPDF()">&#128424; PDF seznam</button>
-            <button class="btn btn-out" onclick="document.getElementById('csv-import-inp').click()">&#8593; Import CSV</button>
-            <input type="file" id="csv-import-inp" accept=".csv" style="display:none" onchange="importCSV(event)"/>
+            <button class="btn btn-out" onclick="document.getElementById('csv-import-inp').click()">&#8593; Import CSV/XLSX</button>
+            <input type="file" id="csv-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importCSV(event)"/>
             <button class="btn btn-blue" onclick="openAddModal()">+ Přidat</button>
           </div>
           <div class="alpha-bar" id="alpha-bar"></div>
@@ -671,7 +671,7 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
               <input id="vyr-srch" placeholder="Hledat vyřazeného člena..." oninput="filterVyrazeni()"/>
             </div>
             <button class="btn btn-out" onclick="csvExportVyrazeni()">&#8595; Export CSV</button>
-            <button class="btn btn-out" onclick="document.getElementById('vyr-import-inp').click()">&#8593; Import CSV</button>
+            <button class="btn btn-out" onclick="document.getElementById('vyr-import-inp').click()">&#8593; Import CSV/XLSX</button>
             <input type="file" id="vyr-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importVyrazeni(event)"/>
             <button class="btn btn-blue" onclick="openAddVyrazeniModal()">+ Přidat</button>
           </div>
@@ -730,7 +730,7 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
 <option value="11">Listopad</option>
 <option value="12">Prosinec</option>
               </select>
-              <button class="btn btn-out" onclick="document.getElementById('pris-import-inp').click()">&#8593; Import CSV</button>
+              <button class="btn btn-out" onclick="document.getElementById('pris-import-inp').click()">&#8593; Import CSV/XLSX</button>
               <input type="file" id="pris-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importPrispevky(event)"/>
               <button class="btn btn-out" onclick="exportPrispevkyPDF()">&#8681; PDF celý rok</button>
             </div>
