@@ -295,6 +295,17 @@ tbody tr:hover{background:rgba(8,124,244,.04)!important;}
 .dp-day.today{background:var(--blue-light);color:var(--blue);font-weight:700;}
 .dp-day.other{color:var(--text3);}
 .dp-day.disabled{opacity:.3;cursor:default;}
+
+/* Klikaci efekt */
+button:active, .btn:active, .nav-btn:active, .a-btn:active, .pg-b:active,
+.btn-login:active, select:active, .dp-day:active:not(.disabled){
+  transform:scale(0.96)!important;
+  opacity:0.85;
+  transition:transform 0.08s,opacity 0.08s;
+}
+button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
+  transition:transform 0.12s,opacity 0.12s,background 0.15s;
+}
 .dp-dname{text-align:center;font-size:11px;font-weight:700;color:var(--text2);padding:4px 0;}
 </style>
 
@@ -1501,7 +1512,6 @@ function dpRender(){
 
 // LOGIN
 function doLogin(){
-  console.log("doLogin called");
   var u=(document.getElementById("inp-user").value||"").trim();
   var p=(document.getElementById("inp-pass").value||"").trim();
   var errEl=document.getElementById("login-err");
@@ -1552,7 +1562,6 @@ function doLogin(){
     errEl.style.display="block";
   }
 }
-document.getElementById("btn-login").onclick=doLogin;
 document.getElementById("inp-user").onkeydown=function(e){ if(e.key==="Enter") doLogin(); };
 document.getElementById("inp-pass").onkeydown=function(e){ if(e.key==="Enter") doLogin(); };
 document.getElementById("btn-logout").onclick=function(){
