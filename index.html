@@ -1866,7 +1866,14 @@ function saveEdit(){
   m.poznamky=document.getElementById("e-poznamky")?document.getElementById("e-poznamky").value:"";
   sbFetch("clenove?id=eq."+m.id,{method:"PATCH",body:JSON.stringify(memberToDbRow(m))})
     .then(function(r){
-      if(!r.ok){ showToast("Chyba uložení.","err"); return; }
+      if(!r.ok){
+      r.text().then(function(t){
+        console.error("SaveEdit error:", t);
+        if(t.indexOf("unique")!==-1||t.indexOf("duplicate")!==-1) showError("Osobní číslo již existuje.");
+        else showError("Chyba uložení.");
+      });
+      return;
+    }
       document.getElementById("dp-av").textContent=((m.jmeno[0]||"")+(m.prijmeni[0]||"")).toUpperCase();
       document.getElementById("dp-name").textContent=m.jmeno+" "+m.prijmeni;
       renderDetailView(); renderStats(); renderTable();
@@ -3168,7 +3175,9 @@ function sendEmail(){
 }
 
 // ===== EDIT FORM =====
-function renderEditForm(m){
+
+    "<div><label class='lbl'>za svobodna</label><input class='finp' id='e-za-svobodna' placeholder='Dívčí příjmení' value='"+(m.za_svobodna||"")+"'/></div>"+
+    function renderEditForm(m){
   var SMENA_OPTS=["","A","B","C","Ranní","12A","12B","12C","12D"];
   var SKUPINA_OPTS=["","VýborZO","DaRK","Důvěrníci"];
   var VEDOUCI_OPTS=["","G/L","T/L","M/T"];
@@ -3177,6 +3186,7 @@ function renderEditForm(m){
     "<div style='display:grid;grid-template-columns:1fr 1fr;gap:12px;'>"+
     "<div><label class='lbl'>Jméno</label><input class='finp' id='e-jmeno' value='"+( m.jmeno||"")+"'/></div>"+
     "<div><label class='lbl'>Příjmení</label><input class='finp' id='e-prijmeni' value='"+( m.prijmeni||"")+"'/></div>"+
+    "<div><label class='lbl'>za svobodna</label><input class='finp' id='e-za-svobodna' value='"+( m.za_svobodna||"")+"'/></div>"+
     "<div><label class='lbl'>E-mail</label><input class='finp' id='e-email' type='email' value='"+( m.email||"")+"'/></div>"+
     "<div><label class='lbl'>Telefon</label><input class='finp' id='e-telefon' value='"+(m.telefon||"+420")+"'/></div>"+
     "<div style='grid-column:1/-1'><label class='lbl'>Adresa</label><input class='finp' id='e-adresa' value='"+( m.adresa||"")+"'/></div>"+
