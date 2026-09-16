@@ -1841,7 +1841,19 @@ function saveEdit(){
   m.email=document.getElementById("e-email").value;
   m.telefon=document.getElementById("e-tel").value;
   m.adresa=document.getElementById("e-adresa").value;
-  m.osnum=document.getElementById("e-osnum").value;
+  var oldOsnum = m.osnum;
+  var newOsnum = document.getElementById("e-osnum").value.trim();
+  m.osnum = newOsnum;
+  // Pokud se zmenilo OS cislo, prenest prispevky automaticky
+  if(newOsnum && newOsnum !== oldOsnum){
+    sbFetch("prispevky?osobni_cislo=eq."+encodeURIComponent(oldOsnum),{
+      method:"PATCH",
+      extraHeaders:{"Prefer":"return=minimal"},
+      body:JSON.stringify({osobni_cislo:newOsnum})
+    }).then(function(r){
+      if(r.ok){ console.log("Príspevky preneseny: "+oldOsnum+" -> "+newOsnum); }
+    });
+  }
   m.datumVstupu=getIsoDate(document.getElementById("e-vstup"));
   m.typ=document.getElementById("e-typ").value;
   m.oddeleni=document.getElementById("e-odd").value;
@@ -2302,17 +2314,13 @@ function importPrispevky(event){
     var doImport = function(){
       showSuccess("Importuji "+mesicName+" "+rok+"...");
       
-      // Vytvor mapu z CSV - osnum -> castka
-      var csvMap = {};
-      rows.forEach(function(r){ csvMap[r.osnum] = r.castka; });
-      
-      // Pro vsechny cleny - ti co nejsou v CSV dostanou 0
-      var upsertRows = members.map(function(m){
+      // Pouzij primo data z CSV - vsechny zaznamy ze souboru
+      var upsertRows = rows.map(function(r){
         return {
-          osobni_cislo: m.osnum,
+          osobni_cislo: r.osnum,
           rok: rok,
           mesic: mesic,
-          castka: csvMap[m.osnum] !== undefined ? csvMap[m.osnum] : 0
+          castka: r.castka
         };
       });
       
@@ -2326,13 +2334,17 @@ function importPrispevky(event){
           showSuccess("Import dokončen — "+mesicName+" "+rok+": nahráno "+upsertRows.length+" záznamů.");
           return;
         }
-        sbFetch("prispevky", {
+        fetch(SUPABASE_URL+"/rest/v1/prispevky?on_conflict=osobni_cislo,rok,mesic", {
           method:"POST",
-          extraHeaders:{"Prefer":"resolution=merge-duplicates,return=minimal"},
+          headers:{
+            "apikey":SUPABASE_KEY, "Authorization":"Bearer "+SUPABASE_KEY,
+            "Content-Type":"application/json",
+            "Prefer":"resolution=merge-duplicates,return=minimal"
+          },
           body:JSON.stringify(chunk)
         }).then(function(r){
-          if(r.ok) upsertBatch(offset+100);
-          else showError("Chyba při importu.");
+          if(r.ok||r.status===201||r.status===204) upsertBatch(offset+100);
+          else { r.text().then(function(t){ console.error("Import err:",t); }); showError("Chyba při importu dávky."); }
         });
       }
       upsertBatch(0);
