@@ -1375,6 +1375,13 @@ function formatDate(s){
   return s;
 }
 
+function formatDateInput(s){
+  if(!s) return "";
+  var p = s.split("-");
+  if(p.length===3) return p[2]+"."+p[1]+"."+p[0];
+  return s;
+}
+
 // SUPABASE
 function sbFetch(path, options){
   var url = SUPABASE_URL+"/rest/v1/"+path;
@@ -1408,7 +1415,7 @@ function memberToDbRow(m){
   var ls = m.linka+(m.smena?" / "+m.smena:"");
   return {
     jmeno:m.jmeno, prijmeni:m.prijmeni, email:m.email, mobil:m.telefon,
-    adresa:m.adresa, clen_od:m.datumVstupu||null, typ_clenstvi:m.typ,
+    adresa:m.adresa, clen_od:(m.datumVstupu&&m.datumVstupu!=="—"&&m.datumVstupu!=="-"?m.datumVstupu:null), typ_clenstvi:m.typ,
     oddeleni:m.oddeleni, linka_smena:ls, osobni_cislo:m.osnum, prispevky:m.prispevky,
     vedouci:m.vedouci||"", skupina:m.skupina||"", poznamky:m.poznamky||"", za_svobodna:m.za_svobodna||""
   };
@@ -1471,7 +1478,7 @@ function dpConfirm(){
   }
   dpClose();
 }
-function getIsoDate(el){ if(!el) return ""; if(el.dataset.isoValue) return el.dataset.isoValue; var v=el.value; if(!v) return ""; var m=v.match(/^(\d{2})\.(\d{2})\.(\d{4})$/); if(m) return m[3]+"-"+m[2]+"-"+m[1]; return v; }
+function getIsoDate(el){ if(!el) return null; if(el.dataset&&el.dataset.isoValue) return el.dataset.isoValue||null; var v=el.value; if(!v||v==="—"||v==="-") return null; var m=v.match(/^(\d{2})\.(\d{2})\.(\d{4})$/); if(m) return m[3]+"-"+m[2]+"-"+m[1]; return null; }
 function dpPrevMonth(){ dpCurrent.setMonth(dpCurrent.getMonth()-1); dpRender(); }
 function dpNextMonth(){ var n=new Date(dpCurrent.getFullYear(),dpCurrent.getMonth()+1,1); if(n<=TODAY){ dpCurrent=n; dpRender(); } }
 function dpPrevYear(){ dpCurrent.setFullYear(dpCurrent.getFullYear()-1); dpRender(); }
@@ -1808,7 +1815,7 @@ function switchToEdit(){
     '<div><label class="lbl">Telefon</label><input class="finp" id="e-tel" value="'+m.telefon+'"/></div>'+
     '<div class="field-span"><label class="lbl">Adresa</label><input class="finp" id="e-adresa" value="'+m.adresa+'"/></div>'+
     '<div><label class="lbl">Osobní číslo</label><input class="finp" id="e-osnum" value="'+m.osnum+'"/></div>'+
-    '<div><label class="lbl">Datum vstupu</label><input class="finp" id="e-vstup" value="'+formatDate(m.datumVstupu)+'" readonly onclick="dpOpen(this)" style="cursor:pointer" data-iso-value="'+m.datumVstupu+'"/></div>'+
+    '<div><label class="lbl">Datum vstupu</label><input class="finp" id="e-vstup" value="'+formatDateInput(m.datumVstupu)+'" readonly onclick="dpOpen(this)" style="cursor:pointer" data-iso-value="'+m.datumVstupu+'"/></div>'+
     '<div><label class="lbl">Typ členství</label><select class="finp" id="e-typ"><option'+(m.typ==="Řádný člen"?' selected':'')+'>Řádný člen</option><option'+(m.typ==="Tajný člen"?' selected':'')+'>Tajný člen</option></select></div>'+
     '<div><label class="lbl">Oddělení</label><select class="finp" id="e-odd">'+oddOpts+'</select></div>'+
     '<div><label class="lbl">Linka</label><input class="finp" id="e-linka" value="'+m.linka+'" placeholder="např. L1"/></div>'+
@@ -3191,7 +3198,7 @@ function sendEmail(){
     "<div><label class='lbl'>Telefon</label><input class='finp' id='e-telefon' value='"+(m.telefon||"+420")+"'/></div>"+
     "<div style='grid-column:1/-1'><label class='lbl'>Adresa</label><input class='finp' id='e-adresa' value='"+( m.adresa||"")+"'/></div>"+
     "<div><label class='lbl'>Osobní číslo</label><input class='finp' id='e-osnum' value='"+( m.osnum||"")+"'/></div>"+
-    "<div><label class='lbl'>Datum vstupu</label><input class='finp' id='e-vstup' value='"+formatDate(m.datumVstupu)+"' readonly onclick='dpOpen(this)' style='cursor:pointer' data-iso-value='"+( m.datumVstupu||"")+"'/></div>"+
+    "<div><label class='lbl'>Datum vstupu</label><input class='finp' id='e-vstup' value='"+formatDateInput(m.datumVstupu)+"' readonly onclick='dpOpen(this)' style='cursor:pointer' data-iso-value='"+( m.datumVstupu||"")+"'/></div>"+
     "<div><label class='lbl'>Typ členství</label><select class='finp' id='e-typ'>"+
       ["Řádný člen","Tajný člen"].map(function(t){ return "<option"+(m.typ===t?" selected":"")+">"+t+"</option>"; }).join("")+
     "</select></div>"+
