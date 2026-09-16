@@ -1015,7 +1015,7 @@ function showCenterMsg(msg, type){
 }
 
 // ===== INACTIVITY & SESSION =====
-var INACTIVITY_LIMIT = 10 * 60 * 1000; // 10 minut
+var INACTIVITY_LIMIT = 30 * 60 * 1000; // 30 minut
 var inactivityTimer = null;
 var inactivityWarningTimer = null;
 
@@ -1051,7 +1051,7 @@ function resetInactivityTimer(){
       var w = document.getElementById("inactivity-warning");
       if(w) w.style.display = "flex";
     }
-  }, 9 * 60 * 1000);
+  }, 29 * 60 * 1000);
 
   inactivityTimer = setTimeout(function(){
     if(document.getElementById("app-screen").style.display !== "none"){
@@ -3604,7 +3604,7 @@ function closePrisEdit(){
 }
 
 // ===== SESSION RESTORE PO F5 =====
-(function(){
+window.addEventListener("load", function(){
   var savedSession = sessionStorage.getItem("session_user");
   if(savedSession){
     try {
@@ -3630,10 +3630,10 @@ function closePrisEdit(){
       setTimeout(loadAuditLog, 3500);
       setTimeout(initPrisRok, 500);
     } catch(e) {
-      sessionStorage.removeItem("session_user");
+      sessionStorage.removeItem("session_user"); console.error("Session restore error:", e);
     }
   }
-})();
+});
 
 </script>
 
