@@ -1464,9 +1464,17 @@ var TODAY=new Date(); TODAY.setHours(0,0,0,0);
 function dpOpen(inputEl){
   dpTarget=inputEl;
   var iso=inputEl.dataset.isoValue||"";
-  if(iso){ var p=iso.split("-"); dpCurrent=new Date(parseInt(p[0]),parseInt(p[1])-1,1); dpSelected=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2])); }
-  else { dpCurrent=new Date(TODAY.getFullYear(),TODAY.getMonth(),1); dpSelected=null; }
-  dpRender(); document.getElementById("dp-modal").classList.add("show");
+  // Filtrovat neplatne hodnoty
+  if(iso && iso!=="null" && iso!=="—" && iso!=="-" && /^\d{4}-\d{2}-\d{2}$/.test(iso)){
+    var p=iso.split("-");
+    dpCurrent=new Date(parseInt(p[0]),parseInt(p[1])-1,1);
+    dpSelected=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+  } else {
+    dpCurrent=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);
+    dpSelected=null;
+  }
+  dpRender();
+  document.getElementById("dp-modal").classList.add("show");
 }
 function dpClose(){ document.getElementById("dp-modal").classList.remove("show"); dpTarget=null; }
 function dpClickOutside(e){ if(e.target===document.getElementById("dp-modal")) dpClose(); }
@@ -1811,11 +1819,12 @@ function switchToEdit(){
     '<div class="field-group"><div class="field-grid">'+
     '<div><label class="lbl">Jméno</label><input class="finp" id="e-jmeno" value="'+m.jmeno+'"/></div>'+
     '<div><label class="lbl">Příjmení</label><input class="finp" id="e-prijmeni" value="'+m.prijmeni+'"/></div>'+
+    '<div><label class="lbl">za svobodna</label><input class="finp" id="e-za-svobodna" placeholder="Dívčí příjmení" value="'+(m.za_svobodna||'')+'"/></div>'+
     '<div><label class="lbl">E-mail</label><input class="finp" id="e-email" value="'+m.email+'"/></div>'+
     '<div><label class="lbl">Telefon</label><input class="finp" id="e-tel" value="'+m.telefon+'"/></div>'+
     '<div class="field-span"><label class="lbl">Adresa</label><input class="finp" id="e-adresa" value="'+m.adresa+'"/></div>'+
     '<div><label class="lbl">Osobní číslo</label><input class="finp" id="e-osnum" value="'+m.osnum+'"/></div>'+
-    '<div><label class="lbl">Datum vstupu</label><input class="finp" id="e-vstup" value="'+formatDateInput(m.datumVstupu)+'" readonly onclick="dpOpen(this)" style="cursor:pointer" data-iso-value="'+m.datumVstupu+'"/></div>'+
+    '<div><label class="lbl">Datum vstupu</label><input class="finp" id="e-vstup" value="'+formatDateInput(m.datumVstupu)+'" readonly onclick="dpOpen(this)" style="cursor:pointer" data-iso-value="'+(m.datumVstupu||'')+'"/></div>'+
     '<div><label class="lbl">Typ členství</label><select class="finp" id="e-typ"><option'+(m.typ==="Řádný člen"?' selected':'')+'>Řádný člen</option><option'+(m.typ==="Tajný člen"?' selected':'')+'>Tajný člen</option></select></div>'+
     '<div><label class="lbl">Oddělení</label><select class="finp" id="e-odd">'+oddOpts+'</select></div>'+
     '<div><label class="lbl">Linka</label><input class="finp" id="e-linka" value="'+m.linka+'" placeholder="např. L1"/></div>'+
