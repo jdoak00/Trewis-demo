@@ -1415,7 +1415,7 @@ function memberToDbRow(m){
   var ls = m.linka+(m.smena?" / "+m.smena:"");
   return {
     jmeno:m.jmeno, prijmeni:m.prijmeni, email:m.email, mobil:m.telefon,
-    adresa:m.adresa, clen_od:(m.datumVstupu&&m.datumVstupu!=="—"&&m.datumVstupu!=="-"?m.datumVstupu:null), typ_clenstvi:m.typ,
+    adresa:m.adresa, clen_od:(m.datumVstupu&&m.datumVstupu!=="—"&&m.datumVstupu!=="-"&&m.datumVstupu!=="null"&&m.datumVstupu.length>4?m.datumVstupu:null), typ_clenstvi:m.typ,
     oddeleni:m.oddeleni, linka_smena:ls, osobni_cislo:m.osnum, prispevky:m.prispevky,
     vedouci:m.vedouci||"", skupina:m.skupina||"", poznamky:m.poznamky||"", za_svobodna:m.za_svobodna||""
   };
@@ -1478,7 +1478,7 @@ function dpConfirm(){
   }
   dpClose();
 }
-function getIsoDate(el){ if(!el) return null; if(el.dataset&&el.dataset.isoValue) return el.dataset.isoValue||null; var v=el.value; if(!v||v==="—"||v==="-") return null; var m=v.match(/^(\d{2})\.(\d{2})\.(\d{4})$/); if(m) return m[3]+"-"+m[2]+"-"+m[1]; return null; }
+function getIsoDate(el){ if(!el) return null; if(el.dataset&&el.dataset.isoValue&&el.dataset.isoValue!=="null"&&el.dataset.isoValue!=="—") return el.dataset.isoValue||null; var v=el.value; if(!v||v==="—"||v==="-") return null; var m=v.match(/^(\d{2})\.(\d{2})\.(\d{4})$/); if(m) return m[3]+"-"+m[2]+"-"+m[1]; return null; }
 function dpPrevMonth(){ dpCurrent.setMonth(dpCurrent.getMonth()-1); dpRender(); }
 function dpNextMonth(){ var n=new Date(dpCurrent.getFullYear(),dpCurrent.getMonth()+1,1); if(n<=TODAY){ dpCurrent=n; dpRender(); } }
 function dpPrevYear(){ dpCurrent.setFullYear(dpCurrent.getFullYear()-1); dpRender(); }
@@ -1861,7 +1861,7 @@ function saveEdit(){
       if(r.ok){ console.log("Príspevky preneseny: "+oldOsnum+" -> "+newOsnum); }
     });
   }
-  m.datumVstupu=getIsoDate(document.getElementById("e-vstup"));
+  var rawDatum=getIsoDate(document.getElementById("e-vstup")); m.datumVstupu=(rawDatum&&rawDatum!=="null"&&rawDatum!=="—")?rawDatum:null;
   m.typ=document.getElementById("e-typ").value;
   m.oddeleni=document.getElementById("e-odd").value;
   m.linka=document.getElementById("e-linka").value;
