@@ -1444,6 +1444,7 @@ function loadMembersPage(offset){
         } else {
           document.getElementById("tbl-loading").style.display="none";
           renderStats(); renderAlpha(); renderTable(); updateEmailRcpt(); updateSmsRcpt();
+          if(prispevkyLoaded) renderPrispevky();
         }
       } else {
         document.getElementById("tbl-loading").style.display="none";
@@ -2244,7 +2245,18 @@ function renderPrispevky(){
   var q = (document.getElementById("pris-srch").value||"").toLowerCase();
   var rok = parseInt(document.getElementById("pris-rok").value);
   
-  var filtered = members.filter(function(m){
+  // Pouzij members jako zaklad ale dopln o zaznamy z prispevkyData ktere members nezna
+  var membersMap = {};
+  members.forEach(function(m){ membersMap[m.osnum] = m; });
+  
+  // Vsichni clenove kteri maji prispevky + vsichni clenove
+  var allOsnums = {};
+  Object.keys(prispevkyData).forEach(function(osnum){ allOsnums[osnum] = true; });
+  members.forEach(function(m){ allOsnums[m.osnum] = true; });
+  
+  var filtered = Object.keys(allOsnums).map(function(osnum){
+    return membersMap[osnum] || {osnum:osnum, jmeno:"", prijmeni:"("+osnum+")", email:"", typ:"", oddeleni:""};
+  }).filter(function(m){
     return (m.prijmeni+" "+m.jmeno+" "+m.osnum).toLowerCase().indexOf(q) !== -1;
   });
   
