@@ -2887,6 +2887,11 @@ function sendSms(){
   if(progBar) progBar.style.width="0%";
   if(progTxt) progTxt.textContent="Odesílám 0/"+total+"...";
   if(sendBtn) sendBtn.disabled=true;
+  // Pozastavit auto-odhlaseni a chranit pred zavrenim stranky
+  clearTimeout(inactivityTimer);
+  clearTimeout(inactivityWarningTimer);
+  window._smsInProgress = true;
+  window.onbeforeunload = function(){ return "Probíhá odesílání SMS. Opravdu chcete opustit stránku?"; };
   var sent=0, errors=0;
   function sendNext(idx){
     if(idx>=rcpt.length){
@@ -2897,7 +2902,11 @@ function sendSms(){
       if(sendBtn){ sendBtn.disabled=false; sendBtn.style.opacity="1"; sendBtn.style.cursor="pointer"; }
       logChange("Odeslána hromadná SMS","Příjemců: "+sent+", chyb: "+errors);
       setTimeout(loadAuditLog,500);
-      showToast("SMS odesláno "+sent+" příjemcům!","ok");
+      showSuccess("SMS odesláno "+sent+" příjemcům!"+(errors>0?" (chyb: "+errors+")":""));
+      // Obnovit auto-odhlaseni a odstranit ochranu zavreni
+      window._smsInProgress = false;
+      window.onbeforeunload = null;
+      resetInactivityTimer();
       return;
     }
     var m=rcpt[idx];
@@ -2905,6 +2914,8 @@ function sendSms(){
     if(!phone.startsWith("+")) phone="+420"+phone;
     sendSmsManager(phone,msg,apiKey,sender).then(function(ok){
       if(ok) sent++; else errors++;
+      // Obnov inactivity timer pri kazdem odeslani (udrzet session aktivni)
+      if(window._smsInProgress) { clearTimeout(inactivityTimer); clearTimeout(inactivityWarningTimer); }
       var pct=Math.round((idx+1)/total*100);
       var pt=document.getElementById("sms-prog-txt");
       var pb=document.getElementById("sms-prog-bar");
@@ -3239,6 +3250,11 @@ function sendEmail(){
   if(progEl) progEl.style.display="block";
   if(okEl) okEl.style.display="none";
   if(sendBtn) sendBtn.disabled=true;
+  // Pozastavit auto-odhlaseni a chranit pred zavrenim stranky
+  clearTimeout(inactivityTimer);
+  clearTimeout(inactivityWarningTimer);
+  window._emailInProgress = true;
+  window.onbeforeunload = function(){ return "Probíhá odesílání e-mailů. Opravdu chcete opustit stránku?"; };
   var sent=0;
   var attachPromises=emailAttachments.map(function(f){ return fileToBase64(f); });
   Promise.all(attachPromises).then(function(attachBase64){
@@ -3250,7 +3266,11 @@ function sendEmail(){
         if(sendBtn){ sendBtn.disabled=false; }
         logChange("Odeslán hromadný e-mail","Příjemců: "+sent+(attachBase64.length>0?", příloh: "+attachBase64.length:""));
         setTimeout(loadAuditLog,500);
-        showToast("E-mail odeslán "+sent+" příjemcům!","ok");
+        showSuccess("E-mail odeslán "+sent+" příjemcům!");
+        // Obnovit auto-odhlaseni
+        window._emailInProgress = false;
+        window.onbeforeunload = null;
+        resetInactivityTimer();
         return;
       }
       var to=batch.map(function(m){ return {email:m.email,name:m.prijmeni+" "+m.jmeno}; });
