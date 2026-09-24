@@ -2809,6 +2809,17 @@ function readFileAsText(file, callback){
 }
 
 // ===== SMS =====
+function updateSmsChar(){
+  var ta = document.getElementById("sms-msg");
+  var el = document.getElementById("sms-char");
+  if(!ta||!el) return;
+  var len = ta.value.length;
+  var smsCount = Math.ceil(len/160)||1;
+  var remaining = smsCount*160 - len;
+  el.textContent = len+" / "+(smsCount*160)+" znaků ("+remaining+" zbývá, SMS: "+smsCount+")";
+  el.style.color = len > 160 ? "var(--red)" : len > 140 ? "#f59e0b" : "var(--text2)";
+}
+
 function updateSmsRcpt(){
   var val=(document.getElementById("sms-typ")||{value:""}).value;
   var n=members.filter(function(m){
