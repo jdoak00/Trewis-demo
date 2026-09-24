@@ -3652,44 +3652,30 @@ function prisSelectMesic(mesic){
 
 function openPrisCard(osnum, nameEnc){
   var name = decodeURIComponent(nameEnc);
-  var pd = prispevkyData[osnum]||{};
-  var rok = parseInt(document.getElementById("pris-rok").value);
-  var celkem = 0;
-  for(var i=1;i<=12;i++) celkem += pd[i]||0;
 
-  // Odstranit starsi kartu pokud existuje
+  // Odstranit stare okno
   var old = document.getElementById("pris-card-overlay");
   if(old) old.remove();
 
-  var rows = "";
-  for(var i=0;i<MESICE_NAMES.length;i++){
-    var m = i+1;
-    var val = pd[m]||0;
-    var color = val>0 ? "#05c957" : "var(--text2)";
-    var weight = val>0 ? "700" : "400";
-    rows += "<tr><td style='padding:8px 12px;border-bottom:1px solid var(--border);'>"+MESICE_NAMES[i]+"</td>";
-    rows += "<td style='padding:8px 12px;border-bottom:1px solid var(--border);text-align:right;font-weight:"+weight+";color:"+color+";'>"+(val>0?val+" Kč":"—")+"</td></tr>";
-  }
-
+  // Vytvor overlay s loading stavem
   var overlay = document.createElement("div");
   overlay.id = "pris-card-overlay";
   overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;display:flex;align-items:center;justify-content:center;";
   overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
 
   var box = document.createElement("div");
-  box.style.cssText = "background:var(--panel);border-radius:16px;max-width:400px;width:90%;max-height:80vh;overflow:auto;box-shadow:0 8px 40px rgba(0,0,0,.3);";
+  box.id = "pris-card-box";
+  box.style.cssText = "background:var(--panel);border-radius:16px;max-width:480px;width:95%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.3);";
   box.innerHTML =
-    "<div style='padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;'>"+
+    "<div style='padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;'>"+
       "<div><div style='font-size:17px;font-weight:700;color:var(--text);'>"+name+"</div>"+
-      "<div style='font-size:13px;color:var(--text2);margin-top:2px;'>OS: "+osnum+" — rok "+rok+"</div></div>"+
+      "<div style='font-size:13px;color:var(--text2);margin-top:2px;'>OS: "+osnum+"</div></div>"+
       "<button id='pris-card-close' style='background:none;border:none;font-size:22px;cursor:pointer;color:var(--text2);'>✕</button>"+
     "</div>"+
-    "<table style='width:100%;border-collapse:collapse;'><tbody>"+rows+"</tbody>"+
-    "<tfoot><tr>"+
-      "<td style='padding:10px 12px;font-weight:700;border-top:2px solid var(--border);'>Celkem "+rok+"</td>"+
-      "<td style='padding:10px 12px;text-align:right;font-weight:700;color:#087cf4;border-top:2px solid var(--border);'>"+celkem+" Kč</td>"+
-    "</tr></tfoot></table>"+
-    "<div style='padding:16px 24px;border-top:1px solid var(--border);text-align:right;'>"+
+    "<div id='pris-card-body' style='overflow-y:auto;flex:1;padding:0;'>"+
+      "<div style='text-align:center;padding:30px;color:var(--text2);'>Načítám...</div>"+
+    "</div>"+
+    "<div style='padding:14px 24px;border-top:1px solid var(--border);text-align:right;flex-shrink:0;'>"+
       "<button id='pris-card-close2' class='btn btn-blue'>Zavřít</button>"+
     "</div>";
 
@@ -3697,7 +3683,58 @@ function openPrisCard(osnum, nameEnc){
   document.body.appendChild(overlay);
   document.getElementById("pris-card-close").onclick = function(){ overlay.remove(); };
   document.getElementById("pris-card-close2").onclick = function(){ overlay.remove(); };
+
+  // Nacti vsechna data pro tohoto clena ze Supabase
+  fetch(SUPABASE_URL+"/rest/v1/prispevky?osobni_cislo=eq."+encodeURIComponent(osnum)+"&select=rok,mesic,castka&order=rok.desc,mesic.asc&limit=1000", {
+    headers:{
+      "apikey":SUPABASE_KEY,
+      "Authorization":"Bearer "+SUPABASE_KEY,
+      "Content-Type":"application/json"
+    }
+  }).then(function(r){ return r.json(); })
+  .then(function(data){
+    var bodyEl = document.getElementById("pris-card-body");
+    if(!bodyEl) return;
+
+    if(!Array.isArray(data)||data.length===0){
+      bodyEl.innerHTML = "<div style='text-align:center;padding:30px;color:var(--text2);'>Žádné příspěvky.</div>";
+      return;
+    }
+
+    // Seskupit podle roku
+    var roky = {};
+    data.forEach(function(p){
+      if(!roky[p.rok]) roky[p.rok] = {};
+      roky[p.rok][p.mesic] = parseFloat(p.castka)||0;
+    });
+
+    var html = "";
+    Object.keys(roky).sort(function(a,b){ return b-a; }).forEach(function(rok){
+      var pd = roky[rok];
+      var celkem = 0;
+      for(var i=1;i<=12;i++) celkem += pd[i]||0;
+
+      html += "<div style='padding:10px 16px;background:var(--panel2);font-weight:700;font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;display:flex;justify-content:space-between;border-bottom:1px solid var(--border);'>";
+      html += "<span>"+rok+"</span><span style='color:#087cf4;'>"+celkem+" Kč</span></div>";
+
+      for(var i=0;i<MESICE_NAMES.length;i++){
+        var m = i+1;
+        var val = pd[m]||0;
+        if(val===0) continue; // Zobrazit jen mesice s platbou
+        html += "<div style='display:flex;justify-content:space-between;align-items:center;padding:8px 20px;border-bottom:1px solid var(--border);'>";
+        html += "<span style='color:var(--text);'>"+MESICE_NAMES[i]+"</span>";
+        html += "<span style='font-weight:700;color:#05c957;'>"+val+" Kč</span>";
+        html += "</div>";
+      }
+    });
+
+    bodyEl.innerHTML = html;
+  }).catch(function(){
+    var bodyEl = document.getElementById("pris-card-body");
+    if(bodyEl) bodyEl.innerHTML = "<div style='text-align:center;padding:30px;color:var(--red);'>Chyba načítání dat.</div>";
+  });
 }
+
 
 
 
