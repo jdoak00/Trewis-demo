@@ -1350,7 +1350,6 @@ function updateViewToggle(){
   var dBtn = document.getElementById("vt-desktop");
   var mBtn = document.getElementById("vt-mobile");
   if(dBtn) dBtn.className = "vt-b" + (!effMob ? " on" : "");
-  if(mBtn) mBtn.className = "vt-b" + (effMob ? " on" : "");
   var hamb = document.getElementById("btn-hamburger");
   if(hamb) hamb.style.display = effMob ? "inline-flex" : "none";
 }
@@ -2257,17 +2256,33 @@ function renderPrispevky(){
   var q = (document.getElementById("pris-srch").value||"").toLowerCase();
   var rok = parseInt(document.getElementById("pris-rok").value);
   
-  // Pouzij members jako zaklad ale dopln o zaznamy z prispevkyData ktere members nezna
+  // Sestav mapu clenu - aktivni + vyrazeni
   var membersMap = {};
   members.forEach(function(m){ membersMap[m.osnum] = m; });
-  
-  // Vsichni clenove kteri maji prispevky + vsichni clenove
+  // Pridat vyrazene cleny
+  if(typeof vyrazeniData !== "undefined"){
+    vyrazeniData.forEach(function(v){
+      if(v.evidencni_cislo && !membersMap[v.evidencni_cislo]){
+        membersMap[v.evidencni_cislo] = {
+          osnum: v.evidencni_cislo,
+          jmeno: v.jmeno||"",
+          prijmeni: v.prijmeni||"",
+          email:"", typ:"vyřazený", oddeleni: v.oddeleni||""
+        };
+      }
+    });
+  }
+
+  // Vsichni clenove kteri maji prispevky
   var allOsnums = {};
   Object.keys(prispevkyData).forEach(function(osnum){ allOsnums[osnum] = true; });
   members.forEach(function(m){ allOsnums[m.osnum] = true; });
-  
+
   var filtered = Object.keys(allOsnums).map(function(osnum){
-    return membersMap[osnum] || {osnum:osnum, jmeno:"", prijmeni:"("+osnum+")", email:"", typ:"", oddeleni:""};
+    var found = membersMap[osnum];
+    if(found) return found;
+    // Neznamy clen - zobraz jen OS cislo
+    return {osnum:osnum, jmeno:"", prijmeni:"Neznámý člen", email:"", typ:"", oddeleni:""};
   }).filter(function(m){
     return (m.prijmeni+" "+m.jmeno+" "+m.osnum).toLowerCase().indexOf(q) !== -1;
   });
@@ -2299,7 +2314,7 @@ function renderPrispevky(){
     }
     
     var celkemColor = celkem > 0 ? '#087cf4' : 'var(--text2)';
-    return '<tr>'+
+    return '<tr style="cursor:pointer" data-osnum="'+m.osnum+'" data-name="'+encodeURIComponent(m.prijmeni+' '+m.jmeno)+'" onclick="openPrisCard(this.dataset.osnum,this.dataset.name)">'+
       '<td><b>'+m.prijmeni+' '+m.jmeno+'</b></td>'+
       '<td style="color:var(--text2);font-size:13px;">'+m.osnum+'</td>'+
       '<td style="text-align:center;font-weight:700;color:'+celkemColor+';">'+
@@ -2361,24 +2376,29 @@ function importPrispevky(event){
     var doImport = function(){
       showSuccess("Importuji "+mesicName+" "+rok+"...");
       
-      // Pouzij primo data z CSV - vsechny zaznamy ze souboru
-      var upsertRows = rows.map(function(r){
-        return {
-          osobni_cislo: r.osnum,
-          rok: rok,
-          mesic: mesic,
-          castka: r.castka
-        };
-      });
+      var duplicates = [];
+      var newRows = [];
       
-      // Upsert po davkach
-      function upsertBatch(offset){
-        var chunk = upsertRows.slice(offset, offset+100);
+      rows.forEach(function(r){
+        // Zkontroluj zda uz existuje zaznam pro toto OS cislo v tomto mesici
+        if(prispevkyData[r.osnum] && prispevkyData[r.osnum][mesic] !== undefined && prispevkyData[r.osnum][mesic] > 0){
+          duplicates.push({osnum: r.osnum, castka_stara: prispevkyData[r.osnum][mesic], castka_nova: r.castka});
+        } else {
+          newRows.push({osobni_cislo: r.osnum, rok: rok, mesic: mesic, castka: r.castka});
+        }
+      });
+
+      function insertBatch(offset){
+        var chunk = newRows.slice(offset, offset+100);
         if(!chunk.length){
           loadPrispevky();
-          logChange("Import příspěvků", mesicName+" "+rok+", záznamů: "+upsertRows.length);
+          logChange("Import příspěvků", mesicName+" "+rok+", nových: "+newRows.length+", přeskočeno: "+duplicates.length);
           setTimeout(loadAuditLog, 500);
-          showSuccess("Import dokončen — "+mesicName+" "+rok+": nahráno "+upsertRows.length+" záznamů.");
+          showSuccess("Import dokončen — "+mesicName+" "+rok+": nahráno "+newRows.length+" nových záznamů.");
+          // Zobraz tabulku duplicit
+          if(duplicates.length > 0){
+            showDuplicatesTable(duplicates, mesicName, rok);
+          }
           return;
         }
         fetch(SUPABASE_URL+"/rest/v1/prispevky?on_conflict=osobni_cislo,rok,mesic", {
@@ -2386,26 +2406,19 @@ function importPrispevky(event){
           headers:{
             "apikey":SUPABASE_KEY, "Authorization":"Bearer "+SUPABASE_KEY,
             "Content-Type":"application/json",
-            "Prefer":"resolution=merge-duplicates,return=minimal"
+            "Prefer":"resolution=ignore-duplicates,return=minimal"
           },
           body:JSON.stringify(chunk)
         }).then(function(r){
-          if(r.ok||r.status===201||r.status===204) upsertBatch(offset+100);
+          if(r.ok||r.status===201||r.status===204) insertBatch(offset+100);
           else { r.text().then(function(t){ console.error("Import err:",t); }); showError("Chyba při importu dávky."); }
         });
       }
-      upsertBatch(0);
+      insertBatch(0);
     };
     
-    if(existingCount > 0){
-      if(confirm("Pro "+mesicName+" "+rok+" již existuje "+existingCount+" záznamů.\nChcete je přepsat novými daty?")){
-        // Smaž existující záznamy pro tento měsíc/rok
-        sbFetch("prispevky?rok=eq."+rok+"&mesic=eq."+mesic, {method:"DELETE"})
-          .then(function(){ doImport(); });
-      }
-    } else {
-      doImport();
-    }
+    // Vzdy provest import - duplicity se preskoci, nove se pridaji
+    doImport();
   });
   event.target.value="";
 }
@@ -3636,6 +3649,114 @@ function prisSelectMesic(mesic){
     castkaEl.focus();
   }
 }
+
+function openPrisCard(osnum, nameEnc){
+  var name = decodeURIComponent(nameEnc);
+  var pd = prispevkyData[osnum]||{};
+  var rok = parseInt(document.getElementById("pris-rok").value);
+  var celkem = 0;
+  for(var i=1;i<=12;i++) celkem += pd[i]||0;
+
+  // Odstranit starsi kartu pokud existuje
+  var old = document.getElementById("pris-card-overlay");
+  if(old) old.remove();
+
+  var rows = "";
+  for(var i=0;i<MESICE_NAMES.length;i++){
+    var m = i+1;
+    var val = pd[m]||0;
+    var color = val>0 ? "#05c957" : "var(--text2)";
+    var weight = val>0 ? "700" : "400";
+    rows += "<tr><td style='padding:8px 12px;border-bottom:1px solid var(--border);'>"+MESICE_NAMES[i]+"</td>";
+    rows += "<td style='padding:8px 12px;border-bottom:1px solid var(--border);text-align:right;font-weight:"+weight+";color:"+color+";'>"+(val>0?val+" Kč":"—")+"</td></tr>";
+  }
+
+  var overlay = document.createElement("div");
+  overlay.id = "pris-card-overlay";
+  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;display:flex;align-items:center;justify-content:center;";
+  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
+
+  var box = document.createElement("div");
+  box.style.cssText = "background:var(--panel);border-radius:16px;max-width:400px;width:90%;max-height:80vh;overflow:auto;box-shadow:0 8px 40px rgba(0,0,0,.3);";
+  box.innerHTML =
+    "<div style='padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;'>"+
+      "<div><div style='font-size:17px;font-weight:700;color:var(--text);'>"+name+"</div>"+
+      "<div style='font-size:13px;color:var(--text2);margin-top:2px;'>OS: "+osnum+" — rok "+rok+"</div></div>"+
+      "<button id='pris-card-close' style='background:none;border:none;font-size:22px;cursor:pointer;color:var(--text2);'>✕</button>"+
+    "</div>"+
+    "<table style='width:100%;border-collapse:collapse;'><tbody>"+rows+"</tbody>"+
+    "<tfoot><tr>"+
+      "<td style='padding:10px 12px;font-weight:700;border-top:2px solid var(--border);'>Celkem "+rok+"</td>"+
+      "<td style='padding:10px 12px;text-align:right;font-weight:700;color:#087cf4;border-top:2px solid var(--border);'>"+celkem+" Kč</td>"+
+    "</tr></tfoot></table>"+
+    "<div style='padding:16px 24px;border-top:1px solid var(--border);text-align:right;'>"+
+      "<button id='pris-card-close2' class='btn btn-blue'>Zavřít</button>"+
+    "</div>";
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  document.getElementById("pris-card-close").onclick = function(){ overlay.remove(); };
+  document.getElementById("pris-card-close2").onclick = function(){ overlay.remove(); };
+}
+
+
+
+function showDuplicatesTable(duplicates, mesicName, rok){
+  var membersMap = {};
+  members.forEach(function(m){ membersMap[m.osnum] = m; });
+  if(typeof vyrazeniData !== "undefined"){
+    vyrazeniData.forEach(function(v){
+      if(v.evidencni_cislo && !membersMap[v.evidencni_cislo]){
+        membersMap[v.evidencni_cislo] = {jmeno:v.jmeno||"", prijmeni:v.prijmeni||""};
+      }
+    });
+  }
+
+  var rows = "";
+  duplicates.forEach(function(d){
+    var m = membersMap[d.osnum]||{jmeno:"", prijmeni:""};
+    rows += "<tr>";
+    rows += "<td style='padding:8px 12px;border-bottom:1px solid var(--border);font-weight:600;'>"+d.osnum+"</td>";
+    rows += "<td style='padding:8px 12px;border-bottom:1px solid var(--border);'>"+m.prijmeni+" "+m.jmeno+"</td>";
+    rows += "<td style='padding:8px 12px;border-bottom:1px solid var(--border);color:#087cf4;font-weight:700;'>"+d.castka_stara+" Kč</td>";
+    rows += "<td style='padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text2);'>"+d.castka_nova+" Kč</td>";
+    rows += "</tr>";
+  });
+
+  // Odstranit stare okno pokud existuje
+  var old = document.getElementById("dup-overlay");
+  if(old) old.remove();
+
+  var overlay = document.createElement("div");
+  overlay.id = "dup-overlay";
+  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;display:flex;align-items:center;justify-content:center;";
+  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
+
+  var box = document.createElement("div");
+  box.style.cssText = "background:var(--panel);border-radius:16px;max-width:620px;width:95%;max-height:80vh;overflow:auto;box-shadow:0 8px 40px rgba(0,0,0,.3);";
+  box.innerHTML =
+    "<div style='padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;'>"+
+      "<div><div style='font-size:17px;font-weight:700;color:var(--text);'>Přeskočené záznamy</div>"+
+      "<div style='font-size:13px;color:var(--text2);margin-top:4px;'>"+mesicName+" "+rok+" — "+duplicates.length+" záznamů již existovalo a nebylo přepsáno</div></div>"+
+      "<button id='dup-close' style='background:none;border:none;font-size:22px;cursor:pointer;color:var(--text2);'>✕</button>"+
+    "</div>"+
+    "<table style='width:100%;border-collapse:collapse;'>"+
+    "<thead><tr>"+
+      "<th style='padding:8px 12px;text-align:left;font-size:11px;color:var(--text2);text-transform:uppercase;'>OS číslo</th>"+
+      "<th style='padding:8px 12px;text-align:left;font-size:11px;color:var(--text2);text-transform:uppercase;'>Jméno</th>"+
+      "<th style='padding:8px 12px;text-align:left;font-size:11px;color:var(--text2);text-transform:uppercase;'>Stávající</th>"+
+      "<th style='padding:8px 12px;text-align:left;font-size:11px;color:var(--text2);text-transform:uppercase;'>V souboru</th>"+
+    "</tr></thead><tbody>"+rows+"</tbody></table>"+
+    "<div style='padding:16px 24px;border-top:1px solid var(--border);text-align:right;'>"+
+      "<button id='dup-close2' class='btn btn-blue'>Rozumím</button>"+
+    "</div>";
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  document.getElementById("dup-close").onclick = function(){ overlay.remove(); };
+  document.getElementById("dup-close2").onclick = function(){ overlay.remove(); };
+}
+
 
 function closePrisEdit(){
   var el=document.getElementById("pris-edit-modal");
