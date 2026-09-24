@@ -2510,8 +2510,38 @@ function exportClenPDF(osnum, name){
   var pd = prispevkyData[osnum]||{};
   var celkem = 0;
   for(var i=1;i<=12;i++) celkem += pd[i]||0;
+
+  // Hledej v aktivnich clenych
   var m = members.find(function(x){ return x.osnum===osnum; });
-  if(!m) return;
+
+  // Pokud nenalezen, hledej ve vyrazenych
+  if(!m && typeof vyrazeniData !== "undefined"){
+    var v = vyrazeniData.find(function(x){ return x.evidencni_cislo===osnum; });
+    if(v){
+      m = {
+        jmeno: v.jmeno||"",
+        prijmeni: v.prijmeni||"",
+        osnum: v.evidencni_cislo||"",
+        oddeleni: v.oddeleni||"",
+        linka: (v.linka_smena||"").split(" / ")[0]||"",
+        smena: (v.linka_smena||"").split(" / ")[1]||"",
+        datumVstupu: v.clen_od||"",
+        typ: "vyřazený člen"
+      };
+    }
+  }
+
+  // Pokud stale nenalezen, vytvor zaznam z parametru
+  if(!m){
+    var parts = decodeURIComponent(name||"").split(" ");
+    m = {
+      jmeno: parts.slice(1).join(" ")||"",
+      prijmeni: parts[0]||"",
+      osnum: osnum,
+      oddeleni:"", linka:"", smena:"", datumVstupu:"", typ:""
+    };
+  }
+
   generatePotvrzeniPDF(m, rok, celkem);
 }
 
