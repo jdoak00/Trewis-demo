@@ -76,8 +76,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sb-foot{padding:10px 8px;border-top:1px solid rgba(255,255,255,.08);}
 .user-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.07);
   border-radius:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,.1);}
-.av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#087cf4,#00eddf);
-  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;}
+.av{width:34px;height:34px;border-radius:50%;background:#0d1826;border:1px solid rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#00eddf;flex-shrink:0;line-height:1;}
 .u-name{font-size:15px;font-weight:700;color:#fff;}
 .u-role{font-size:13px;color:var(--sidebar-text);}
 .main{margin-left:240px;display:flex;flex-direction:column;min-height:100vh;min-width:0;overflow-x:hidden;position:relative;}
@@ -307,6 +307,25 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
   transition:transform 0.12s,opacity 0.12s,background 0.15s;
 }
 .dp-dname{text-align:center;font-size:11px;font-weight:700;color:var(--text2);padding:4px 0;}
+
+/* ── DESIGN UPDATE ── */
+.filters{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;margin-bottom:10px;display:flex;flex-direction:column;gap:7px;}
+.filters-row{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+.fselect,.fsearch{padding:5px 8px;border:1px solid var(--border);border-radius:5px;background:var(--panel2);color:var(--text);font-size:12px;font-family:inherit;min-width:0;height:30px;box-sizing:border-box;}
+.fselect{max-width:160px;}
+.fsearch{max-width:100%;}
+.btn-sm{padding:0 10px!important;font-size:12px!important;height:30px;box-sizing:border-box;line-height:1;}
+.stats-row{display:flex;gap:0;margin-bottom:12px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--panel);width:100%;}
+.stat-card{flex:1;padding:10px 16px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;gap:4px;}
+.stat-card:last-child{border-right:none;}
+.stat-lbl2{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;}
+.stat-num-row{display:flex;align-items:baseline;gap:8px;}
+.stat-val2{font-size:22px;font-weight:800;color:var(--text);line-height:1;}
+.stat-delta2{font-size:11px;font-weight:600;white-space:nowrap;}
+.delta-up2{color:#16a34a;}
+.delta-dn2{color:var(--red);}
+/* Sidebar avatar timer */
+#logout-timer{font-size:10px;font-weight:800;color:#00eddf;}
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -351,8 +370,8 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
     </div>
     <div class="sb-foot">
       <div class="user-row">
-        <div class="av" id="user-av"></div>
-        <div><div class="u-name" id="user-name"></div><div class="u-role">Správce</div></div>
+        <div class="av"><span id="logout-timer">15:00</span></div>
+        <div><div class="u-name" id="user-name"></div></div>
       </div>
       <button class="nav-btn" id="btn-logout">&#x2192; Odhlásit se</button>
     </div>
@@ -372,40 +391,43 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
       <div id="page-members">
         <div class="stats" id="stats-row"></div>
         <div class="card">
-          <div class="toolbar">
-            <div class="srch">
-              <span class="srch-ic">&#128269;</span>
-              <input id="srch-inp" placeholder="Hledat jméno, OS číslo, e-mail..." oninput="filterMembers()"/>
+          <div class="filters">
+            <div class="filters-row">
+              <select class="fselect flt" id="typ-flt" onchange="filterMembers()">
+                <option value="">Všechny typy</option>
+                <option>Řádný člen</option>
+                <option>Tajný člen</option>
+              </select>
+              <select class="fselect flt" id="odd-flt" onchange="filterMembers()">
+                <option value="">Všechna oddělení</option>
+                <option>Stamping</option><option>Welding</option><option>Paint</option>
+                <option>Assembly</option><option>Quality Control</option>
+                <option>Quality Assurance</option><option>Maintenance</option>
+                <option>Production Control</option><option>Admin</option>
+                <option>není zaměstnanec HMMC</option>
+              </select>
+              <select class="fselect flt" id="smena-flt" onchange="filterMembers()">
+                <option value="">Všechny směny</option>
+                <option>A</option><option>B</option><option>C</option>
+                <option>Ranní</option><option>12A</option><option>12B</option>
+                <option>12C</option><option>12D</option>
+              </select>
             </div>
-            <select class="flt" id="typ-flt" onchange="filterMembers()">
-              <option value="">Všechny typy</option>
-              <option>Řádný člen</option>
-              <option>Tajný člen</option>
-            </select>
-            <select class="flt" id="odd-flt" onchange="filterMembers()">
-              <option value="">Všechna oddělení</option>
-              <option>Stamping</option><option>Welding</option><option>Paint</option>
-              <option>Assembly</option><option>Quality Control</option>
-              <option>Quality Assurance</option><option>Maintenance</option>
-              <option>Production Control</option><option>Admin</option>
-              <option>není zaměstnanec HMMC</option>
-            </select>
-            <select class="flt" id="smena-flt" onchange="filterMembers()">
-              <option value="">Všechny směny</option>
-              <option>A</option><option>B</option><option>C</option>
-              <option>Ranní</option><option>12A</option><option>12B</option>
-              <option>12C</option><option>12D</option>
-            </select>
-            <button class="btn btn-out" onclick="csvExport()">&#8595; Export CSV</button>
-            <button class="btn btn-out" onclick="exportMembersPDF()">&#128424; PDF seznam</button>
-            <button class="btn btn-out" onclick="document.getElementById('csv-import-inp').click()">&#8593; Import CSV/XLSX</button>
-            <input type="file" id="csv-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importCSV(event)"/>
-            <button class="btn btn-blue" onclick="openAddModal()">+ Přidat</button>
+            <div class="filters-row">
+              <input class="fsearch" id="srch-inp" style="width:220px;max-width:100%;" placeholder="🔍 Hledat jméno, OS číslo…" oninput="filterMembers()"/>
+              <div style="margin-left:auto;display:flex;gap:5px;">
+                <button class="btn btn-out btn-sm" onclick="csvExport()">Export</button>
+                <button class="btn btn-out btn-sm" onclick="document.getElementById('csv-import-inp').click()">Import</button>
+                <input type="file" id="csv-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importCSV(event)"/>
+                <button class="btn btn-out btn-sm" onclick="exportMembersPDF()">Seznam</button>
+                <button class="btn btn-blue btn-sm" onclick="openAddModal()">+ Přidat</button>
+              </div>
+            </div>
           </div>
           <div class="alpha-bar" id="alpha-bar"></div>
           <div id="tbl-loading" style="display:none;padding:20px;text-align:center;color:var(--text2)">Načítám data z databáze...</div><div style="overflow-x:auto">
             <table>
-              <thead><tr><th>#</th><th>Člen</th><th>OS číslo</th><th>Oddělení</th><th>Typ</th><th>Vstup</th></tr></thead>
+              <thead><tr><th>Člen</th><th>OS číslo</th><th>Oddělení</th><th>Směna</th><th>Typ</th><th>Člen od</th></tr></thead>
               <tbody id="tbl-body"></tbody>
             </table>
           </div>
@@ -665,15 +687,18 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
       <!-- VYRAZENI PAGE -->
       <div id="page-vyrazeni" style="display:none;">
         <div class="card">
-          <div class="toolbar">
-            <div class="srch">
-              <span class="srch-ic">&#128269;</span>
-              <input id="vyr-srch" placeholder="Hledat vyřazeného člena..." oninput="filterVyrazeni()"/>
+          <div class="filters">
+            <div class="filters-row">
+              <select class="fselect" id="vyr-rok-flt" onchange="filterVyrazeni()">
+                <option value="">Všechny roky</option>
+                <option>2026</option><option>2025</option><option>2024</option><option>2023</option>
+              </select>
+              <input class="fsearch" id="vyr-srch" style="width:220px;max-width:100%;" placeholder="🔍 Hledat vyřazeného člena…" oninput="filterVyrazeni()"/>
+              <div style="margin-left:auto;display:flex;gap:5px;">
+                <button class="btn btn-out btn-sm" onclick="csvExportVyrazeni()">Export</button>
+                <button class="btn btn-blue btn-sm" onclick="openAddVyrazeniModal()">+ Přidat</button>
+              </div>
             </div>
-            <button class="btn btn-out" onclick="csvExportVyrazeni()">&#8595; Export CSV</button>
-            <button class="btn btn-out" onclick="document.getElementById('vyr-import-inp').click()">&#8593; Import CSV/XLSX</button>
-            <input type="file" id="vyr-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importVyrazeni(event)"/>
-            <button class="btn btn-blue" onclick="openAddVyrazeniModal()">+ Přidat</button>
           </div>
           <div style="overflow-x:auto;">
             <table>
@@ -696,10 +721,9 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
 
       <!-- PRISPEVKY PAGE -->
       <div id="page-prispevky" style="display:none;">
-        <div class="card" style="margin-bottom:16px;">
-          <div class="toolbar" style="flex-wrap:wrap;gap:8px;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <select class="flt" id="pris-rok" onchange="loadPrispevky()" style="font-size:15px;">
+        <div class="filters" style="margin-bottom:16px;">
+          <div class="filters-row">
+            <select class="fselect" id="pris-rok" onchange="loadPrispevky()">
 <option value="2024">2024</option>
 <option value="2025">2025</option>
 <option value="2026">2026</option>
@@ -707,16 +731,9 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
 <option value="2028">2028</option>
 <option value="2029">2029</option>
 <option value="2030">2030</option>
-              </select>
-              <div class="srch" style="min-width:200px;">
-                <span class="srch-ic">&#128269;</span>
-                <input id="pris-srch" placeholder="Hledat člena..." oninput="renderPrispevky()"/>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-out" onclick="exportPrispevkyCSV()">&#8595; Export CSV</button>
-              <select class="flt" id="pris-mesic-import" style="font-size:15px;">
-<option value="">-- Vyberte měsíc --</option>
+            </select>
+            <select class="fselect" id="pris-mesic-import">
+<option value="">Všechny měsíce</option>
 <option value="1">Leden</option>
 <option value="2">Únor</option>
 <option value="3">Březen</option>
@@ -729,11 +746,14 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
 <option value="10">Říjen</option>
 <option value="11">Listopad</option>
 <option value="12">Prosinec</option>
-              </select>
-              <button class="btn btn-out" onclick="document.getElementById('pris-import-inp').click()">&#8593; Import CSV/XLSX</button>
-              <input type="file" id="pris-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importPrispevky(event)"/>
-              <button class="btn btn-out" onclick="exportPrispevkyPDF()">&#8681; PDF celý rok</button>
-            </div>
+            </select>
+          </div>
+          <div class="filters-row">
+            <input class="fsearch" id="pris-srch" placeholder="Hledat člena..." oninput="renderPrispevky()" style="flex:1;max-width:none;"/>
+            <button class="btn btn-out btn-sm" onclick="exportPrispevkyCSV()">&#8595; Export CSV</button>
+            <button class="btn btn-out btn-sm" onclick="document.getElementById('pris-import-inp').click()">&#8593; Import</button>
+            <input type="file" id="pris-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importPrispevky(event)"/>
+            <button class="btn btn-out btn-sm" onclick="exportPrispevkyPDF()">PDF</button>
           </div>
         </div>
 
@@ -1415,7 +1435,7 @@ function memberToDbRow(m){
   var ls = m.linka+(m.smena?" / "+m.smena:"");
   return {
     jmeno:m.jmeno, prijmeni:m.prijmeni, email:m.email, mobil:m.telefon,
-    adresa:m.adresa, clen_od:(m.datumVstupu&&m.datumVstupu!=="—"&&m.datumVstupu!=="-"&&m.datumVstupu!=="null"&&m.datumVstupu.length>4?m.datumVstupu:null), typ_clenstvi:m.typ,
+    adresa:m.adresa, clen_od:(m.datumVstupu&&m.datumVstupu!=="—"&&m.datumVstupu!=="-"&&m.datumVstupu!=="null"&&m.datumVstupu!=="NaN"&&m.datumVstupu.length>4&&/^\d{4}-\d{2}-\d{2}$/.test(m.datumVstupu)?m.datumVstupu:null), typ_clenstvi:m.typ,
     oddeleni:m.oddeleni, linka_smena:ls, osobni_cislo:m.osnum, prispevky:m.prispevky,
     vedouci:m.vedouci||"", skupina:m.skupina||"", poznamky:m.poznamky||"", za_svobodna:m.za_svobodna||""
   };
@@ -1487,7 +1507,7 @@ function dpConfirm(){
   }
   dpClose();
 }
-function getIsoDate(el){ if(!el) return null; if(el.dataset&&el.dataset.isoValue&&el.dataset.isoValue!=="null"&&el.dataset.isoValue!=="—") return el.dataset.isoValue||null; var v=el.value; if(!v||v==="—"||v==="-") return null; var m=v.match(/^(\d{2})\.(\d{2})\.(\d{4})$/); if(m) return m[3]+"-"+m[2]+"-"+m[1]; return null; }
+function getIsoDate(el){ if(!el) return null; var iso=el.dataset&&el.dataset.isoValue||""; if(iso&&iso!=="null"&&iso!=="—"&&iso!=="-"&&iso!=="NaN"&&/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso; var v=el.value||""; if(!v||v==="—"||v==="-"||v==="null"||v==="NaN") return null; var m=v.match(/^(\d{2})\.(\d{2})\.(\d{4})$/); if(m) return m[3]+"-"+m[2]+"-"+m[1]; if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v; return null; }
 function dpPrevMonth(){ dpCurrent.setMonth(dpCurrent.getMonth()-1); dpRender(); }
 function dpNextMonth(){ var n=new Date(dpCurrent.getFullYear(),dpCurrent.getMonth()+1,1); if(n<=TODAY){ dpCurrent=n; dpRender(); } }
 function dpPrevYear(){ dpCurrent.setFullYear(dpCurrent.getFullYear()-1); dpRender(); }
@@ -1685,9 +1705,17 @@ function renderStats(){
     {n:radny,l:"Řádní členové",c:"#00eddf"},
     {n:tajny,l:"Tajní členové",c:"#07fa70"}
   ];
-  document.getElementById("stats-row").innerHTML=data.map(function(d){
-    return '<div class="stat"><div class="stat-bar" style="background:'+d.c+'"></div><div class="stat-n" style="color:'+d.c+'">'+d.n+'</div><div class="stat-l">'+d.l+'</div></div>';
-  }).join("");
+  var prevTotal = window._prevStatsTotal||0;
+  var delta = data[0].n - prevTotal;
+  window._prevStatsTotal = data[0].n;
+  var deltaHtml = delta>0?'<span class="stat-delta2 delta-up2">↑ '+delta+' tento měsíc</span>':
+    delta<0?'<span class="stat-delta2 delta-dn2">↓ '+Math.abs(delta)+'</span>':'';
+  document.getElementById("stats-row").innerHTML=
+    '<div class="stats-row">'+
+    '<div class="stat-card"><div class="stat-lbl2">Celkem</div><div class="stat-num-row"><div class="stat-val2">'+data[0].n+'</div>'+deltaHtml+'</div></div>'+
+    '<div class="stat-card" style="padding-left:40px"><div class="stat-lbl2">Ofiko</div><div class="stat-num-row"><div class="stat-val2">'+data[1].n+'</div></div></div>'+
+    '<div class="stat-card" style="padding-left:40px"><div class="stat-lbl2">Tajní</div><div class="stat-num-row"><div class="stat-val2">'+data[2].n+'</div></div></div>'+
+    '</div>';
 }
 
 function renderAlpha(){
@@ -1714,7 +1742,7 @@ function renderTable(){
   var effMob=getEffMobile();
   if(effMob){
     // Mobile card view
-    var html='<tr><td colspan="7" style="padding:10px">'+
+    var html='<tr><td colspan="6" style="padding:10px">'+
       '<div class="mcards">';
     if(slice.length===0) html+='<div style="text-align:center;padding:24px;color:var(--text2)">Žádné záznamy</div>';
     slice.forEach(function(m){
@@ -1736,17 +1764,23 @@ function renderTable(){
     tbody.innerHTML=html;
   } else {
     if(slice.length===0){
-      tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text2)">Žádné záznamy</td></tr>';
+      tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--text2)">Žádné záznamy</td></tr>';
     } else {
       tbody.innerHTML=slice.map(function(m,i){
         var typBdg=m.typ==="Řádný člen"?'<span class="bdg bdg-blue">'+m.typ+'</span>':'<span class="bdg bdg-gray">'+m.typ+'</span>';
         var av=((m.jmeno[0]||"")+(m.prijmeni[0]||"")).toUpperCase();
+        var today=new Date();var vstup=m.datumVstupu?new Date(m.datumVstupu):null;
+        var daysDiff=vstup?Math.floor((today-vstup)/(1000*60*60*24)):999;
+        var isNovy=daysDiff<=90;
+        var typBdgFinal=isNovy?'<span class="bdg" style="background:rgba(0,237,223,.15);color:#00eddf;">Nový</span>':
+          m.typ==="Řádný člen"?'<span class="bdg bdg-blue">Ofiko</span>':
+          '<span class="bdg" style="background:rgba(150,150,160,.15);color:#8a9ab0;">Tajný</span>';
         return '<tr onclick="openDetail('+m.id+')">'+
-          '<td style="color:var(--text3);font-size:11px">'+((currentPage-1)*PAGE_SZ+i+1)+'</td>'+
-          '<td><div class="mc"><div class="mav">'+av+'</div><div><div class="mn">'+m.prijmeni+' '+m.jmeno+'</div><div class="me">'+m.email+'</div></div></div></td>'+
+          '<td><div class="mc"><div class="mav">'+av+'</div><div class="mn">'+m.prijmeni+' '+m.jmeno+'</div></div></td>'+
           '<td style="color:var(--text2);font-weight:600">'+m.osnum+'</td>'+
           '<td style="color:var(--text2);font-size:12px">'+m.oddeleni+'</td>'+
-          '<td>'+typBdg+'</td>'+
+          '<td style="color:var(--text2);font-size:12px">'+( m.smena||'–')+'</td>'+
+          '<td>'+typBdgFinal+'</td>'+
           '<td style="color:var(--text3);font-size:12px">'+formatDate(m.datumVstupu)+'</td>'
           '</tr>';
       }).join("");
@@ -1829,8 +1863,11 @@ function switchToEdit(){
     '<div><label class="lbl">Typ členství</label><select class="finp" id="e-typ"><option'+(m.typ==="Řádný člen"?' selected':'')+'>Řádný člen</option><option'+(m.typ==="Tajný člen"?' selected':'')+'>Tajný člen</option></select></div>'+
     '<div><label class="lbl">Oddělení</label><select class="finp" id="e-odd">'+oddOpts+'</select></div>'+
     '<div><label class="lbl">Linka</label><input class="finp" id="e-linka" value="'+m.linka+'" placeholder="např. L1"/></div>'+
-    '<div><label class="lbl">Směna</label><select class="finp" id="e-smena">'+smenaOpts(m.smena)+'</select></div>'+'<div><label class="lbl">Vedoucí</label><select class="finp" id="e-vedouci">'+VEDOUCI_OPTS.map(function(v){ return '<option value="'+v+'"'+(m.vedouci===v?' selected':'')+'>'+( v||'— Není vedoucí —')+'</option>'; }).join('')+'</select></div>'+'<div><label class="lbl">Odbory</label><select class="finp" id="e-skupina">'+SKUPINA_OPTS.map(function(s){ return '<option value="'+s+'"'+(m.skupina===s?' selected':'')+'>'+( s||'— Není ve skupině —')+'</option>'; }).join('')+'</select></div>'+
-+'<div style="grid-column:1/-1"><label class="lbl">Poznámky</label><textarea class="finp" id="e-poznamky" rows="3" style="resize:vertical;">'+( m.poznamky||"")+"</textarea></div>"+'</div></div>';
+    '<div><label class="lbl">Směna</label><select class="finp" id="e-smena">'+smenaOpts(m.smena)+'</select></div>'+
+    '<div><label class="lbl">Vedoucí</label><select class="finp" id="e-vedouci">'+VEDOUCI_OPTS.map(function(v){ return '<option value="'+v+'"'+(m.vedouci===v?' selected':'')+'>'+( v||'— Není vedoucí —')+'</option>'; }).join('')+'</select></div>'+
+    '<div><label class="lbl">Odbory</label><select class="finp" id="e-skupina">'+SKUPINA_OPTS.map(function(s){ return '<option value="'+s+'"'+(m.skupina===s?' selected':'')+'>'+( s||'— Není ve skupině —')+'</option>'; }).join('')+'</select></div>'+
+    '<div style="grid-column:1/-1"><label class="lbl">Poznámky</label><textarea class="finp" id="e-poznamky" rows="3" style="resize:vertical;">'+( m.poznamky||"")+"</textarea></div>"+
+    '</div></div>';
   document.getElementById("dp-foot").innerHTML=
     '<button class="btn btn-blue" onclick="saveEdit()">&#10003; Uložit</button>'+
     '<button class="btn btn-out" onclick="renderDetailView()">Zrušit</button>';
@@ -1856,7 +1893,7 @@ function saveEdit(){
   m.jmeno=document.getElementById("e-jmeno").value;
   m.prijmeni=document.getElementById("e-prijmeni").value;
   m.email=document.getElementById("e-email").value;
-  m.telefon=document.getElementById("e-tel").value;
+  m.telefon=(document.getElementById("e-telefon")||document.getElementById("e-tel")||{value:""}).value;
   m.adresa=document.getElementById("e-adresa").value;
   var oldOsnum = m.osnum;
   var newOsnum = document.getElementById("e-osnum").value.trim();
@@ -1872,10 +1909,10 @@ function saveEdit(){
     });
   }
   var rawDatum=getIsoDate(document.getElementById("e-vstup")); m.datumVstupu=(rawDatum&&rawDatum!=="null"&&rawDatum!=="—")?rawDatum:null;
-  m.typ=document.getElementById("e-typ").value;
-  m.oddeleni=document.getElementById("e-odd").value;
-  m.linka=document.getElementById("e-linka").value;
-  m.smena=document.getElementById("e-smena").value;
+  m.typ=(document.getElementById("e-typ")||{value:"Řádný člen"}).value;
+  m.oddeleni=(document.getElementById("e-oddeleni")||document.getElementById("e-odd")||{value:""}).value;
+  m.linka=(document.getElementById("e-linka")||{value:""}).value;
+  m.smena=(document.getElementById("e-smena")||{value:""}).value;
   m.linka_smena=m.linka+(m.smena?" / "+m.smena:"");
   m.vedouci=document.getElementById("e-vedouci")?document.getElementById("e-vedouci").value:"";
   m.skupina=document.getElementById("e-skupina")?document.getElementById("e-skupina").value:"";
@@ -3654,37 +3691,21 @@ function savePrisEdit(){
     showSuccess("Příspěvek uložen — "+MESICE_NAMES[mesic-1]+" "+rok+": "+castka+" Kč");
   }
 
-  // 1. Zkus PATCH - aktualizace existujiciho zaznamu
-  var patchUrl = SUPABASE_URL+"/rest/v1/prispevky?osobni_cislo=eq."+encodeURIComponent(prisEditOsnum)+"&rok=eq."+rok+"&mesic=eq."+mesic;
-  fetch(patchUrl, {
-    method:"PATCH",
+  // Pouzit upsert (POST s on_conflict) - spolehlivejsi nez PATCH+POST
+  fetch(SUPABASE_URL+"/rest/v1/prispevky?on_conflict=osobni_cislo,rok,mesic", {
+    method:"POST",
     headers:{
       "apikey":SUPABASE_KEY, "Authorization":"Bearer "+SUPABASE_KEY,
-      "Content-Type":"application/json", "Prefer":"return=minimal"
+      "Content-Type":"application/json",
+      "Prefer":"resolution=merge-duplicates,return=minimal"
     },
-    body:JSON.stringify({castka:castka})
+    body:JSON.stringify({osobni_cislo:prisEditOsnum, rok:rok, mesic:mesic, castka:castka})
   }).then(function(r){
-    if(r.status===204||r.status===200){
-      // PATCH uspesny
+    if(r.ok||r.status===201||r.status===204||r.status===200){
       onSuccess();
     } else {
-      // Zaznam neexistuje - zkus POST s on_conflict pro upsert
-      fetch(SUPABASE_URL+"/rest/v1/prispevky?on_conflict=osobni_cislo,rok,mesic", {
-        method:"POST",
-        headers:{
-          "apikey":SUPABASE_KEY, "Authorization":"Bearer "+SUPABASE_KEY,
-          "Content-Type":"application/json",
-          "Prefer":"resolution=merge-duplicates,return=minimal"
-        },
-        body:JSON.stringify({osobni_cislo:prisEditOsnum, rok:rok, mesic:mesic, castka:castka})
-      }).then(function(r2){
-        if(r2.ok||r2.status===201||r2.status===204){
-          onSuccess();
-        } else {
-          r2.text().then(function(t){ console.error("POST error:",t); });
-          showError("Chyba při ukládání příspěvku.");
-        }
-      });
+      r.text().then(function(t){ console.error("savePrisEdit error:",t); });
+      showError("Chyba při ukládání příspěvku.");
     }
   }).catch(function(e){
     console.error("savePrisEdit error:", e);
@@ -3894,6 +3915,26 @@ window.addEventListener("load", function(){
   }
 });
 
+
+// ── ODPOČET ODHLÁŠENÍ ──
+// PRAVIDLO: Badge "Nový" svítí 90 dní od data přihlášení (datum_od).
+// Po uplynutí 90 dní se badge automaticky přepne podle typu člena:
+//   - typ=ofiko  → badge "Ofiko" (zelená)
+//   - typ=tajny  → badge "Tajný" (šedá)
+// Implementovat v renderBadge(clen): if((dnes - clen.datum_od) > 90) return clen.typ else return 'novy'
+(function(){
+  var SECS = 15*60;
+  var left = SECS;
+  var el = document.getElementById('logout-timer');
+  if(!el) return;
+  function fmt(s){var m=Math.floor(s/60);var ss=s%60;return m+':'+(ss<10?'0':'')+ss;}
+  function tick(){if(el)el.textContent=fmt(left);if(left>0){left--;setTimeout(tick,1000);}}
+  function reset(){left=SECS;}
+  document.addEventListener('mousemove',reset);
+  document.addEventListener('keydown',reset);
+  document.addEventListener('click',reset);
+  tick();
+})();
 </script>
 
 <!-- DATEPICKER MODAL -->
