@@ -58,14 +58,16 @@
 body{
   font-family:'Urbanist',system-ui,sans-serif;
   background:var(--bg);color:var(--text);min-height:100vh;
-  padding-left:max(16px,env(safe-area-inset-left,0px));
-  padding-right:max(16px,env(safe-area-inset-right,0px));
-  padding-block:20px;
+  margin:0;padding:0;overflow-x:hidden;
 }
 .app{
   display:flex;border-radius:12px;overflow:hidden;
   box-shadow:0 4px 32px rgba(0,0,0,.12);border:1px solid var(--border);
   min-height:580px;max-width:1100px;margin:0 auto;
+}
+/* APP SCREEN - main flex layout */
+#app-screen{
+  display:flex;min-height:100vh;
 }
 /* SIDEBAR */
 .sidebar{width:200px;background:#1a2332;flex-shrink:0;display:flex;flex-direction:column;}
@@ -92,6 +94,12 @@ body{
 .breadcrumb{color:var(--text2);font-size:12px;}
 .breadcrumb strong{color:var(--text);}
 .topbar-right{margin-left:auto;display:flex;gap:6px;align-items:center;}
+.pg-title{font-size:15px;font-weight:700;color:var(--text);}
+.pg-sub{font-size:11px;color:var(--text2);}
+.dark-toggle{padding:5px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--panel2);color:var(--text2);font-family:inherit;transition:all .12s;}
+.dark-toggle:hover{background:var(--border);color:var(--text);}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);padding:5px 10px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-ghost:hover{background:var(--panel2);}
 .btn{padding:5px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
 .btn-blue{background:var(--blue);color:#fff;}
 .btn-blue:hover{background:var(--blue2);}
@@ -307,7 +315,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .date-input-wrap input{cursor:pointer;}
 
 /* VIEW TOGGLE */
-.vt{display:flex;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;}
+.vt{display:flex;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;margin-left:auto;}
 .vt-b{width:30px;height:26px;border:none;background:transparent;border-radius:6px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;color:var(--text2);transition:.15s;font-size:14px;}
 .vt-b.on{background:#087cf4;color:#fff;}
@@ -1733,7 +1741,7 @@ function doLogin(){
       if(result.ok){
         errEl.style.display="none";
         document.getElementById("login-screen").style.display="none";
-        document.getElementById("app-screen").style.display="block";
+        document.getElementById("app-screen").style.display="flex";
         var av=(result.user.username[0]||"A").toUpperCase();
         document.getElementById("user-av").textContent=av;
         document.getElementById("user-name").textContent=result.user.username;
@@ -1759,7 +1767,7 @@ function doLogin(){
   if(u==="admin" && p==="odbory2024"){
     errEl.style.display="none";
     document.getElementById("login-screen").style.display="none";
-    document.getElementById("app-screen").style.display="block";
+    document.getElementById("app-screen").style.display="flex";
     document.getElementById("user-av").textContent="A";
     document.getElementById("user-name").textContent="admin";
     updateViewToggle();
@@ -4070,7 +4078,7 @@ window.addEventListener("load", function(){
       if(avEl) avEl.textContent = sess.av || "U";
       if(nameEl) nameEl.textContent = sess.username || "";
       if(loginEl) loginEl.style.display = "none";
-      if(appEl) appEl.style.display = "block";
+      if(appEl) appEl.style.display = "flex";
       // Inicializuj aplikaci
       initDarkMode();
       loadMembers();
