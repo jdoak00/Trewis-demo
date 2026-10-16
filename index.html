@@ -63,19 +63,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;z-index:100;}
 .sb-logo{padding:16px;border-bottom:1px solid rgba(255,255,255,.08);text-align:center;}
 .sb-logo img{height:70px;object-fit:contain;}
-.sb-nav{padding:12px 8px;flex:1;}
-.nav-btn{display:flex;align-items:center;gap:0;padding:10px 12px;border-radius:8px;cursor:pointer;
-  color:var(--sidebar-text);font-size:15px;font-weight:500;border:none;background:none;width:100%;text-align:left;
-  font-family:var(--font);margin-bottom:2px;transition:all .15s;}
-.nav-btn:hover{background:rgba(255,255,255,.07);color:#fff;}
-.nav-btn.active{background:var(--sidebar-active);color:#fff;font-weight:700;}
-.nav-btn .nav-icon{display:inline-flex;width:28px;justify-content:center;flex-shrink:0;font-size:16px;}
-.nav-btn .nav-label{margin-left:10px;}
-
-.nav-btn.active{background:var(--blue-light);color:var(--blue);font-weight:700;}
-.sb-foot{padding:10px 8px;border-top:1px solid rgba(255,255,255,.08);}
-.user-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.07);
-  border-radius:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,.1);}
+.sb-nav{padding:8px 0;flex:1;}
+/* nav-btn → přepsáno v DESIGN UPDATE níže */
+.sb-foot{padding:10px 8px;border-top:1px solid rgba(255,255,255,.06);}
+.user-row{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.06);}
 .av{width:34px;height:34px;border-radius:50%;background:#0d1826;border:1px solid rgba(255,255,255,.12);
   display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#00eddf;flex-shrink:0;line-height:1;}
 .u-name{font-size:15px;font-weight:700;color:#fff;}
@@ -309,12 +300,14 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
 .dp-dname{text-align:center;font-size:11px;font-weight:700;color:var(--text2);padding:4px 0;}
 
 /* ── DESIGN UPDATE ── */
+/* Filters */
 .filters{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;margin-bottom:10px;display:flex;flex-direction:column;gap:7px;}
 .filters-row{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
 .fselect,.fsearch{padding:5px 8px;border:1px solid var(--border);border-radius:5px;background:var(--panel2);color:var(--text);font-size:12px;font-family:inherit;min-width:0;height:30px;box-sizing:border-box;}
 .fselect{max-width:160px;}
 .fsearch{max-width:100%;}
-.btn-sm{padding:0 10px!important;font-size:12px!important;height:30px;box-sizing:border-box;line-height:1;}
+.btn-sm{padding:0 10px!important;font-size:12px!important;height:30px!important;box-sizing:border-box;line-height:1;}
+/* Stats row */
 .stats-row{display:flex;gap:0;margin-bottom:12px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--panel);width:100%;}
 .stat-card{flex:1;padding:10px 16px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;gap:4px;}
 .stat-card:last-child{border-right:none;}
@@ -322,10 +315,51 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
 .stat-num-row{display:flex;align-items:baseline;gap:8px;}
 .stat-val2{font-size:22px;font-weight:800;color:var(--text);line-height:1;}
 .stat-delta2{font-size:11px;font-weight:600;white-space:nowrap;}
-.delta-up2{color:#16a34a;}
+.delta-up2{color:#059b47;}
 .delta-dn2{color:var(--red);}
 /* Sidebar avatar timer */
 #logout-timer{font-size:10px;font-weight:800;color:#00eddf;}
+/* Sidebar nav */
+.nav-btn{display:flex!important;align-items:center!important;gap:8px!important;padding:8px 12px!important;
+  font-size:13px!important;font-weight:500!important;color:#8a97aa!important;cursor:pointer;
+  transition:all .12s;border-right:3px solid transparent!important;
+  border-top:none!important;border-bottom:none!important;border-left:none!important;
+  background:none!important;width:100%!important;text-align:left!important;
+  font-family:var(--font)!important;margin-bottom:1px!important;border-radius:0!important;}
+.nav-btn:hover{color:#c8d0de!important;background:rgba(255,255,255,.05)!important;}
+.nav-btn.active{color:#fff!important;background:rgba(8,124,244,.13)!important;
+  border-right:3px solid #087cf4!important;font-weight:700!important;}
+.nav-btn .nav-icon{width:20px;text-align:center;flex-shrink:0;font-size:14px;}
+.nav-btn .nav-label{margin-left:2px;}
+/* Sidebar user - styl v originál CSS */
+/* Card lehčí */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r)!important;overflow:hidden;box-shadow:none!important;}
+/* Toolbar menší */
+.toolbar{padding:10px 12px!important;display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid var(--border);background:var(--panel2);flex-wrap:wrap;}
+/* Table kompaktnější */
+table th{padding:7px 10px!important;font-size:10px!important;font-weight:800!important;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--text2)!important;
+  background:var(--panel2);border-bottom:1px solid var(--border);}
+table td{padding:8px 10px!important;font-size:13px!important;border-bottom:1px solid var(--border);}
+/* Badge */
+.bdg{display:inline-block;padding:2px 7px;border-radius:3px!important;font-size:10px!important;
+  font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+.bdg-blue{background:rgba(8,124,244,.12)!important;color:#087cf4!important;}
+/* Detail panel příspěvky */
+.detail-layout{display:grid;grid-template-columns:1fr 1.5fr;gap:12px;align-items:start;}
+.detail-list{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.detail-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;
+  border-right:3px solid transparent;}
+.detail-row:last-child{border-bottom:none;}
+.detail-row:hover{background:var(--blue-light);}
+.detail-row.sel{background:var(--blue-light);border-right-color:var(--blue);}
+.detail-payments{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.dp-header{padding:10px 12px;background:var(--panel2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;}
+.dp-title{font-size:13px;font-weight:700;}
+.dp-sub{font-size:11px;color:var(--text2);}
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
