@@ -307,6 +307,491 @@ button, .btn, .nav-btn, .a-btn, .pg-b, .btn-login, .dp-day{
   transition:transform 0.12s,opacity 0.12s,background 0.15s;
 }
 .dp-dname{text-align:center;font-size:11px;font-weight:700;color:var(--text2);padding:4px 0;}
+
+/* ===== PREVIEW DESIGN OVERRIDE ===== */
+
+/* CSS proměnné — sjednocení s návrhem */
+:root {
+  --blue-bg: #e8f2fe;
+  --green-bg: rgba(7,250,112,.13);
+  --green-dk: #059b47;
+  --red-bg: rgba(224,49,49,.1);
+  --orange: #c86000;
+  --orange-bg: rgba(200,96,0,.1);
+  --text2: #6b7a8d;
+  --text3: #9aa5b4;
+}
+
+/* Dark mode — sjednocení s návrhem (app používá body.dark-mode) */
+body.dark-mode {
+  --bg: #111318;
+  --panel: #1a1d27;
+  --panel2: #22263a;
+  --border: #2d3148;
+  --text: #e8eaf0;
+  --text2: #8a97aa;
+  --text3: #4a5568;
+  --blue-bg: rgba(8,124,244,.15);
+  --green-bg: rgba(7,250,112,.1);
+  --green-dk: #07fa70;
+  --red-bg: rgba(224,49,49,.12);
+  --orange-bg: rgba(200,96,0,.12);
+  --orange: #e07c00;
+}
+
+/* LAYOUT — app-screen jako flex kontejner (sidebar + main vedle sebe) */
+#app-screen {
+  display: none; /* JS nastaví na flex po přihlášení */
+  flex-direction: row;
+  min-height: 100vh;
+}
+body {
+  padding: 0 !important; /* žádný body padding jako v preview */
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 200px;
+  min-width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+}
+.sb-logo {
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  display: flex;
+  justify-content: center;
+}
+.sb-logo img {
+  width: 80%;
+  max-width: 160px;
+  height: auto;
+}
+.sb-nav {
+  padding: 8px 0;
+  flex: 1;
+  overflow-y: auto;
+}
+/* Skupiny v sidebaru */
+.sb-group {
+  padding: 10px 12px 4px;
+  color: #00eddf;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  opacity: .7;
+}
+/* Nav položky — app má třídy nav-btn sb-item */
+.nav-btn.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #8a97aa;
+  cursor: pointer;
+  transition: all .12s;
+  border-radius: 0;
+  border-right: 3px solid transparent;
+  border-left: none;
+  border-top: none;
+  border-bottom: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 0;
+}
+.nav-btn.sb-item:hover {
+  color: #c8d0de;
+  background: rgba(255,255,255,.05);
+}
+.nav-btn.sb-item.active {
+  color: #fff;
+  background: rgba(8,124,244,.13);
+  border-right-color: #087cf4;
+  font-weight: 700;
+}
+/* Ikona v nav položce */
+.nav-btn.sb-item .nav-icon.ico::before {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.nav-btn.sb-item .nav-icon {
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Patička sidebaru */
+.sb-foot {
+  padding: 10px 12px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  margin-bottom: 6px;
+}
+.av {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #0d1826;
+  border: 1px solid rgba(255,255,255,.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  color: #00eddf;
+  flex-shrink: 0;
+}
+.u-name {
+  color: #c8d0de;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* MAIN oblast */
+.main {
+  margin-left: 200px;
+  flex: 1;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* TOPBAR */
+.topbar {
+  padding: 10px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.pg-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+}
+.pg-sub {
+  font-size: 12px;
+  color: var(--text2);
+}
+/* Dark toggle jako out button */
+.dark-toggle {
+  padding: 5px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--font);
+  transition: all .12s;
+}
+.dark-toggle:hover {
+  background: var(--panel2);
+  color: var(--text);
+}
+
+/* CONTENT */
+.content {
+  padding: 14px 16px;
+  flex: 1;
+  overflow: auto;
+}
+
+/* STATS — app generuje .stat .stat-n .stat-l .stat-bar (stejné jako preview) */
+.stats {
+  display: flex;
+  gap: 0;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  background: var(--panel);
+  width: 100%;
+  grid-template-columns: none;
+}
+.stat {
+  flex: 1;
+  padding: 10px 16px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: none;
+  position: static;
+  border-radius: 0;
+  background: var(--panel);
+  border-bottom: none;
+  border-top: none;
+  border-left: none;
+}
+.stat:last-child {
+  border-right: none;
+}
+.stat-bar {
+  display: none; /* nahrazeno border-left barvou v novém designu */
+}
+.stat-n {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+.stat-l {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-top: 0;
+}
+
+/* TABLE CARD */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  box-shadow: none;
+}
+.toolbar {
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel2);
+  flex-wrap: wrap;
+}
+/* Vyhledávací pole */
+.srch input {
+  padding: 5px 8px 5px 28px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--panel2);
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--font);
+  height: 30px;
+}
+select.flt {
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--panel2);
+  color: var(--text);
+  font-size: 12px;
+  height: 30px;
+}
+/* TABULKA — app má plain table, preview má .tbl */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+thead th {
+  padding: 7px 10px;
+  background: var(--panel2);
+  color: var(--text2);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background .1s;
+}
+tbody tr:hover td {
+  background: var(--blue-bg);
+}
+tbody td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12.5px;
+}
+tbody tr:last-child td {
+  border-bottom: none;
+}
+tbody tr:nth-child(even) {
+  background: rgba(0,0,0,.015);
+}
+
+/* BADGES — app má .bdg .bdg-green atd., přidám aliasy z preview */
+.bdg {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.bdg-blue, .badge-blue {
+  background: var(--blue-bg);
+  color: var(--blue);
+}
+.bdg-green, .badge-green {
+  background: var(--green-bg);
+  color: var(--green-dk);
+}
+.bdg-red, .badge-red {
+  background: var(--red-bg);
+  color: var(--red);
+}
+.bdg-gray {
+  background: rgba(107,114,128,.1);
+  color: #6b7280;
+}
+.bdg-orange, .badge-orange {
+  background: var(--orange-bg);
+  color: var(--orange);
+}
+
+/* BUTTONS */
+.btn {
+  padding: 5px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font);
+  transition: all .12s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  box-sizing: border-box;
+}
+.btn-out {
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border);
+  height: 30px;
+}
+.btn-out:hover {
+  background: var(--panel2);
+  color: var(--text);
+}
+.btn-blue {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+}
+.btn-blue:hover {
+  background: var(--blue2);
+}
+.btn-sm {
+  padding: 0 10px;
+  font-size: 12px;
+  height: 26px;
+}
+.btn-ghost {
+  background: transparent;
+  border: none;
+  color: var(--text2);
+}
+
+/* PAGINACE */
+.pag {
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+  background: var(--panel2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.pg-b {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--panel);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  font-family: var(--font);
+}
+.pg-b.on {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.pg-info {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text2);
+}
+
+/* SEKCE NADPIS */
+.section-hd {
+  padding: 9px 12px;
+  background: var(--panel2);
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* MOBILE — sidebar pod 768px */
+@media(max-width:768px) {
+  .main { margin-left: 0 !important; }
+  .sidebar { transform: translateX(-100%); transition: transform .25s; }
+  .sidebar.open { transform: translateX(0); }
+  .stats { flex-wrap: wrap; }
+  .stat { min-width: calc(50% - 1px); }
+}
+@media(min-width:769px) {
+  .sidebar { transform: translateX(0) !important; }
+}
+
+/* ===== END OVERRIDE ===== */
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -1542,7 +2027,7 @@ function doLogin(){
       if(result.ok){
         errEl.style.display="none";
         document.getElementById("login-screen").style.display="none";
-        document.getElementById("app-screen").style.display="block";
+        document.getElementById("app-screen").style.display="flex";
         var av=(result.user.username[0]||"A").toUpperCase();
         document.getElementById("user-av").textContent=av;
         document.getElementById("user-name").textContent=result.user.username;
@@ -1568,7 +2053,7 @@ function doLogin(){
   if(u==="admin" && p==="odbory2024"){
     errEl.style.display="none";
     document.getElementById("login-screen").style.display="none";
-    document.getElementById("app-screen").style.display="block";
+    document.getElementById("app-screen").style.display="flex";
     document.getElementById("user-av").textContent="A";
     document.getElementById("user-name").textContent="admin";
     updateViewToggle();
