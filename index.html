@@ -410,7 +410,7 @@ tbody td { padding: 7px 10px; border-bottom: 1px solid var(--border); color: var
 tbody tr:hover td { background: var(--blue-bg) !important; }
 tbody tr:nth-child(even) { background: rgba(0,0,0,.015); }
 .mc { display: flex; align-items: center; gap: 8px; }
-.mav { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg,#087cf4,#00eddf); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff; flex-shrink: 0; }
+.mav { display: none; }
 .mn { font-weight: 700; color: var(--text); font-size: 13px; }
 .me { font-size: 11px; color: var(--text2); }
 
@@ -571,6 +571,16 @@ tbody tr:nth-child(even) { background: rgba(0,0,0,.015); }
 .dp-title { font-size: 13px; font-weight: 700; }
 .dp-sub { font-size: 11px; color: var(--text2); }
 
+/* ===== FILTERS — dvouřádkový filtr ===== */
+.filters { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 9px 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 7px; }
+.filters-row { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+.fselect { padding: 5px 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--panel2); color: var(--text); font-size: 12px; font-family: inherit; min-width: 0; height: 30px; box-sizing: border-box; cursor: pointer; outline: none; }
+.fsearch { padding: 5px 8px 5px 28px; border: 1px solid var(--border); border-radius: 5px; background: var(--panel); color: var(--text); font-size: 12px; font-family: inherit; height: 30px; box-sizing: border-box; outline: none; width: 200px; max-width: 100%; }
+.fsearch:focus { border-color: var(--blue); }
+.fsearch-wrap { position: relative; }
+.fsearch-wrap .srch-ic { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 13px; pointer-events: none; }
+.filters-right { margin-left: auto; display: flex; gap: 5px; }
+
 /* ===== STATISTIKY — DASHBOARD ===== */
 .stats-row { display: flex; gap: 0; margin-bottom: 12px; border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; background: var(--panel); }
 .stat-ico { font-size: 16px; margin-bottom: 4px; }
@@ -615,6 +625,7 @@ tbody tr:nth-child(even) { background: rgba(0,0,0,.015); }
 .filters { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 9px 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 7px; }
 .filters-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .flabel { font-size: 10px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+.form-lbl { font-size: 11px; font-weight: 700; color: var(--text2); margin-bottom: 4px; display: block; }
 .fselect, .fsearch { padding: 5px 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--panel2); color: var(--text); font-size: 12px; font-family: var(--font); min-width: 0; height: 30px; box-sizing: border-box; outline: none; }
 .fsearch { width: 160px; }
 .filters-right { margin-left: auto; display: flex; gap: 5px; }
@@ -768,6 +779,7 @@ body.dark-mode .dp-box { background: var(--panel); }
       <div class="sb-group">Přehledy</div>
       <button class="nav-btn" data-page="statistiky"><span class="nav-icon ico"></span><span class="nav-label">Statistiky</span></button>
       <div class="sb-group">Systém</div>
+      <button class="nav-btn" data-page="auditlog"><span class="nav-icon ico"></span><span class="nav-label">Úpravy</span></button>
       <button class="nav-btn" data-page="uzivatele"><span class="nav-icon ico"></span><span class="nav-label">Uživatelé</span></button>
       <button class="nav-btn" data-page="nastaveni"><span class="nav-icon ico"></span><span class="nav-label">Nastavení</span></button>
     </div>
@@ -792,41 +804,48 @@ body.dark-mode .dp-box { background: var(--panel); }
     <div class="content">
       <!-- MEMBERS PAGE -->
       <div id="page-members">
-        <div class="stats" id="stats-row"></div>
+        <div class="stats-row" id="stats-row"></div>
         <div class="card">
-          <div class="toolbar">
-            <div class="srch">
-              <span class="srch-ic">&#128269;</span>
-              <input id="srch-inp" placeholder="Hledat jméno, OS číslo, e-mail..." oninput="filterMembers()"/>
+          <div class="filters">
+            <div class="filters-row">
+              <select class="fselect" id="typ-flt" onchange="filterMembers()">
+                <option value="">Všechny typy</option>
+                <option>Řádný člen</option>
+                <option>Tajný člen</option>
+              </select>
+              <select class="fselect" id="odd-flt" onchange="filterMembers()">
+                <option value="">Všechna oddělení</option>
+                <option>Stamping</option><option>Welding</option><option>Paint</option>
+                <option>Assembly</option><option>Quality Control</option>
+                <option>Quality Assurance</option><option>Maintenance</option>
+                <option>Production Control</option><option>Admin</option>
+                <option>není zaměstnanec HMMC</option>
+              </select>
+              <select class="fselect" id="smena-flt" onchange="filterMembers()">
+                <option value="">Všechny směny</option>
+                <option>A</option><option>B</option><option>C</option>
+                <option>Ranní</option><option>12A</option><option>12B</option>
+                <option>12C</option><option>12D</option>
+              </select>
+              <select class="fselect" id="odbor-flt" onchange="filterMembers()">
+                <option value="">Všechny odbory</option>
+                <option>HMMC</option><option>Mobis</option><option>Hyundai Steel</option>
+              </select>
             </div>
-            <select class="flt" id="typ-flt" onchange="filterMembers()">
-              <option value="">Všechny typy</option>
-              <option>Řádný člen</option>
-              <option>Tajný člen</option>
-            </select>
-            <select class="flt" id="odd-flt" onchange="filterMembers()">
-              <option value="">Všechna oddělení</option>
-              <option>Stamping</option><option>Welding</option><option>Paint</option>
-              <option>Assembly</option><option>Quality Control</option>
-              <option>Quality Assurance</option><option>Maintenance</option>
-              <option>Production Control</option><option>Admin</option>
-              <option>není zaměstnanec HMMC</option>
-            </select>
-            <select class="flt" id="smena-flt" onchange="filterMembers()">
-              <option value="">Všechny směny</option>
-              <option>A</option><option>B</option><option>C</option>
-              <option>Ranní</option><option>12A</option><option>12B</option>
-              <option>12C</option><option>12D</option>
-            </select>
-            <select class="flt" id="odbor-flt" onchange="filterMembers()">
-              <option value="">Všechny odbory</option>
-              <option>HMMC</option><option>Mobis</option><option>Hyundai Steel</option>
-            </select>
-            <button class="btn btn-out" onclick="csvExport()">&#8595; Export CSV</button>
-            <button class="btn btn-out" onclick="exportMembersPDF()">&#128424; PDF seznam</button>
-            <button class="btn btn-out" onclick="document.getElementById('csv-import-inp').click()">&#8593; Import CSV/XLSX</button>
-            <input type="file" id="csv-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importCSV(event)"/>
-            <button class="btn btn-blue" onclick="openAddModal()">+ Přidat</button>
+            <div class="filters-row">
+              <div class="fsearch-wrap">
+                <span class="srch-ic">&#128269;</span>
+                <input class="fsearch" style="width:200px;max-width:100%;" id="srch-inp" placeholder="🔍 Hledat jméno / OS číslo..." oninput="filterMembers()"/>
+              </div>
+              <div class="filters-right">
+                <button class="btn btn-out btn-sm" onclick="csvExport()">Export</button>
+                <button class="btn btn-out btn-sm" onclick="document.getElementById('csv-import-inp').click()">Import</button>
+                <input type="file" id="csv-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importCSV(event)"/>
+                <button class="btn btn-out btn-sm" onclick="exportMembersPDF()">Seznam</button>
+                <button class="btn btn-out btn-sm" onclick="csvExport()">XLS</button>
+                <button class="btn btn-blue btn-sm" onclick="openAddModal()">+ Přidat</button>
+              </div>
+            </div>
           </div>
           <div class="alpha-bar" id="alpha-bar"></div>
           <div id="tbl-loading" style="display:none;padding:20px;text-align:center;color:var(--text2)">Načítám data z databáze...</div><div style="overflow-x:auto">
@@ -848,7 +867,7 @@ body.dark-mode .dp-box { background: var(--panel); }
           <div style="padding:14px 16px;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
               <div>
-                <label class="lbl" style="margin-bottom:4px">Příjemci</label>
+                <label class="form-lbl">Příjemci</label>
                 <select class="form-sel" id="email-typ" onchange="updateEmailRcpt()" style="width:100%">
                   <option value="">Všichni členové s e-mailem</option>
                   <option value="typ:Řádný člen">Řádní členové</option>
@@ -860,12 +879,12 @@ body.dark-mode .dp-box { background: var(--panel); }
                 <div style="font-size:11px;color:var(--text2);margin-top:4px">Příjemci: <span id="email-rcpt-n" style="font-weight:700;color:var(--blue)">0</span> adres</div>
               </div>
               <div>
-                <label class="lbl" style="margin-bottom:4px">Předmět</label>
+                <label class="form-lbl">Předmět</label>
                 <input class="form-inp" id="email-sub" placeholder="Předmět zprávy..."/>
               </div>
             </div>
             <div style="margin-bottom:12px;">
-              <label class="lbl" style="margin-bottom:4px">Text zprávy</label>
+              <label class="form-lbl">Text zprávy</label>
               <div id="email-editor" contenteditable="true" style="min-height:130px;padding:10px 12px;background:var(--panel2);border:1px solid var(--border);border-radius:5px;font-family:var(--font);font-size:14px;outline:none;color:var(--text);line-height:1.6;" placeholder="Text e-mailu..."></div>
             </div>
             <!-- Hidden inputs needed by existing JS -->
@@ -878,7 +897,7 @@ body.dark-mode .dp-box { background: var(--panel); }
             <div class="ok-box" id="email-ok" style="display:none">Hotovo! E-mail odeslán.</div>
             <div style="display:flex;gap:8px;justify-content:flex-end;">
               <button class="btn btn-out" onclick="">Uložit návrh</button>
-              <button class="btn btn-blue" id="btn-send-email" onclick="sendEmail()">🚀 Odeslat</button>
+              <button class="btn btn-blue" id="btn-send-email" onclick="sendEmail()">📤 Odeslat</button>
             </div>
           </div>
         </div>
@@ -904,7 +923,7 @@ body.dark-mode .dp-box { background: var(--panel); }
           </div>
           <div style="padding:14px 16px;">
             <div style="margin-bottom:12px;">
-              <label class="lbl" style="margin-bottom:4px">Příjemci</label>
+              <label class="form-lbl">Příjemci</label>
               <select class="form-sel" id="sms-typ" onchange="updateSmsRcpt()" style="width:100%;max-width:320px">
                 <option value="">Všichni členové s telefonem</option>
                 <option value="typ:Řádný člen">Řádní členové</option>
@@ -916,7 +935,7 @@ body.dark-mode .dp-box { background: var(--panel); }
               <div style="font-size:11px;color:var(--text2);margin-top:4px">Příjemci: <span id="sms-rcpt-n" style="font-weight:700;color:var(--blue)">0</span> čísel</div>
             </div>
             <div style="margin-bottom:6px;">
-              <label class="lbl" style="margin-bottom:4px">Text SMS</label>
+              <label class="form-lbl">Text SMS</label>
               <textarea class="form-area" id="sms-msg" rows="4" placeholder="Vážený člene, zveme Vás na schůzi..." oninput="updateSmsChar()"></textarea>
             </div>
             <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="sms-char">0/160 znaků</div>
@@ -926,7 +945,7 @@ body.dark-mode .dp-box { background: var(--panel); }
             </div>
             <div class="ok-box" id="sms-ok" style="display:none">Hotovo! SMS odesláno.</div>
             <div style="display:flex;justify-content:flex-end;">
-              <button class="btn btn-blue" id="btn-send-sms" onclick="sendSms()">🚀 Odeslat SMS</button>
+              <button class="btn btn-blue" id="btn-send-sms" onclick="sendSms()">📱 Odeslat SMS</button>
             </div>
           </div>
         </div>
@@ -943,6 +962,20 @@ body.dark-mode .dp-box { background: var(--panel); }
           </div>
         </div>
       </div>
+      <!-- AUDITLOG PAGE -->
+      <div id="page-auditlog" style="display:none;">
+        <div class="card">
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Čas</th><th>Uživatel</th><th>Akce</th><th>Záznam</th><th>Detail</th></tr></thead>
+              <tbody id="audit-log-list">
+                <tr><td colspan="5" style="text-align:center;padding:28px;color:var(--text2)">Načítám...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- UZIVATELE PAGE -->
       <div id="page-uzivatele" style="display:none;">
         <div class="compose" style="max-width:680px;margin-left:0;">
@@ -1017,23 +1050,23 @@ body.dark-mode .dp-box { background: var(--panel); }
             </div>
             <div style="padding:16px;">
               <div style="margin-bottom:12px;">
-                <label class="lbl" style="margin-bottom:4px">Název organizace</label>
+                <label class="form-lbl">Název organizace</label>
                 <input class="form-inp" id="set-org-name" placeholder="Odborová organizace Hyundai HMMC"/>
               </div>
               <div style="margin-bottom:12px;">
-                <label class="lbl" style="margin-bottom:4px">IČ</label>
+                <label class="form-lbl">IČ</label>
                 <input class="form-inp" id="set-org-ic" placeholder="751 44 816"/>
               </div>
               <div style="margin-bottom:12px;">
-                <label class="lbl" style="margin-bottom:4px">Kontaktní e-mail</label>
+                <label class="form-lbl">Kontaktní e-mail</label>
                 <input class="form-inp" id="set-email" placeholder="odboryhmmc@email.cz"/>
               </div>
               <div style="margin-bottom:16px;">
-                <label class="lbl" style="margin-bottom:4px">Výše příspěvku / měsíc</label>
+                <label class="form-lbl">Výše příspěvku / měsíc</label>
                 <input class="form-inp" id="set-prispevek" placeholder="500 Kč"/>
               </div>
               <div id="set-status" style="display:none;margin-bottom:10px;padding:8px 12px;border-radius:6px;font-size:12px;"></div>
-              <button class="btn btn-blue" onclick="saveSettings()">👤 Uložit</button>
+              <button class="btn btn-blue btn-sm" onclick="saveSettings()">💾 Uložit</button>
             </div>
           </div>
           <!-- API & INTEGRACE -->
@@ -1043,26 +1076,26 @@ body.dark-mode .dp-box { background: var(--panel); }
             </div>
             <div style="padding:16px;">
               <div style="margin-bottom:12px;">
-                <label class="lbl" style="margin-bottom:4px">Brevo (e-mail API)</label>
+                <label class="form-lbl">Brevo (e-mail API)</label>
                 <div style="position:relative;">
                   <input class="form-inp" id="set-apikey" type="password" placeholder="xkeysib-..." style="padding-right:70px"/>
                   <button onclick="toggleApiKey()" id="btn-eye" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--panel2);border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--text2);font-size:11px;font-weight:700;padding:3px 8px;font-family:var(--font)">Zobrazit</button>
                 </div>
               </div>
               <div style="margin-bottom:12px;">
-                <label class="lbl" style="margin-bottom:4px">SmsManager.cz</label>
+                <label class="form-lbl">SmsManager.cz</label>
                 <div style="position:relative;">
                   <input class="form-inp" id="set-sms-apikey" type="password" placeholder="API klíč SmsManager..." style="padding-right:70px"/>
                   <button onclick="toggleSmsApiKey()" id="btn-sms-eye" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--panel2);border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--text2);font-size:11px;font-weight:700;padding:3px 8px;font-family:var(--font)">Zobrazit</button>
                 </div>
               </div>
               <div style="margin-bottom:16px;">
-                <label class="lbl" style="margin-bottom:4px">Supabase URL</label>
+                <label class="form-lbl">Supabase URL</label>
                 <input class="form-inp" id="set-sb-url" placeholder="https://....supabase.co" readonly style="color:var(--text2)"/>
               </div>
               <div id="set-sms-status" style="display:none;margin-bottom:10px;padding:8px 12px;border-radius:6px;font-size:12px;"></div>
               <div style="display:flex;justify-content:flex-end;">
-                <button class="btn btn-out" onclick="saveSettings()">🔑 Změnit klíče</button>
+                <button class="btn btn-out btn-sm" onclick="saveSettings()">🔒 Změnit klíče</button>
               </div>
             </div>
           </div>
@@ -1075,25 +1108,11 @@ body.dark-mode .dp-box { background: var(--panel); }
       <!-- STATISTIKY PAGE -->
       <div id="page-statistiky" style="display:none;">
         <!-- TOP STAT CARDS ROW -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;" id="stats-top-row">
-          <div class="card" style="padding:16px 20px;">
-            <div style="font-size:11px;color:var(--text2);margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em;">📈 Nových za rok</div>
-            <div style="font-size:32px;font-weight:800;color:var(--text);line-height:1.1;" id="stat-novinky">—</div>
-            <div style="font-size:11px;color:#00eddf;margin-top:2px;" id="stat-novinky-sub">nejlepší rok</div>
-          </div>
-          <div class="card" style="padding:16px 20px;">
-            <div style="font-size:11px;color:var(--text2);margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em;">💰 Příspěvky 2026</div>
-            <div style="font-size:32px;font-weight:800;color:var(--text);line-height:1.1;" id="stat-prispevky-sum">—</div>
-            <div style="font-size:11px;color:#00eddf;margin-top:2px;" id="stat-prispevky-sub">↑ 12 %</div>
-          </div>
-          <div class="card" style="padding:16px 20px;">
-            <div style="font-size:11px;color:var(--text2);margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em;">📨 Zpráv odesláno</div>
-            <div style="font-size:32px;font-weight:800;color:var(--text);line-height:1.1;" id="stat-zprav">—</div>
-          </div>
-          <div class="card" style="padding:16px 20px;">
-            <div style="font-size:11px;color:var(--text2);margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em;">📧 Otevřenost e-mailů</div>
-            <div style="font-size:32px;font-weight:800;color:var(--text);line-height:1.1;" id="stat-otevreni">—</div>
-          </div>
+        <div class="stats-row" style="margin-bottom:12px;" id="stats-top-row">
+          <div class="stat"><div class="stat-ico">📈</div><div><div class="stat-val" id="stat-novinky">—</div><div class="stat-lbl">Nových za rok</div><div class="stat-delta delta-up" id="stat-novinky-sub">nejlepší rok</div></div></div>
+          <div class="stat"><div class="stat-ico">💰</div><div><div class="stat-val" id="stat-prispevky-sum">—</div><div class="stat-lbl">Příspěvky 2026</div><div class="stat-delta delta-up" id="stat-prispevky-sub">↑ 12 %</div></div></div>
+          <div class="stat"><div class="stat-ico">📧</div><div><div class="stat-val" id="stat-zprav">—</div><div class="stat-lbl">Zpráv odesláno</div></div></div>
+          <div class="stat"><div class="stat-ico">✉️</div><div><div class="stat-val" id="stat-otevreni">—</div><div class="stat-lbl">Otevřenost e-mailů</div></div></div>
         </div>
         <!-- MAIN 2-COL LAYOUT -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;">
@@ -1117,7 +1136,6 @@ body.dark-mode .dp-box { background: var(--panel); }
                     <option value="mesic">2026</option>
                     <option value="rok">2025</option>
                   </select>
-                  <button class="btn btn-blue btn-sm" onclick="openAddStatModal()" style="font-size:11px;padding:4px 10px;">+ Data</button>
                 </div>
               </div>
               <div style="padding:16px;">
@@ -1161,21 +1179,22 @@ body.dark-mode .dp-box { background: var(--panel); }
       <!-- VYRAZENI PAGE -->
       <div id="page-vyrazeni" style="display:none;">
         <!-- FILTER ROW -->
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
-          <select class="flt" id="vyr-rok-flt" onchange="filterVyrazeni()" style="font-size:13px;">
-            <option value="">Všechny roky</option>
-            <option value="2024">2024</option>
-            <option value="2025">2025</option>
-            <option value="2026">2026</option>
-          </select>
-          <div class="srch" style="flex:1;">
-            <span class="srch-ic">&#128269;</span>
-            <input id="vyr-srch" placeholder="Hledat..." oninput="filterVyrazeni()"/>
+        <div class="filters" style="margin-bottom:10px;">
+          <div class="filters-row">
+            <select class="fselect" id="vyr-rok-flt" onchange="filterVyrazeni()">
+              <option value="">Všechny roky</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+            </select>
+            <div class="fsearch-wrap">
+              <span class="srch-ic">&#128269;</span>
+              <input class="fsearch" style="width:200px;max-width:100%;" id="vyr-srch" placeholder="🔍 Hledat..." oninput="filterVyrazeni()"/>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:5px;">
+              <button class="btn btn-out btn-sm" onclick="csvExportVyrazeni()">Export</button>
+            </div>
           </div>
-          <button class="btn btn-out" onclick="csvExportVyrazeni()">Export</button>
-          <button class="btn btn-out" onclick="document.getElementById('vyr-import-inp').click()">Import</button>
-          <input type="file" id="vyr-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importVyrazeni(event)"/>
-          <button class="btn btn-blue" onclick="openAddVyrazeniModal()">+ Přidat</button>
         </div>
         <!-- TABLE -->
         <div class="card">
@@ -1202,38 +1221,40 @@ body.dark-mode .dp-box { background: var(--panel); }
       <!-- PRISPEVKY PAGE -->
       <div id="page-prispevky" style="display:none;">
         <!-- VYBRANÉ LETOS STAT -->
-        <div class="card" style="margin-bottom:12px;padding:14px 20px;">
-          <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--text2);margin-bottom:4px;">Vybrané letos</div>
-          <div style="display:flex;align-items:baseline;gap:12px;">
-            <div style="font-size:28px;font-weight:800;color:var(--text);" id="pris-letos-sum">—</div>
-            <div style="font-size:12px;color:#00eddf;" id="pris-letos-trend">↑ 12 % tento rok</div>
-          </div>
+        <div class="stats-row" style="margin-bottom:12px;">
+          <div class="stat"><div class="stat-lbl">Vybrané letos</div><div class="stat-num-row"><div class="stat-val" id="pris-letos-sum">—</div><div class="stat-delta delta-up" id="pris-letos-trend">↑ 12 % tento rok</div></div></div>
         </div>
         <!-- FILTER + SEARCH ROW -->
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
-          <select class="flt" id="pris-rok" onchange="loadPrispevky()" style="font-size:13px;">
-            <option value="">Všechny roky</option>
-            <option value="2024">2024</option>
-            <option value="2025">2025</option>
-            <option value="2026" selected>2026</option>
-            <option value="2027">2027</option>
-            <option value="2028">2028</option>
-          </select>
-          <select class="flt" id="pris-mesic-import" style="font-size:13px;">
-            <option value="">Všechny měsíce</option>
-            <option value="1">Leden</option><option value="2">Únor</option><option value="3">Březen</option>
-            <option value="4">Duben</option><option value="5">Květen</option><option value="6">Červen</option>
-            <option value="7">Červenec</option><option value="8">Srpen</option><option value="9">Září</option>
-            <option value="10">Říjen</option><option value="11">Listopad</option><option value="12">Prosinec</option>
-          </select>
-          <div class="srch" style="flex:1;min-width:180px;">
-            <span class="srch-ic">&#128269;</span>
-            <input id="pris-srch" placeholder="Hledat jméno / OS číslo..." oninput="renderPrispevky()"/>
+        <div class="filters" style="margin-bottom:10px;">
+          <div class="filters-row">
+            <select class="fselect" id="pris-rok" onchange="loadPrispevky()">
+              <option value="">Všechny roky</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026" selected>2026</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+            </select>
+            <select class="fselect" id="pris-mesic-import">
+              <option value="">Všechny měsíce</option>
+              <option value="1">Leden</option><option value="2">Únor</option><option value="3">Březen</option>
+              <option value="4">Duben</option><option value="5">Květen</option><option value="6">Červen</option>
+              <option value="7">Červenec</option><option value="8">Srpen</option><option value="9">Září</option>
+              <option value="10">Říjen</option><option value="11">Listopad</option><option value="12">Prosinec</option>
+            </select>
           </div>
-          <button class="btn btn-out" onclick="exportPrispevkyCSV()">Export</button>
-          <button class="btn btn-out" onclick="document.getElementById('pris-import-inp').click()">Import</button>
-          <input type="file" id="pris-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importPrispevky(event)"/>
-          <button class="btn btn-out" onclick="exportPrispevkyPDF()">PDF</button>
+          <div class="filters-row">
+            <div class="fsearch-wrap">
+              <span class="srch-ic">&#128269;</span>
+              <input class="fsearch" style="width:200px;max-width:100%;" id="pris-srch" placeholder="🔍 Hledat jméno / OS číslo..." oninput="renderPrispevky()"/>
+            </div>
+            <div class="filters-right">
+              <button class="btn btn-out btn-sm" onclick="exportPrispevkyCSV()">Export</button>
+              <button class="btn btn-out btn-sm" onclick="document.getElementById('pris-import-inp').click()">Import</button>
+              <input type="file" id="pris-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importPrispevky(event)"/>
+              <button class="btn btn-out btn-sm" onclick="exportPrispevkyPDF()">PDF</button>
+            </div>
+          </div>
         </div>
         <!-- 2-COLUMN SPLIT: list left, detail right -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;">
@@ -1956,6 +1977,7 @@ function loadMembersPage(offset){
       console.error("loadMembers error:", err);
       showToast("Chyba připojení k databázi: "+err.message,"err");
       document.getElementById("tbl-loading").style.display="none";
+      renderStats(); renderTable();
     });
 }
 
@@ -2107,12 +2129,11 @@ var pagesMeta={
   sms:{title:"SMS"},
   uzivatele:{title:"Uživatelé"},
   nastaveni:{title:"Nastavení"},
-  uzivatele:{title:"Správa uživatelů",sub:"2FA přístup"},
-  nastaveni:{title:"Nastavení",sub:"Konfigurace e-mailu"}
+  auditlog:{title:"Úpravy"}
 };
 function switchPage(pg){
   // Zkontrolovat opravneni pro guest
-  var restrictedPages = ["email","sms","uzivatele","nastaveni"];
+  var restrictedPages = ["email","sms","uzivatele","nastaveni","auditlog"];
   if(isGuest() && restrictedPages.indexOf(pg) !== -1){
     showToast("Nemáte oprávnění k této sekci.", "err");
     pg = "members";
@@ -2121,7 +2142,7 @@ function switchPage(pg){
   document.querySelectorAll(".nav-btn[data-page]").forEach(function(b){ b.classList.remove("active"); });
   var btn=document.querySelector(".nav-btn[data-page='"+pg+"']");
   if(btn) btn.classList.add("active");
-  ["members","statistiky","vyrazeni","prispevky","email","sms","uzivatele","nastaveni"].forEach(function(p){
+  ["members","statistiky","vyrazeni","prispevky","email","sms","uzivatele","nastaveni","auditlog"].forEach(function(p){
     var el=document.getElementById("page-"+p);
     if(el) el.style.display=(p===pg)?"block":"none";
   });
@@ -2135,6 +2156,7 @@ function switchPage(pg){
   if(pg==="statistiky") loadStatistiky();
   // Kdyz otevreme prispevky, nacti data
   if(pg==="prispevky"){ if(!prispevkyLoaded) loadPrispevky(); }
+  if(pg==="auditlog") loadAuditLog();
   // Scrollovat nahoru
   var contentEl=document.querySelector(".content");
   if(contentEl) contentEl.scrollTop=0;
@@ -2183,12 +2205,14 @@ function renderStats(){
   var radny=aktivni.filter(function(m){ return m.typ==="Řádný člen"; }).length;
   var tajny=aktivni.filter(function(m){ return m.typ==="Tajný člen"; }).length;
   var data=[
-    {n:aktivni.length,l:"Celkem",c:"#087cf4"},
-    {n:radny,l:"Ofiko",c:"#00eddf"},
-    {n:tajny,l:"Tajní",c:"#07fa70"}
+    {n:aktivni.length,l:"Celkem"},
+    {n:radny,l:"Ofiko"},
+    {n:tajny,l:"Tajní"}
   ];
-  document.getElementById("stats-row").innerHTML=data.map(function(d){
-    return '<div class="stat"><div class="stat-l">'+d.l+'</div><div class="stat-n" style="color:'+d.c+'">'+d.n+'</div></div>';
+  document.getElementById("stats-row").innerHTML=data.map(function(d,i){
+    var delta=i===0?'<div class="stat-delta delta-up">↑ 12 tento měsíc</div>':'';
+    var pl=i>0?' style="padding-left:40px;"':'';
+    return '<div class="stat"'+pl+'><div class="stat-lbl">'+d.l+'</div><div class="stat-num-row"><div class="stat-val">'+d.n+'</div>'+delta+'</div></div>';
   }).join("");
 }
 
@@ -3505,32 +3529,41 @@ function logChange(akce, detail){
   sbFetch("audit_log",{method:"POST",extraHeaders:{"Prefer":"return=minimal"},body:JSON.stringify({uzivatel:uzivatel,akce:akce,detail:detail})}).catch(function(){});
 }
 
+function escHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function loadAuditLog(){
   var el=document.getElementById("audit-log-list");
   if(!el) return;
-  el.innerHTML="<div style='color:var(--text2);font-size:13px;padding:8px 0;'>Načítám...</div>";
-  fetch(SUPABASE_URL+"/rest/v1/audit_log?select=*&order=created_at.desc&limit=10",{
+  el.innerHTML="<tr><td colspan='5' style='text-align:center;padding:28px;color:var(--text2)'>Načítám...</td></tr>";
+  fetch(SUPABASE_URL+"/rest/v1/audit_log?select=*&order=created_at.desc&limit=200",{
     headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"}
   }).then(function(r){
     if(!r.ok) throw new Error("HTTP "+r.status);
     return r.json();
   }).then(function(data){
     if(!Array.isArray(data)||data.length===0){
-      el.innerHTML="<div style='color:var(--text2);font-size:13px;padding:8px 0;'>Zatím žádné změny.</div>";
+      el.innerHTML="<tr><td colspan='5' style='text-align:center;padding:28px;color:var(--text2)'>Zatím žádné záznamy.</td></tr>";
       return;
     }
     el.innerHTML=data.map(function(log){
       var dt=log.created_at?new Date(log.created_at):null;
       var dtStr=dt?dt.toLocaleDateString("cs-CZ")+" "+dt.toLocaleTimeString("cs-CZ",{hour:"2-digit",minute:"2-digit"}):"—";
-      var color=log.akce&&log.akce.indexOf("Smazán")!==-1?"var(--red)":log.akce&&log.akce.indexOf("Přidán")!==-1?"#05c957":log.akce&&(log.akce.indexOf("mail")!==-1||log.akce.indexOf("SMS")!==-1)?"#087cf4":"var(--text2)";
-      return "<div style='display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);'>"+
-        "<div style='min-width:130px;font-size:11px;color:var(--text2);'>"+dtStr+"</div>"+
-        "<div style='flex:1;'><span style='font-size:12px;font-weight:700;color:"+color+";'>"+(log.akce||"")+"</span>"+
-        (log.detail?"<span style='font-size:12px;color:var(--text2);'> — "+log.detail+"</span>":"")+
-        "</div><div style='font-size:11px;color:var(--text2);min-width:80px;text-align:right;'>"+(log.uzivatel||"")+"</div></div>";
+      var akce=escHtml(log.akce||"");
+      var akceUp=akce.toUpperCase();
+      var badgeCls="badge-blue";
+      if(akceUp==="INSERT"||akceUp.indexOf("PŘID")!==-1||akceUp.indexOf("PRIDAT")!==-1) badgeCls="badge-green";
+      else if(akceUp==="DELETE"||akceUp.indexOf("SMAZÁN")!==-1||akceUp.indexOf("SMAZ")!==-1) badgeCls="badge-red";
+      else if(akceUp==="EMAIL"||akceUp.indexOf("MAIL")!==-1||akceUp==="SMS") badgeCls="badge-orange";
+      var akceHtml=akce?"<span class='badge "+badgeCls+"'>"+akce+"</span>":"";
+      return "<tr>"+
+        "<td style='white-space:nowrap;font-size:12px;color:var(--text2)'>"+dtStr+"</td>"+
+        "<td style='font-size:12px;'>"+escHtml(log.uzivatel||"")+"</td>"+
+        "<td style='font-size:12px;'>"+akceHtml+"</td>"+
+        "<td style='font-size:12px;'>"+escHtml(log.zaznam||"")+"</td>"+
+        "<td style='font-size:12px;color:var(--text2)'>"+escHtml(log.detail||"")+"</td>"+
+        "</tr>";
     }).join("");
   }).catch(function(err){
-    el.innerHTML="<div style='color:var(--text2);font-size:13px;padding:8px 0;'>Nepodařilo se načíst změny.</div>";
+    el.innerHTML="<tr><td colspan='5' style='text-align:center;padding:28px;color:var(--text2)'>Nepodařilo se načíst záznamy.</td></tr>";
   });
 }
 
@@ -4455,7 +4488,7 @@ window.addEventListener("load", function(){
       if(avEl) avEl.textContent = sess.av || "U";
       if(nameEl) nameEl.textContent = sess.username || "";
       if(loginEl) loginEl.style.display = "none";
-      if(appEl) appEl.style.display = "block";
+      if(appEl) appEl.style.display = "flex";
       // Inicializuj aplikaci
       initDarkMode();
       loadMembers();
