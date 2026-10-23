@@ -2096,9 +2096,9 @@ function closedMonthIndex(){ var n=new Date(); return n.getFullYear()*12+n.getMo
 function loadDues(){
   if(duesLoading) return; duesLoading=true;
   var ci=closedMonthIndex(), y=Math.floor(ci/12), lastM=ci%12+1;
-  fetchAllRows("prispevky?rok=eq."+y+"&select=osobni_cislo,mesic,castka").then(function(rows){
+  nactiPrispevkyRoku(y).then(function(mapa){
     var paid={};
-    rows.forEach(function(p){ if((parseFloat(p.castka)||0)>0){ (paid[p.osobni_cislo]=paid[p.osobni_cislo]||{})[p.mesic]=true; } });
+    Object.keys(mapa).forEach(function(os){ Object.keys(mapa[os]).forEach(function(k){ if(mapa[os][k]>0) (paid[os]=paid[os]||{})[k]=true; }); });
     dues={};
     members.forEach(function(m){
       if(m.typ!=="Tajný člen") return;
@@ -3137,22 +3137,37 @@ function initPrisRok(){
   if(mesicSel) mesicSel.selectedIndex = new Date().getMonth();
 }
 
+// Platby za rok jako {osobni_cislo: {mesic: castka}}.
+// Rychle: jeden dotaz na databazovou funkci prispevky_rok (soucty pripravi databaze).
+// Zaloha: kdyby funkce chybela, nacte se po strankach po 1000 radcich (pomalejsi).
+function nactiPrispevkyRoku(rok){
+  return sbFetch("rpc/prispevky_rok", { method:"POST", body: JSON.stringify({ p_rok: rok }) })
+    .then(function(r){ if(!r.ok) throw new Error("rpc "+r.status); return r.json(); })
+    .then(function(obj){
+      var mapa={};
+      Object.keys(obj||{}).forEach(function(os){
+        mapa[os]={};
+        Object.keys(obj[os]).forEach(function(m){ mapa[os][parseInt(m)]=parseFloat(obj[os][m])||0; });
+      });
+      return mapa;
+    })
+    .catch(function(){
+      return fetchAllRows("prispevky?rok=eq."+rok+"&select=osobni_cislo,mesic,castka&order=id.asc").then(function(data){
+        var mapa={};
+        data.forEach(function(p){ (mapa[p.osobni_cislo]=mapa[p.osobni_cislo]||{})[p.mesic]=parseFloat(p.castka)||0; });
+        return mapa;
+      });
+    });
+}
+
 function loadPrispevky(){
   var rok = parseInt(document.getElementById("pris-rok").value);
   prispevkyLoaded = false;
   document.getElementById("pris-list").innerHTML = '<div class="pris-empty">Načítám…</div>';
   
-  // Databaze vraci nejvys 1000 radku najednou - nacitat po strankach, jinak by cast clenu
-  // vypadala, ze neplati (drivejsi chyba: limit=50000 server stejne orezal na 1000)
-  fetchAllRows("prispevky?rok=eq."+rok+"&select=osobni_cislo,mesic,castka&order=id.asc")
-    .then(function(data){
-      prispevkyData = {};
-      if(Array.isArray(data)){
-        data.forEach(function(p){
-          if(!prispevkyData[p.osobni_cislo]) prispevkyData[p.osobni_cislo] = {};
-          prispevkyData[p.osobni_cislo][p.mesic] = parseFloat(p.castka)||0;
-        });
-      }
+  nactiPrispevkyRoku(rok)
+    .then(function(mapa){
+      prispevkyData = mapa;
       prispevkyLoaded = true;
       prisPrisPage = 1;
       renderPrispevky();
