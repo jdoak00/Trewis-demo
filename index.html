@@ -35,7 +35,7 @@ body.dark-mode{
   color-scheme:dark;
 }
 html{-webkit-text-size-adjust:100%;}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:14px;line-height:1.45;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:15px;line-height:1.45;}
 select,input,textarea,button{font-family:inherit;}
 
 /* LOGIN */
@@ -50,18 +50,18 @@ select,input,textarea,button{font-family:inherit;}
 .login-logo{display:flex;justify-content:center;padding:22px 24px 18px;border-bottom:1px solid var(--border);background:#fff;}
 .login-logo img{width:250px;max-width:85%;height:auto;display:block;}
 .login-body{padding:20px 24px 22px;}
-.login-foot{font-size:11px;color:var(--text3);text-align:center;}
+.login-foot{font-size:12px;color:var(--text3);text-align:center;}
 .login-foot b{color:var(--text2);font-weight:700;}
-.lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);display:block;margin-bottom:5px;}
+.lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);display:block;margin-bottom:5px;}
 .inp{width:100%;height:38px;padding:0 11px;border-radius:7px;background:var(--panel2);border:1px solid var(--border);
-  color:var(--text);font-size:14px;outline:none;transition:border-color .15s,box-shadow .15s,background .15s;margin-bottom:14px;}
+  color:var(--text);font-size:15px;outline:none;transition:border-color .15s,box-shadow .15s,background .15s;margin-bottom:14px;}
 .inp:focus{border-color:var(--blue);background:var(--panel);box-shadow:0 0 0 3px rgba(8,124,244,.12);}
 .btn-login{width:100%;height:38px;border-radius:7px;border:none;cursor:pointer;margin-top:2px;
-  background:var(--blue);color:#fff;font-size:13px;font-weight:700;letter-spacing:.02em;transition:background .15s;}
+  background:var(--blue);color:#fff;font-size:14px;font-weight:700;letter-spacing:.02em;transition:background .15s;}
 .btn-login:hover{background:var(--blue2);}
 .err-msg{background:var(--red-bg);border:1px solid rgba(224,49,49,.25);border-radius:7px;
-  padding:9px 12px;font-size:13px;color:var(--red);margin-bottom:12px;}
-.demo-tip{margin-top:14px;padding:9px 12px;background:var(--blue-bg);border-radius:var(--r);font-size:12px;color:var(--text2);display:none;}
+  padding:9px 12px;font-size:14px;color:var(--red);margin-bottom:12px;}
+.demo-tip{margin-top:14px;padding:9px 12px;background:var(--blue-bg);border-radius:var(--r);font-size:13px;color:var(--text2);display:none;}
 .demo-tip code{color:var(--blue);}
 
 /* APP LAYOUT */
@@ -71,10 +71,10 @@ select,input,textarea,button{font-family:inherit;}
 .sb-logo{padding:18px 12px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;justify-content:center;}
 .sb-logo img{width:150px;max-width:80%;height:auto;display:block;border-radius:3px;}
 .sb-nav{padding:6px 0;flex:1;}
-.sb-group{padding:12px 14px 4px;color:var(--cyan);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;opacity:.75;}
+.sb-group{padding:12px 14px 4px;color:var(--cyan);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;opacity:.75;}
 .sb-section:not(:has(.nav-btn:not([style*="none"]))){display:none;}
 .nav-btn{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;width:100%;text-align:left;
-  color:var(--sidebar-text);font-size:13px;font-weight:500;border:none;background:none;
+  color:var(--sidebar-text);font-size:14px;font-weight:500;border:none;background:none;
   border-right:3px solid transparent;transition:color .12s,background .12s;}
 .nav-btn:hover{color:#c8d0de;background:rgba(255,255,255,.05);}
 .nav-btn.active{color:#fff;background:rgba(8,124,244,.14);border-right-color:var(--blue);font-weight:700;}
@@ -84,36 +84,36 @@ select,input,textarea,button{font-family:inherit;}
 .sb-foot{padding:10px 12px;border-top:1px solid rgba(255,255,255,.06);}
 .user-row{display:flex;align-items:center;gap:9px;margin-bottom:6px;}
 .av{width:38px;height:38px;border-radius:50%;background:#0d1826;border:1px solid rgba(255,255,255,.12);
-  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--cyan);flex-shrink:0;line-height:1;font-variant-numeric:tabular-nums;}
-.u-name{font-size:12px;font-weight:600;color:#c8d0de;}
-.u-role{font-size:10px;color:#5a6a80;}
-.sb-logout{display:block;width:100%;text-align:left;background:none;border:none;color:#6b7a8d;font-size:11px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--cyan);flex-shrink:0;line-height:1;font-variant-numeric:tabular-nums;}
+.u-name{font-size:13px;font-weight:600;color:#c8d0de;}
+.u-role{font-size:11px;color:#5a6a80;}
+.sb-logout{display:block;width:100%;text-align:left;background:none;border:none;color:#6b7a8d;font-size:12px;font-weight:600;
   padding:4px 0;cursor:pointer;transition:color .12s;}
 .sb-logout:hover{color:#fff;}
 #sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;}
 .main{margin-left:var(--sb-w);display:flex;flex-direction:column;min-height:100vh;min-width:0;overflow-x:hidden;position:relative;}
 .topbar{padding:10px 18px;background:var(--panel);border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50;min-height:50px;}
-.breadcrumb{color:var(--text2);font-size:12px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.breadcrumb{color:var(--text2);font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .breadcrumb .sep{margin:0 4px;color:var(--text3);}
-.pg-title{display:inline;font-size:13px;font-weight:700;color:var(--text);}
+.pg-title{display:inline;font-size:14px;font-weight:700;color:var(--text);}
 .pg-sub{display:none;}
 .topbar-right{margin-left:auto;display:flex;gap:6px;align-items:center;}
 .content{padding:14px 18px 24px;min-width:0;}
 
 /* BUTTONS */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;height:32px;border-radius:6px;
-  font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:background .12s,color .12s,border-color .12s;white-space:nowrap;}
+  font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:background .12s,color .12s,border-color .12s;white-space:nowrap;}
 .btn-blue{background:var(--blue);color:#fff;}
 .btn-blue:hover{background:var(--blue2);}
 .btn-out{background:var(--panel);color:var(--text2);border-color:var(--border);}
 .btn-out:hover{background:var(--panel2);color:var(--text);}
 .btn-ghost{background:transparent;color:var(--text2);border-color:var(--border);}
-.btn-sm{padding:0 10px;height:28px;font-size:12px;}
+.btn-sm{padding:0 10px;height:28px;font-size:13px;}
 .btn-red{color:var(--red);border-color:rgba(224,49,49,.3);}
 .btn-red:hover{background:var(--red-bg);color:var(--red);}
 .dark-toggle{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 10px;border-radius:6px;
-  border:1px solid var(--border);background:var(--panel);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;}
+  border:1px solid var(--border);background:var(--panel);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;}
 .dark-toggle:hover{background:var(--panel2);color:var(--text);}
 .fmt-btn.active{background:var(--blue)!important;color:#fff!important;border-color:var(--blue)!important;}
 
@@ -122,35 +122,37 @@ select,input,textarea,button{font-family:inherit;}
 .stats:empty{display:none;}
 .stat{flex:1;padding:11px 18px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:0;}
 .stat:last-child{border-right:none;}
-.stat-lbl,.stat-l{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;}
-.stat-val,.stat-n{font-size:22px;font-weight:800;color:var(--text);line-height:1;font-variant-numeric:tabular-nums;}
+.stat-lbl,.stat-l{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;}
+.stat-val,.stat-n{font-size:24px;font-weight:800;color:var(--text);line-height:1;font-variant-numeric:tabular-nums;}
 .stat-bar{display:none;}
 .stat-barevna{position:relative;}
 .stat-barevna::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--stat-c);}
 .stat-barevna .stat-val{color:var(--stat-c);}
+.stat-pozn{font-size:12px;color:var(--text2);margin-top:2px;}
+.stat-pozn a{color:var(--orange);font-weight:700;text-decoration:none;}
 .stat-num-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
-.stat-delta{font-size:11px;font-weight:600;white-space:nowrap;color:var(--green-dk);}
+.stat-delta{font-size:12px;font-weight:600;white-space:nowrap;color:var(--green-dk);}
 
 /* CARD + TOOLBAR */
 .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
 .card-hd{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;
-  font-size:12px;font-weight:700;color:var(--text);}
+  font-size:13px;font-weight:700;color:var(--text);}
 .toolbar{padding:9px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border);background:var(--panel);flex-wrap:wrap;}
 .toolbar.stacked{flex-direction:column;align-items:stretch;gap:7px;}
 .toolbar-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .toolbar-actions{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap;}
 .srch{position:relative;flex:1;min-width:180px;max-width:320px;}
 .srch input{width:100%;height:32px;padding:0 10px 0 30px;background:var(--panel2);border:1px solid var(--border);
-  border-radius:6px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s;}
+  border-radius:6px;color:var(--text);font-size:14px;outline:none;transition:border-color .15s;}
 .srch input:focus{border-color:var(--blue);background:var(--panel);}
-.srch-ic{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px;pointer-events:none;}
+.srch-ic{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none;}
 select.flt{height:32px;padding:0 28px 0 10px;background-color:var(--panel2);border:1px solid var(--border);border-radius:6px;
-  color:var(--text);font-size:12px;font-weight:500;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;
+  color:var(--text);font-size:13px;font-weight:500;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a97aa' stroke-width='1.5'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 10px center;}
 select.flt:focus{border-color:var(--blue);}
 .alpha-bar{display:flex;gap:2px;flex-wrap:wrap;padding:6px 12px;border-bottom:1px solid var(--border);background:var(--panel2);}
-.a-btn{min-width:22px;height:22px;padding:0 5px;border:none;background:transparent;border-radius:4px;font-size:11px;
+.a-btn{min-width:22px;height:22px;padding:0 5px;border:none;background:transparent;border-radius:4px;font-size:12px;
   font-weight:700;color:var(--text2);cursor:pointer;}
 .a-btn:hover{background:var(--blue-bg);color:var(--blue);}
 .a-btn.on{background:var(--blue);color:#fff;}
@@ -158,18 +160,18 @@ select.flt:focus{border-color:var(--blue);}
 
 /* TABLE */
 table{width:100%;border-collapse:collapse;}
-thead th{padding:8px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);
+thead th{padding:8px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);
   font-weight:700;text-align:left;border-bottom:1px solid var(--border);background:var(--panel2);white-space:nowrap;}
 tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
 tbody tr:last-child{border-bottom:none;}
 tbody tr:hover{background:var(--blue-bg)!important;}
-tbody td{padding:9px 12px;font-size:13px;color:var(--text);}
+tbody td{padding:9px 12px;font-size:14px;color:var(--text);}
 .mc{display:flex;align-items:center;gap:9px;}
 .mav{width:30px;height:30px;border-radius:50%;background:var(--blue-bg);color:var(--blue);
-  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;}
-.mn{font-weight:700;color:var(--text);font-size:13px;}
-.me{font-size:11px;color:var(--text2);}
-.bdg{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap;}
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+.mn{font-weight:700;color:var(--text);font-size:14px;}
+.me{font-size:12px;color:var(--text2);}
+.bdg{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:700;white-space:nowrap;}
 .bdg-blue{background:var(--blue-bg);color:var(--blue);}
 .bdg-gray{background:rgba(150,150,160,.15);color:#8a9ab0;}
 .bdg-green{background:var(--green-bg);color:var(--green-dk);}
@@ -178,58 +180,58 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);}
 .pag{display:flex;align-items:center;gap:3px;padding:8px 12px;border-top:1px solid var(--border);background:var(--panel2);flex-wrap:wrap;}
 .pag:empty{display:none;}
 .pg-b{min-width:26px;height:26px;padding:0 6px;border:1px solid var(--border);border-radius:5px;background:var(--panel);
-  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text2);}
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text2);}
 .pg-b:hover{border-color:var(--blue);color:var(--blue);}
 .pg-b.on{background:var(--blue);border-color:var(--blue);color:#fff;}
-.pg-info{margin-left:auto;font-size:11px;color:var(--text2);}
+.pg-info{margin-left:auto;font-size:12px;color:var(--text2);}
 
 /* STATISTIKY */
-.card-sub{font-size:11px;font-weight:500;color:var(--text2);margin-top:1px;}
+.card-sub{font-size:12px;font-weight:500;color:var(--text2);margin-top:1px;}
 .seg{display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;flex-shrink:0;}
-.seg button{border:none;background:var(--panel);color:var(--text2);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;}
+.seg button{border:none;background:var(--panel);color:var(--text2);font-size:12px;font-weight:700;padding:5px 10px;cursor:pointer;}
 .seg button+button{border-left:1px solid var(--border);}
 .seg button.on{background:var(--blue);color:#fff;}
 .stat-body{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(220px,1fr);}
 .stat-chart-wrap{padding:14px 16px;border-right:1px solid var(--border);height:340px;position:relative;min-width:0;}
 .stat-chart-wrap canvas{max-width:100%;}
 .stat-side{padding:14px 16px;min-width:0;}
-.stat-side-t{font-size:12px;font-weight:800;color:var(--text);}
-.stat-side-s{font-size:11px;color:var(--text2);margin-bottom:12px;}
+.stat-side-t{font-size:13px;font-weight:800;color:var(--text);}
+.stat-side-s{font-size:12px;color:var(--text2);margin-bottom:12px;}
 .hb{margin-bottom:10px;}
-.hb-top{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:4px;}
+.hb-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:4px;}
 .hb-top b{font-variant-numeric:tabular-nums;}
 .hb-bar{height:7px;background:var(--panel2);border-radius:4px;overflow:hidden;}
 .hb-bar i{display:block;height:100%;background:var(--blue);border-radius:4px;}
 
 /* PŘÍSPĚVKY: seznam + detail */
 .pris-layout{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,1.15fr);gap:12px;align-items:start;}
-.pris-count{font-weight:600;color:var(--text2);font-size:11px;}
+.pris-count{font-weight:600;color:var(--text2);font-size:12px;}
 .pris-list{max-height:calc(100vh - 300px);min-height:240px;overflow-y:auto;}
-.pris-empty{padding:28px 16px;text-align:center;color:var(--text2);font-size:13px;}
+.pris-empty{padding:28px 16px;text-align:center;color:var(--text2);font-size:14px;}
 .pris-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;
   border-left:3px solid transparent;transition:background .1s;}
 .pris-row:last-child{border-bottom:none;}
 .pris-row:hover{background:var(--panel2);}
 .pris-row.sel{background:var(--blue-bg);border-left-color:var(--blue);}
 .pr-main{flex:1;min-width:0;}
-.pr-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pr-name{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pr-dots{display:flex;gap:3px;margin-top:5px;}
 .pr-dots i{width:7px;height:7px;border-radius:2px;background:var(--border);display:block;}
 .pr-dots i.on{background:var(--green-dk);}
-.pr-sum{font-size:13px;font-weight:800;color:var(--blue);white-space:nowrap;font-variant-numeric:tabular-nums;}
-.pr-chybi{display:block;font-size:10px;font-weight:700;color:var(--red);text-align:right;margin-top:2px;}
+.pr-sum{font-size:14px;font-weight:800;color:var(--blue);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.pr-chybi{display:block;font-size:11px;font-weight:700;color:var(--red);text-align:right;margin-top:2px;}
 .pr-sum.zero{color:var(--text3);font-weight:600;}
 .pris-detail{position:sticky;top:64px;}
 .pd-head{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
-.pd-title{font-size:16px;font-weight:800;color:var(--text);}
-.pd-os{font-size:11px;font-weight:600;color:var(--text2);margin-left:4px;}
-.pd-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.pd-title{font-size:18px;font-weight:800;color:var(--text);}
+.pd-os{font-size:12px;font-weight:600;color:var(--text2);margin-left:4px;}
+.pd-sub{font-size:13px;color:var(--text2);margin-top:2px;}
 .pd-actions{margin-left:auto;display:flex;gap:5px;}
 .pd-summary{display:flex;border-bottom:1px solid var(--border);}
 .pd-summary>div{flex:1;padding:10px 16px;display:flex;flex-direction:column;gap:3px;}
 .pd-summary>div+div{border-left:1px solid var(--border);}
-.pd-summary span{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;}
-.pd-summary b{font-size:18px;font-weight:800;color:var(--text);font-variant-numeric:tabular-nums;}
+.pd-summary span{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;}
+.pd-summary b{font-size:20px;font-weight:800;color:var(--text);font-variant-numeric:tabular-nums;}
 .pd-table tbody tr{cursor:default;}
 .pd-table tbody tr:hover{background:transparent!important;}
 .pd-table .num{text-align:right;font-variant-numeric:tabular-nums;}
@@ -242,31 +244,31 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);}
 /* PŘIHLÁŠENÍ – KROKY */
 .lf{display:flex;flex-direction:column;}
 .lf .inp{margin-bottom:12px;}
-.lf-title{font-size:17px;font-weight:800;color:var(--text);margin-bottom:4px;}
-.lf-text{font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.5;}
-.lf-link{margin-top:10px;background:none;border:none;color:var(--blue);font-size:13px;font-weight:700;cursor:pointer;padding:6px;}
+.lf-title{font-size:19px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.lf-text{font-size:14px;color:var(--text2);margin-bottom:12px;line-height:1.5;}
+.lf-link{margin-top:10px;background:none;border:none;color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;padding:6px;}
 .lf-link:hover{text-decoration:underline;}
-.lf-code{text-align:center;font-size:24px!important;font-weight:800;letter-spacing:.35em;font-variant-numeric:tabular-nums;}
-.lf-steps{font-size:13px;color:var(--text2);padding-left:18px;line-height:1.55;margin-bottom:10px;}
+.lf-code{text-align:center;font-size:26px!important;font-weight:800;letter-spacing:.35em;font-variant-numeric:tabular-nums;}
+.lf-steps{font-size:14px;color:var(--text2);padding-left:18px;line-height:1.55;margin-bottom:10px;}
 .lf-steps b{color:var(--text);}
 .lf-qr{display:flex;justify-content:center;margin:6px 0 8px;}
 .lf-qr img{width:190px;height:190px;background:#fff;border-radius:10px;padding:8px;border:1px solid var(--border);}
-.lf-secret{font-size:11px;color:var(--text2);text-align:center;margin-bottom:12px;line-height:1.6;}
-.lf-secret code{font-size:12px;color:var(--text);background:var(--panel2);padding:2px 6px;border-radius:4px;word-break:break-all;}
+.lf-secret{font-size:12px;color:var(--text2);text-align:center;margin-bottom:12px;line-height:1.6;}
+.lf-secret code{font-size:13px;color:var(--text);background:var(--panel2);padding:2px 6px;border-radius:4px;word-break:break-all;}
 .lf-test{background:var(--orange-bg);color:var(--orange);border:1px dashed rgba(200,96,0,.5);border-radius:6px;text-align:center;
-  font-size:11px;font-weight:800;letter-spacing:.1em;padding:5px;margin-bottom:12px;}
+  font-size:12px;font-weight:800;letter-spacing:.1em;padding:5px;margin-bottom:12px;}
 .btn-login:disabled{cursor:wait;}
 
 /* UŽIVATELÉ APLIKACE */
 .usr-form{display:grid;grid-template-columns:1fr 1fr 1.2fr auto;gap:10px;padding:14px 16px;align-items:end;}
 .usr-kod-box{margin:0 16px 16px;border:1px solid rgba(8,124,244,.35);background:var(--blue-bg);border-radius:10px;padding:14px 16px;}
-.usr-kod-t{font-weight:800;font-size:13px;margin-bottom:10px;color:var(--text);}
+.usr-kod-t{font-weight:800;font-size:14px;margin-bottom:10px;color:var(--text);}
 .usr-kod-grid{display:flex;gap:24px;flex-wrap:wrap;}
-.usr-kod-grid span{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);}
-.usr-kod-grid b{font-size:15px;color:var(--text);}
-.usr-kod-val{font-family:ui-monospace,Consolas,monospace;font-size:20px!important;letter-spacing:.08em;color:var(--blue)!important;}
-.usr-kod-note{font-size:12px;color:var(--text2);margin:10px 0 2px;}
-.usr-login{font-size:12px;background:var(--panel2);padding:2px 6px;border-radius:4px;color:var(--text);}
+.usr-kod-grid span{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);}
+.usr-kod-grid b{font-size:17px;color:var(--text);}
+.usr-kod-val{font-family:ui-monospace,Consolas,monospace;font-size:22px!important;letter-spacing:.08em;color:var(--blue)!important;}
+.usr-kod-note{font-size:13px;color:var(--text2);margin:10px 0 2px;}
+.usr-login{font-size:13px;background:var(--panel2);padding:2px 6px;border-radius:4px;color:var(--text);}
 .usr-role{height:30px;width:auto;min-width:110px;}
 .usr-akce{white-space:nowrap;text-align:right;}
 .usr-akce .btn{margin-left:4px;}
@@ -279,50 +281,50 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);}
 .hist-row>summary:hover{background:var(--panel2);}
 .hist-row[open]>summary{background:var(--blue-bg);}
 .hist-detail{padding:4px 16px 14px;border-top:1px dashed var(--border);}
-.hd-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin:10px 0 4px;}
-.hd-predmet{font-weight:700;font-size:13px;}
-.hd-komu{font-size:13px;color:var(--text2);}
-.potvrd-text{white-space:pre-wrap;font-size:14px;line-height:1.55;color:var(--text);}
+.hd-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin:10px 0 4px;}
+.hd-predmet{font-weight:700;font-size:14px;}
+.hd-komu{font-size:14px;color:var(--text2);}
+.potvrd-text{white-space:pre-wrap;font-size:15px;line-height:1.55;color:var(--text);}
 #email-editor ul,#email-editor ol{padding-left:24px;margin:6px 0;}
 #email-editor li{margin:2px 0;}
 .hd-komu b{color:var(--text);}
-.hd-text{white-space:pre-wrap;font-size:13px;line-height:1.55;background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:10px 12px;max-height:320px;overflow-y:auto;}
+.hd-text{white-space:pre-wrap;font-size:14px;line-height:1.55;background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:10px 12px;max-height:320px;overflow-y:auto;}
 .hd-prijemci{display:flex;flex-wrap:wrap;gap:4px;max-height:220px;overflow-y:auto;}
-.hd-pr{font-size:11px;font-weight:700;background:var(--panel2);border:1px solid var(--border);border-radius:5px;padding:2px 7px;}
+.hd-pr{font-size:12px;font-weight:700;background:var(--panel2);border:1px solid var(--border);border-radius:5px;padding:2px 7px;}
 .hd-pr em{font-style:normal;font-weight:500;color:var(--text2);margin-left:5px;}
 .hd-pr.chyba{background:var(--red-bg);border-color:rgba(224,49,49,.3);color:var(--red);}
 /* PODPIS A PRILOHY E-MAILU */
 .sig-box{border:1px solid var(--border);border-radius:8px;margin-bottom:12px;background:var(--panel2);}
-.sig-box>summary{padding:8px 12px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;}
+.sig-box>summary{padding:8px 12px;font-size:13px;font-weight:700;color:var(--text2);cursor:pointer;}
 .sig-box>summary span{font-weight:500;color:var(--blue);}
 .sig-box[open]>summary span{display:none;}
 .sig-preview{background:#fff;color:#333;margin:0 12px 12px;border-radius:6px;padding:12px;border:1px solid var(--border);overflow-x:auto;}
 .lbl-note{font-weight:500;text-transform:none;letter-spacing:0;color:var(--text3);margin-left:6px;}
 .att-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
 .att-list{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1;min-width:200px;padding-top:4px;}
-.att-empty{font-size:13px;color:var(--text3);}
-.att-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;background:var(--blue-bg);border:1px solid rgba(8,124,244,.3);border-radius:6px;padding:3px 4px 3px 9px;color:var(--text);}
+.att-empty{font-size:14px;color:var(--text3);}
+.att-chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;background:var(--blue-bg);border:1px solid rgba(8,124,244,.3);border-radius:6px;padding:3px 4px 3px 9px;color:var(--text);}
 .att-chip em{font-style:normal;font-weight:500;color:var(--text2);}
-.att-chip button{border:none;background:none;color:var(--red);font-size:15px;line-height:1;cursor:pointer;padding:0 4px;}
-.att-sum{font-size:11px;color:var(--text2);}
+.att-chip button{border:none;background:none;color:var(--red);font-size:17px;line-height:1;cursor:pointer;padding:0 4px;}
+.att-sum{font-size:12px;color:var(--text2);}
 .vi-akce{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;}
 .hist-main{flex:1;min-width:0;}
-.hist-sub{font-weight:700;font-size:13px;color:var(--text);overflow-wrap:anywhere;}
-.hist-meta{font-size:11px;color:var(--text2);margin-top:2px;}
+.hist-sub{font-weight:700;font-size:14px;color:var(--text);overflow-wrap:anywhere;}
+.hist-meta{font-size:12px;color:var(--text2);margin-top:2px;}
 .hist-meta b{color:var(--text);font-weight:700;}
-.hist-text{font-size:12px;color:var(--text2);margin-top:4px;}
+.hist-text{font-size:13px;color:var(--text2);margin-top:4px;}
 .hist-row .bdg{flex-shrink:0;margin-top:2px;}
-.hist-empty{padding:18px 16px;font-size:13px;color:var(--text2);text-align:center;}
+.hist-empty{padding:18px 16px;font-size:14px;color:var(--text2);text-align:center;}
 
 /* RYCHLÉ FILTRY */
 .views-bar{display:flex;gap:4px;flex-wrap:wrap;padding:9px 12px;border-bottom:1px solid var(--border);}
-.vw{border:1px solid var(--border);background:var(--panel);color:var(--text2);font-size:12px;font-weight:700;border-radius:6px;
+.vw{border:1px solid var(--border);background:var(--panel);color:var(--text2);font-size:13px;font-weight:700;border-radius:6px;
   padding:4px 10px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;}
 .vw em{font-style:normal;font-weight:600;opacity:.7;font-variant-numeric:tabular-nums;}
 .vw:hover{background:var(--panel2);color:var(--text);}
 .vw.on{background:var(--blue);border-color:var(--blue);color:#fff;}
 .vw.dq{background:var(--orange-bg);border-color:rgba(200,96,0,.4);color:var(--orange);}
-.view-info{padding:8px 12px;border-bottom:1px solid var(--border);background:var(--panel2);font-size:12px;color:var(--text2);
+.view-info{padding:8px 12px;border-bottom:1px solid var(--border);background:var(--panel2);font-size:13px;color:var(--text2);
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .view-info .btn{margin-left:auto;}
 
@@ -334,11 +336,11 @@ th.cb-col,td.cb-col{width:34px;padding-right:0;}
 th.cb-col input,td.cb-col input{width:15px;height:15px;accent-color:var(--blue);cursor:pointer;vertical-align:middle;}
 tr.selected{background:var(--blue-bg)!important;}
 .cols-menu{position:fixed;z-index:400;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:var(--sh-lg);padding:6px;min-width:180px;}
-.cols-menu label{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text);}
+.cols-menu label{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text);}
 .cols-menu label:hover{background:var(--panel2);}
 .cols-menu input{accent-color:var(--blue);}
 .bulk-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:130;background:var(--sidebar);color:#fff;border-radius:10px;
-  box-shadow:0 10px 30px rgba(0,0,0,.3);padding:7px 8px 7px 14px;display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);padding:7px 8px 7px 14px;display:flex;align-items:center;gap:5px;font-size:14px;font-weight:700;
   max-width:calc(100vw - 24px);flex-wrap:wrap;}
 .bulk-bar .btn{background:rgba(255,255,255,.1);color:#fff;border-color:transparent;}
 .bulk-bar .btn:hover{background:rgba(255,255,255,.22);}
@@ -347,11 +349,11 @@ tr.selected{background:var(--blue-bg)!important;}
 /* KONTROLA DAT */
 .dq-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);}
 .dq-row:last-child{border-bottom:none;}
-.dq-n{min-width:40px;text-align:center;font-size:12px;padding:3px 6px;}
-.dq-t{font-weight:700;font-size:13px;}
-.dq-d{font-size:12px;color:var(--text2);}
+.dq-n{min-width:40px;text-align:center;font-size:13px;padding:3px 6px;}
+.dq-t{font-weight:700;font-size:14px;}
+.dq-d{font-size:13px;color:var(--text2);}
 .dq-row .btn,.dq-ok{margin-left:auto;}
-.dq-ok{font-size:12px;color:var(--green-dk);font-weight:700;white-space:nowrap;}
+.dq-ok{font-size:13px;color:var(--green-dk);font-weight:700;white-space:nowrap;}
 
 /* KARTA ČLENA */
 .overlay-bg.mc-overlay{background:rgba(10,15,25,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
@@ -360,21 +362,21 @@ tr.selected{background:var(--blue-bg)!important;}
   box-shadow:var(--sh-lg);display:flex;flex-direction:column;overflow:hidden;animation:mcIn .16s ease-out;}
 @keyframes mcIn{from{opacity:0;transform:translateY(8px) scale(.985);}to{opacity:1;transform:none;}}
 .mc-head{display:flex;gap:12px;align-items:center;padding:16px 18px;border-bottom:1px solid var(--border);}
-.mc-head .av{width:46px;height:46px;font-size:15px;background:var(--blue-bg);color:var(--blue);border:none;}
+.mc-head .av{width:46px;height:46px;font-size:17px;background:var(--blue-bg);color:var(--blue);border:none;}
 .mc-hinfo{flex:1;min-width:0;}
-.mc-name{font-size:18px;font-weight:800;color:var(--text);line-height:1.2;}
-.mc-sub{font-size:12px;color:var(--text2);margin-top:1px;}
+.mc-name{font-size:20px;font-weight:800;color:var(--text);line-height:1.2;}
+.mc-sub{font-size:13px;color:var(--text2);margin-top:1px;}
 .mc-badges{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;}
 .mc-x{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--panel);color:var(--text2);cursor:pointer;align-self:flex-start;flex-shrink:0;}
 .mc-x:hover{background:var(--panel2);color:var(--text);}
 .mc-body{flex:1;overflow-y:auto;padding:10px 18px 14px;}
 .mc-props{margin-bottom:12px;}
-.mc-prop{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:center;padding:6px 8px;border-radius:6px;font-size:13px;min-height:32px;}
+.mc-prop{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:center;padding:6px 8px;border-radius:6px;font-size:14px;min-height:32px;}
 .mc-prop:hover{background:var(--panel2);}
 .mc-pl{color:var(--text2);display:flex;align-items:center;gap:8px;}
 .mc-pl::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--text3);flex-shrink:0;}
 .mc-pv{font-weight:700;color:var(--text);overflow-wrap:anywhere;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.mc-copy{border:1px solid var(--border);background:var(--panel);color:var(--text2);font-size:10px;font-weight:700;border-radius:4px;
+.mc-copy{border:1px solid var(--border);background:var(--panel);color:var(--text2);font-size:11px;font-weight:700;border-radius:4px;
   padding:1px 6px;cursor:pointer;opacity:0;transition:opacity .12s;}
 .mc-copy:hover{color:var(--blue);border-color:var(--blue);}
 .mc-prop:hover .mc-copy{opacity:1;}
@@ -382,23 +384,23 @@ tr.selected{background:var(--blue-bg)!important;}
 .mc-muted{color:var(--text2);font-weight:600;}
 .mc-empty{color:var(--text3);font-weight:500;font-style:italic;}
 .mc-box{border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:10px;}
-.mc-box-hd{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;font-weight:800;text-transform:uppercase;
+.mc-box-hd{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;font-weight:800;text-transform:uppercase;
   letter-spacing:.08em;color:var(--text2);margin-bottom:8px;}
-.mc-box-hd b{font-size:13px;color:var(--text);letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums;}
+.mc-box-hd b{font-size:14px;color:var(--text);letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums;}
 .mc-dots{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;}
 .mc-dots i{height:16px;border-radius:4px;background:var(--border);}
 .mc-dots i.on{background:var(--green-dk);}
 .mc-dots i.fut{background:transparent;border:1px dashed var(--border);}
-.mc-dots-lbl{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin-top:3px;font-size:9px;color:var(--text3);text-align:center;font-weight:700;}
-.mc-link{border:none;background:none;color:var(--blue);font-size:11px;font-weight:700;cursor:pointer;text-transform:none;letter-spacing:0;}
-.mc-notes{font-size:13px;white-space:pre-wrap;line-height:1.55;color:var(--text);}
+.mc-dots-lbl{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin-top:3px;font-size:10px;color:var(--text3);text-align:center;font-weight:700;}
+.mc-link{border:none;background:none;color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;text-transform:none;letter-spacing:0;}
+.mc-notes{font-size:14px;white-space:pre-wrap;line-height:1.55;color:var(--text);}
 .mc-row-btns{display:flex;justify-content:flex-end;gap:6px;margin:8px 0 4px;flex-wrap:wrap;}
 .mc-tl{border-left:2px solid var(--border);margin-left:4px;padding-left:12px;max-height:220px;overflow-y:auto;}
-.mc-ev{position:relative;padding:3px 0 7px;font-size:12px;color:var(--text);}
+.mc-ev{position:relative;padding:3px 0 7px;font-size:13px;color:var(--text);}
 .mc-ev::before{content:'';position:absolute;left:-17px;top:8px;width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 2px var(--panel);}
 .mc-ev.start::before{background:var(--green-dk);}
 .mc-ev .d{color:var(--text2);}
-.mc-ev .m{color:var(--text3);font-size:11px;}
+.mc-ev .m{color:var(--text3);font-size:12px;}
 .mc-vyr{border-color:rgba(224,49,49,.35);background:var(--red-bg);}
 .mc-vyr-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .mc-danger{background:var(--red);color:#fff;}
@@ -411,12 +413,12 @@ tr.selected{background:var(--blue-bg)!important;}
 .pr-rok{border:1px solid var(--border);border-radius:9px;padding:10px 12px;}
 .pr-rok.sel{border-color:rgba(8,124,244,.45);background:var(--blue-bg);}
 .pr-rok-hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;}
-.pr-rok-hd b{font-size:15px;font-weight:800;color:var(--text);}
-.pr-rok-hd span{font-size:12px;color:var(--text2);font-weight:600;font-variant-numeric:tabular-nums;}
+.pr-rok-hd b{font-size:17px;font-weight:800;color:var(--text);}
+.pr-rok-hd span{font-size:13px;color:var(--text2);font-weight:600;font-variant-numeric:tabular-nums;}
 .pr-mesice{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;}
 .pr-m{border-radius:6px;padding:5px 4px;text-align:center;background:var(--panel2);border:1px solid var(--border);}
-.pr-m span{display:block;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);letter-spacing:.04em;}
-.pr-m b{display:block;font-size:12px;font-weight:700;color:var(--text3);font-variant-numeric:tabular-nums;}
+.pr-m span{display:block;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text3);letter-spacing:.04em;}
+.pr-m b{display:block;font-size:13px;font-weight:700;color:var(--text3);font-variant-numeric:tabular-nums;}
 .pr-m.on{background:var(--green-bg);border-color:rgba(5,155,71,.3);}
 .pr-m.on b{color:var(--green-dk);}
 .pr-m.on span{color:var(--green-dk);}
@@ -424,33 +426,33 @@ tr.selected{background:var(--blue-bg)!important;}
 .doc-viewer{z-index:600;}
 .doc-box{width:900px;max-width:100%;height:92vh;background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:var(--sh-lg);
   display:flex;flex-direction:column;overflow:hidden;animation:mcIn .16s ease-out;}
-.doc-hd{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:14px;}
+.doc-hd{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:15px;}
 .doc-frame{flex:1;width:100%;border:none;background:#fff;}
-.doc-tip{font-size:11px;color:var(--text2);padding:6px 14px;border-top:1px solid var(--border);background:var(--panel2);}
+.doc-tip{font-size:12px;color:var(--text2);padding:6px 14px;border-top:1px solid var(--border);background:var(--panel2);}
 .zm-row{display:flex;align-items:flex-start;gap:12px;padding:9px 16px;border-bottom:1px solid var(--border);}
 .zm-row:last-child{border-bottom:none;}
-.zm-row>div:first-child{min-width:120px;font-size:11px;color:var(--text2);}
+.zm-row>div:first-child{min-width:120px;font-size:12px;color:var(--text2);}
 /* SIDE PANEL (detail člena) */
 .overlay-bg{display:none;position:fixed;inset:0;background:rgba(10,15,25,.45);z-index:200;}
 .overlay-bg.show{display:flex;justify-content:flex-end;}
 .side-panel{width:460px;max-width:100%;height:100%;background:var(--panel);border-left:1px solid var(--border);
   display:flex;flex-direction:column;box-shadow:var(--sh-lg);}
 .sp-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--panel);}
-.sp-title{font-size:15px;font-weight:800;color:var(--text);}
+.sp-title{font-size:17px;font-weight:800;color:var(--text);}
 .sp-body{flex:1;overflow-y:auto;padding:16px 18px;}
 .sp-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;background:var(--panel2);}
 .side-panel .av{background:var(--blue-bg);color:var(--blue);border:none;}
 .field-group{background:var(--panel2);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:12px;}
 .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .field-span{grid-column:1/-1;}
-.dp-sec{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text2);
+.dp-sec{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text2);
   margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
 .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
 .info-item{background:var(--panel2);border-radius:6px;padding:8px 10px;border:1px solid var(--border);}
-.info-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:2px;}
-.info-val{font-size:13px;color:var(--text);font-weight:600;word-break:break-word;}
+.info-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:2px;}
+.info-val{font-size:14px;color:var(--text);font-weight:600;word-break:break-word;}
 .finp{width:100%;height:34px;padding:0 10px;background:var(--panel);border:1px solid var(--border);border-radius:6px;
-  color:var(--text);font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s;}
+  color:var(--text);font-size:14px;outline:none;transition:border-color .15s,box-shadow .15s;}
 select.finp{cursor:pointer;}
 .finp:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(8,124,244,.1);}
 .finp.error{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(224,49,49,.1);}
@@ -464,52 +466,81 @@ select.finp{cursor:pointer;}
 .modal{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-xl);width:560px;max-width:100%;
   max-height:90vh;overflow-y:auto;box-shadow:var(--sh-lg);}
 .modal-h{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.modal-t{font-size:15px;font-weight:800;}
+.modal-t{font-size:17px;font-weight:800;}
 .modal-b{padding:16px 18px;}
 .modal-b .lbl{margin-top:2px;}
 .modal-f{padding:12px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:6px;background:var(--panel2);flex-wrap:wrap;}
 
+/* IMPORT PRISPEVKU */
+.imp-volby{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.imp-volba{display:flex;flex-direction:column;gap:6px;text-align:left;padding:16px;border:1.5px solid var(--border);border-radius:var(--r-lg);
+  background:var(--panel);cursor:pointer;font-family:inherit;color:var(--text);transition:.15s;}
+.imp-volba:hover{border-color:var(--blue);background:var(--blue-bg);}
+.imp-volba-t{font-size:16px;font-weight:800;}
+.imp-volba-p{font-size:13px;color:var(--text2);line-height:1.45;}
+.imp-pozn{font-size:13px;color:var(--text2);margin-top:12px;}
+.imp-soubor{font-size:13px;color:var(--text2);margin-bottom:12px;}
+.imp-soubor b{color:var(--text);}
+.imp-obdobi{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;font-size:14px;}
+.imp-obdobi .flt{height:34px;}
+.imp-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.imp-sum div{background:var(--panel2);border-radius:var(--r);padding:10px 12px;font-size:12px;color:var(--text2);}
+.imp-sum b{display:block;font-size:20px;color:var(--text);margin-top:2px;}
+.imp-mesice{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px;}
+.imp-mesice div{background:var(--panel2);border-radius:var(--r);padding:6px 8px;font-size:12px;color:var(--text2);text-align:center;}
+.imp-mesice b{display:block;font-size:14px;color:var(--text);}
+.imp-k{display:flex;flex-direction:column;gap:6px;}
+.imp-k details,.imp-k .imp-r{border-radius:var(--r);padding:8px 12px;font-size:14px;}
+.imp-k summary{cursor:pointer;}
+.imp-ok{background:var(--green-bg);color:var(--text);}
+.imp-warn{background:var(--orange-bg);color:var(--text);}
+.imp-stop{background:var(--red-bg);color:var(--red);font-weight:700;}
+.imp-k table{margin-top:8px;font-size:13px;}
+.imp-k td,.imp-k th{padding:3px 8px;text-align:left;border-bottom:1px solid var(--border);}
+.imp-tab{max-height:220px;overflow:auto;}
+@media (max-width:640px){ .imp-volby,.imp-sum{grid-template-columns:1fr;} .imp-mesice{grid-template-columns:repeat(3,1fr);} }
+
 /* DIGITÁLNÍ KARTA */
 .dcard-wrap{background:var(--panel);border-radius:var(--r-xl);width:400px;max-width:100%;box-shadow:var(--sh-lg);overflow:hidden;}
 .dcard-header{background:var(--sidebar);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
-.dcard-header h3{color:#fff;font-size:13px;font-weight:700;}
+.dcard-header h3{color:#fff;font-size:14px;font-weight:700;}
 .dcard-header .btn-out{background:transparent;}
 .dcard{background:linear-gradient(135deg,#0d1f3c,#123566 60%,#0d1f3c);padding:22px;position:relative;overflow:hidden;}
 .dcard::after{content:'';position:absolute;right:-60px;top:-60px;width:180px;height:180px;border-radius:50%;
   background:radial-gradient(circle,rgba(0,237,223,.25),transparent 70%);}
 .dcard-logo img{height:36px;object-fit:contain;margin-bottom:14px;display:block;}
-.dcard-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:2px;}
-.dcard-os{font-size:12px;color:rgba(255,255,255,.6);margin-bottom:12px;}
+.dcard-name{font-size:22px;font-weight:800;color:#fff;margin-bottom:2px;}
+.dcard-os{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:12px;}
 .dcard-meta{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;}
-.dcard-meta-item .dm-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.5);font-weight:700;margin-bottom:2px;}
-.dcard-meta-item .dm-val{font-size:12px;color:rgba(255,255,255,.9);font-weight:600;}
+.dcard-meta-item .dm-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.5);font-weight:700;margin-bottom:2px;}
+.dcard-meta-item .dm-val{font-size:13px;color:rgba(255,255,255,.9);font-weight:600;}
 .dcard-qr{background:#fff;border-radius:8px;padding:8px;display:inline-block;position:relative;z-index:1;}
 .dcard-qr img{display:block;border-radius:4px;}
 .dcard-foot{background:var(--sidebar);padding:8px 22px;display:flex;justify-content:space-between;}
-.dcard-foot span{color:var(--cyan);font-size:10px;font-weight:800;letter-spacing:.08em;}
+.dcard-foot span{color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:.08em;}
 .dcard-actions{padding:12px 16px;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid var(--border);background:var(--panel2);}
 
 /* COMPOSE / FORMULÁŘE */
 .compose{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--sh);}
-.compose-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text);
+.compose-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text);
   margin:-18px -18px 16px;padding:11px 18px;border-bottom:1px solid var(--border);background:var(--panel2);border-radius:var(--r) var(--r) 0 0;}
 .info-bar{background:var(--blue-bg);border-left:3px solid var(--blue);border-radius:0 6px 6px 0;padding:9px 12px;
-  font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;}
+  font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;}
 .info-bar b{color:var(--blue);}
 .rcpt-bar{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;
-  font-size:12px;color:var(--text2);margin-bottom:12px;display:flex;justify-content:space-between;gap:8px;}
+  font-size:13px;color:var(--text2);margin-bottom:12px;display:flex;justify-content:space-between;gap:8px;}
 .rcpt-n{font-weight:800;color:var(--blue);}
 .ftxt{width:100%;padding:9px 10px;background:var(--panel);border:1px solid var(--border);border-radius:6px;
-  color:var(--text);font-size:14px;outline:none;resize:vertical;line-height:1.5;}
+  color:var(--text);font-size:15px;outline:none;resize:vertical;line-height:1.5;}
 .ftxt:focus{border-color:var(--blue);}
-#email-editor{font-size:14px!important;background:var(--panel)!important;}
+#email-editor{font-size:15px!important;background:var(--panel)!important;}
 .progress-wrap{background:var(--border);border-radius:99px;height:5px;overflow:hidden;margin:8px 0;}
 .progress-bar{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:99px;transition:width .2s;}
 .ok-box{background:var(--green-bg);border:1px solid rgba(7,250,112,.3);border-radius:6px;
-  padding:9px 12px;font-size:13px;font-weight:600;color:var(--green-dk);margin-bottom:12px;}
+  padding:9px 12px;font-size:14px;font-weight:600;color:var(--green-dk);margin-bottom:12px;}
 
 /* TOAST */
-.toast{position:fixed;bottom:20px;right:20px;padding:11px 16px;border-radius:8px;font-size:13px;font-weight:600;
+.toast{position:fixed;bottom:20px;right:20px;padding:11px 16px;border-radius:8px;font-size:14px;font-weight:600;
   z-index:999;box-shadow:0 8px 28px rgba(0,0,0,.22);display:none;max-width:calc(100vw - 40px);}
 .toast.show{display:flex;align-items:center;gap:8px;}
 .toast.ok{background:var(--sidebar);color:#fff;border-left:4px solid var(--green);}
@@ -521,12 +552,12 @@ select.finp{cursor:pointer;}
 .dp-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh-lg);width:310px;max-width:calc(100vw - 32px);overflow:hidden;}
 .dp-head{background:var(--sidebar);padding:12px 14px;color:#fff;display:flex;align-items:center;justify-content:space-between;}
 .dp-head-top{display:flex;gap:8px;align-items:center;margin-bottom:6px;}
-.dp-sel{background:rgba(255,255,255,.12);border:none;color:#fff;font-size:13px;font-weight:700;padding:4px 8px;border-radius:5px;cursor:pointer;}
+.dp-sel{background:rgba(255,255,255,.12);border:none;color:#fff;font-size:14px;font-weight:700;padding:4px 8px;border-radius:5px;cursor:pointer;}
 .dp-sel option{color:#000;}
-.dp-nav{background:rgba(255,255,255,.12);border:none;color:#fff;width:28px;height:28px;border-radius:5px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+.dp-nav{background:rgba(255,255,255,.12);border:none;color:#fff;width:28px;height:28px;border-radius:5px;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;}
 .dp-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:8px;gap:2px;}
-.dp-dname{text-align:center;font-size:10px;font-weight:700;color:var(--text2);padding:4px 0;}
-.dp-day{width:100%;aspect-ratio:1;border:none;border-radius:5px;cursor:pointer;font-size:12px;background:none;color:var(--text);}
+.dp-dname{text-align:center;font-size:11px;font-weight:700;color:var(--text2);padding:4px 0;}
+.dp-day{width:100%;aspect-ratio:1;border:none;border-radius:5px;cursor:pointer;font-size:13px;background:none;color:var(--text);}
 .dp-day:hover:not(:disabled){background:var(--blue-bg);color:var(--blue);}
 .dp-day.today{background:var(--blue-bg);color:var(--blue);font-weight:800;}
 .dp-day.sel{background:var(--blue);color:#fff;font-weight:700;}
@@ -539,12 +570,12 @@ select.finp{cursor:pointer;}
 /* MOBILNÍ KARTY ČLENŮ */
 .vt{display:flex;gap:2px;}
 .vt-b{width:30px;height:26px;border:none;background:transparent;border-radius:5px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:13px;}
+  display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:14px;}
 .vt-b.on{background:var(--blue);color:#fff;}
 .mob-nav{display:none;position:fixed;left:0;right:0;bottom:0;z-index:120;background:var(--sidebar);
   border-top:1px solid rgba(255,255,255,.08);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));justify-content:space-around;}
 .mn-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 2px;border:none;background:none;
-  color:#8a97aa;font-size:10px;font-weight:700;cursor:pointer;min-width:0;}
+  color:#8a97aa;font-size:11px;font-weight:700;cursor:pointer;min-width:0;}
 .mn-btn::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
 .mn-btn.on{color:#fff;}
 .mn-btn.on::before{background:var(--cyan);box-shadow:0 0 6px var(--cyan);}
@@ -553,8 +584,8 @@ select.finp{cursor:pointer;}
 .mcard:hover{border-color:rgba(8,124,244,.45);}
 .mcard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .mcard-info{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.mi-lbl{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
-.mi-val{font-size:12px;color:var(--text);font-weight:600;}
+.mi-lbl{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.mi-val{font-size:13px;color:var(--text);font-weight:600;}
 
 /* KLIKACÍ EFEKT */
 .btn:active,.nav-btn:active,.a-btn:active,.pg-b:active,.btn-login:active,.dp-day:active:not(.disabled){transform:scale(.97);}
@@ -566,10 +597,10 @@ select.finp{cursor:pointer;}
   .main{margin-left:0!important;width:100%;}
   .topbar{padding:8px 12px;}
   .content{padding:12px 12px 24px;}
-  .dark-toggle{font-size:11px;padding:0 8px;}
+  .dark-toggle{font-size:12px;padding:0 8px;}
   .stats{flex-wrap:wrap;}
   .stat{flex:1 1 33%;padding:10px 12px;}
-  .stat-val,.stat-n{font-size:19px;}
+  .stat-val,.stat-n{font-size:21px;}
   .srch{max-width:none;flex-basis:100%;}
   .toolbar-actions{margin-left:0;}
   .hide-mob{display:none!important;}
@@ -581,7 +612,7 @@ select.finp{cursor:pointer;}
   .compose{padding:14px;}
   .compose-title{margin:-14px -14px 14px;padding:10px 14px;}
   thead th{padding:7px 8px;}
-  tbody td{padding:8px;font-size:12px;}
+  tbody td{padding:8px;font-size:13px;}
   .toolbar{padding:8px 10px;}
   .vt{display:none;}
   #btn-hamburger{display:none!important;}
@@ -731,7 +762,7 @@ select.finp{cursor:pointer;}
   </nav>
   <div class="main">
     <div class="topbar">
-      <button class="btn btn-ghost btn-sm" id="btn-hamburger" onclick="toggleSidebar()" style="display:none;font-size:15px;" aria-label="Menu">☰</button>
+      <button class="btn btn-ghost btn-sm" id="btn-hamburger" onclick="toggleSidebar()" style="display:none;font-size:17px;" aria-label="Menu">☰</button>
       <div class="breadcrumb">#odboryhyundai<span class="sep">›</span><strong class="pg-title" id="pg-title">Evidence členů</strong><span class="pg-sub" id="pg-sub"></span></div>
       <div class="topbar-right">
         <button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDarkMode()" title="Přepnout tmavý/světlý režim">🌙 Tmavý režim</button>
@@ -799,7 +830,7 @@ select.finp{cursor:pointer;}
             <option value="skupina:DaRK">DaRK</option>
             <option value="skupina:Důvěrníci">Důvěrníci</option>
           </select>
-          <div class="rcpt-bar"><span>Příjemci: <span class="rcpt-n" id="email-rcpt-n">0</span> adres</span><span style="font-size:11px;color:var(--text3)">brevo.com</span></div>
+          <div class="rcpt-bar"><span>Příjemci: <span class="rcpt-n" id="email-rcpt-n">0</span> adres</span><span style="font-size:12px;color:var(--text3)">brevo.com</span></div>
           <label class="lbl" style="margin-bottom:6px">Předmět</label>
           <input class="finp" id="email-sub" style="margin-bottom:12px"/>
 
@@ -813,7 +844,7 @@ select.finp{cursor:pointer;}
             <button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="insertLink()" title="Hypertextový odkaz">Odkaz</button>
             <button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="emailFormat('removeFormat')" title="Zrušit formátování označeného textu">Bez formátu</button>
           </div>
-          <div id="email-editor" contenteditable="true" style="min-height:160px;padding:12px;background:var(--panel2);border:1.5px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-family:var(--font);font-size:17px;outline:none;margin-bottom:12px;line-height:1.6;"></div>
+          <div id="email-editor" contenteditable="true" style="min-height:160px;padding:12px;background:var(--panel2);border:1.5px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-family:var(--font);font-size:19px;outline:none;margin-bottom:12px;line-height:1.6;"></div>
 
           <!-- PODPIS -->
           <details class="sig-box">
@@ -835,7 +866,7 @@ select.finp{cursor:pointer;}
           </div>
 
           <div id="email-progress" style="display:none">
-            <div style="font-size:13px;color:var(--text2);margin-bottom:4px" id="email-prog-txt"></div>
+            <div style="font-size:14px;color:var(--text2);margin-bottom:4px" id="email-prog-txt"></div>
             <div class="progress-wrap"><div class="progress-bar" id="email-prog-bar" style="width:0%"></div></div>
           </div>
           <div class="ok-box" id="email-ok" style="display:none">Hotovo! E-mail odeslán.</div>
@@ -860,12 +891,12 @@ select.finp{cursor:pointer;}
             <option value="skupina:DaRK">DaRK</option>
             <option value="skupina:Důvěrníci">Důvěrníci</option>
           </select>
-          <div class="rcpt-bar"><span>Příjemci: <span class="rcpt-n" id="sms-rcpt-n">0</span> čísel</span><span style="font-size:11px;color:var(--text3)">smsmanager.cz</span></div>
+          <div class="rcpt-bar"><span>Příjemci: <span class="rcpt-n" id="sms-rcpt-n">0</span> čísel</span><span style="font-size:12px;color:var(--text3)">smsmanager.cz</span></div>
           <label class="lbl" style="margin-bottom:6px">Text SMS</label>
           <textarea class="ftxt" id="sms-msg" rows="4"  style="margin-bottom:6px" oninput="updateSmsChar()"></textarea>
-          <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="sms-char">0/160 znaku</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px" id="sms-char">0/160 znaku</div>
           <div id="sms-progress" style="display:none">
-            <div style="font-size:13px;color:var(--text2);margin-bottom:4px" id="sms-prog-txt"></div>
+            <div style="font-size:14px;color:var(--text2);margin-bottom:4px" id="sms-prog-txt"></div>
             <div class="progress-wrap"><div class="progress-bar" id="sms-prog-bar" style="width:0%"></div></div>
           </div>
           <div class="ok-box" id="sms-ok" style="display:none">Hotovo! SMS odeslano.</div>
@@ -921,7 +952,7 @@ select.finp{cursor:pointer;}
               <label class="lbl" style="margin-bottom:6px">Brevo API klíč</label>
               <div style="position:relative">
                 <input class="finp" id="set-apikey" type="password" placeholder="xkeysib-..." style="padding-right:44px"/>
-                <button onclick="toggleApiKey()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--panel2);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text2);font-size:11px;font-weight:700;padding:3px 8px;font-family:var(--font)" id="btn-eye">Zobrazit</button>
+                <button onclick="toggleApiKey()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--panel2);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text2);font-size:12px;font-weight:700;padding:3px 8px;font-family:var(--font)" id="btn-eye">Zobrazit</button>
               </div>
             </div>
             <div>
@@ -939,8 +970,8 @@ select.finp{cursor:pointer;}
           </div>
           <div id="set-status" style="margin-top:14px;display:none"></div>
           <div style="margin-top:24px;padding:14px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r)">
-            <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Jak získat API klíč</div>
-            <ol style="font-size:12px;color:var(--text2);padding-left:18px;line-height:2">
+            <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Jak získat API klíč</div>
+            <ol style="font-size:13px;color:var(--text2);padding-left:18px;line-height:2">
               <li>Přihlaste se na <b>brevo.com</b></li>
               <li>Klikněte na vaše jméno vpravo nahoře → <b>SMTP &amp; API</b></li>
               <li>Záložka <b>API Keys</b> → klikněte na ikonku oka nebo <b>Copy</b></li>
@@ -958,7 +989,7 @@ select.finp{cursor:pointer;}
                 <label class="lbl" style="margin-bottom:6px;">SMS API klíč</label>
                 <div style="position:relative;">
                   <input class="finp" id="set-sms-apikey" type="password" placeholder="Váš API klíč ze SmsManager.cz" style="padding-right:80px;"/>
-                  <button onclick="toggleSmsApiKey()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--panel2);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text2);font-size:11px;font-weight:700;padding:3px 8px;font-family:var(--font);" id="btn-sms-eye">Zobrazit</button>
+                  <button onclick="toggleSmsApiKey()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--panel2);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text2);font-size:12px;font-weight:700;padding:3px 8px;font-family:var(--font);" id="btn-sms-eye">Zobrazit</button>
                 </div>
               </div>
               <div>
@@ -969,7 +1000,7 @@ select.finp{cursor:pointer;}
             <div style="display:flex;gap:10px;align-items:center;margin-top:4px;">
               <button class="btn btn-blue" onclick="saveSettings()">&#10003; Uložit SMS nastavení</button>
             </div>
-            <div id="set-sms-status" style="display:none;margin-top:10px;padding:10px 14px;border-radius:8px;font-size:13px;"></div>
+            <div id="set-sms-status" style="display:none;margin-top:10px;padding:10px 14px;border-radius:8px;font-size:14px;"></div>
           </div>
 
           <!-- ZALOHA -->
@@ -977,7 +1008,7 @@ select.finp{cursor:pointer;}
             <div class="dp-sec">Záloha dat</div>
             <div class="info-bar">Stáhne kompletní zálohu do jednoho souboru Excel: <b>členové, příspěvky, vyřazení, statistiky, historie e-mailů a SMS a historie změn</b> (každé na vlastním listu). Přihlašovací údaje a API klíče se do zálohy neukládají.</div>
             <button class="btn btn-blue" onclick="downloadBackup()">Stáhnout zálohu (Excel)</button>
-            <div id="backup-status" style="display:none;margin-top:10px;font-size:13px;color:var(--text2);"></div>
+            <div id="backup-status" style="display:none;margin-top:10px;font-size:14px;color:var(--text2);"></div>
           </div>
         </div>
 
@@ -1094,6 +1125,7 @@ select.finp{cursor:pointer;}
               <select class="flt" id="pris-filter" onchange="renderPrispevky()">
                 <option value="">Všichni členové</option>
                 <option value="neplati">Bez platby (tajní)</option>
+                <option value="nezname">Neznámé osobní číslo</option>
               </select>
             </div>
             <div class="toolbar-row">
@@ -1103,23 +1135,7 @@ select.finp{cursor:pointer;}
               </div>
               <div class="toolbar-actions">
                 <button class="btn btn-out" onclick="exportPrispevkyCSV()">Export</button>
-                <select class="flt" id="pris-mesic-import" title="Měsíc, do kterého se import zapíše">
-<option value="">Měsíc importu…</option>
-<option value="1">Leden</option>
-<option value="2">Únor</option>
-<option value="3">Březen</option>
-<option value="4">Duben</option>
-<option value="5">Květen</option>
-<option value="6">Červen</option>
-<option value="7">Červenec</option>
-<option value="8">Srpen</option>
-<option value="9">Září</option>
-<option value="10">Říjen</option>
-<option value="11">Listopad</option>
-<option value="12">Prosinec</option>
-                </select>
-                <button class="btn btn-out" onclick="document.getElementById('pris-import-inp').click()">Import</button>
-                <input type="file" id="pris-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importPrispevky(event)"/>
+                <button class="btn btn-out" onclick="openPrisImport()">Import</button>
                 <button class="btn btn-out" onclick="exportPrispevkyPDF()">PDF celý rok</button>
               </div>
             </div>
@@ -1151,7 +1167,7 @@ select.finp{cursor:pointer;}
       <button class="btn btn-out btn-sm" onclick="document.getElementById('pris-edit-modal').classList.remove('show')">&#10005;</button>
     </div>
     <div class="modal-b">
-      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:16px;" id="pris-edit-name"></div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:16px;" id="pris-edit-name"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="pris-edit-fields"></div>
     </div>
     <div class="modal-f">
@@ -1159,6 +1175,19 @@ select.finp{cursor:pointer;}
       <button class="btn btn-blue" onclick="savePrisEdit()">&#10003; Uložit příspěvek</button>
     </div>
   </div>
+</div>
+
+<!-- IMPORT PRISPEVKU -->
+<div class="modal-bg" id="pris-imp-modal">
+  <div class="modal" style="width:760px">
+    <div class="modal-h">
+      <span class="modal-t" id="pris-imp-title">Nahrát příspěvky</span>
+      <button class="btn btn-out btn-sm" onclick="closePrisImport()">&#10005;</button>
+    </div>
+    <div class="modal-b" id="pris-imp-body"></div>
+    <div class="modal-f" id="pris-imp-foot"></div>
+  </div>
+  <input type="file" id="pris-imp-file" accept=".xlsx,.xls" style="display:none" onchange="prisImpSoubor(event)"/>
 </div>
 
 <!-- DETAIL PANEL -->
@@ -1187,7 +1216,7 @@ select.finp{cursor:pointer;}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
         <div><label class="lbl">Jméno</label><input class="finp" id="add-jmeno"/></div>
         <div><label class="lbl">Příjmení</label><input class="finp" id="add-prijmeni"/></div>
-        <div><label class="lbl">za svobodna <span style="color:var(--text2);font-size:11px;">(nepovinné)</span></label><input class="finp" id="add-za-svobodna"/></div>
+        <div><label class="lbl">za svobodna <span style="color:var(--text2);font-size:12px;">(nepovinné)</span></label><input class="finp" id="add-za-svobodna"/></div>
         <div><label class="lbl">E-mail</label><input class="finp" id="add-email"/></div>
         <div><label class="lbl">Telefon</label><input class="finp" id="add-telefon" value="+420"/></div>
         <div><label class="lbl">Osobní číslo</label><input class="finp" id="add-osnum" value="1810"/></div>
@@ -1216,12 +1245,12 @@ select.finp{cursor:pointer;}
 <!-- INACTIVITY WARNING MODAL -->
 <div id="inactivity-warning" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;">
   <div style="background:var(--panel);border-radius:var(--r-xl);padding:36px 40px;max-width:420px;width:90%;text-align:center;box-shadow:var(--sh-lg);">
-    <div style="font-size:40px;margin-bottom:16px;">⏰</div>
-    <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:10px;">Dlouho jste nevyvíjel aktivitu</div>
-    <div style="font-size:14px;color:var(--text2);margin-bottom:24px;">Chcete zůstat přihlášen?</div>
+    <div style="font-size:44px;margin-bottom:16px;">⏰</div>
+    <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:10px;">Dlouho jste nevyvíjel aktivitu</div>
+    <div style="font-size:15px;color:var(--text2);margin-bottom:24px;">Chcete zůstat přihlášen?</div>
     <div style="display:flex;gap:12px;justify-content:center;">
-      <button onclick="doLogout()" style="padding:10px 24px;border-radius:8px;border:1.5px solid var(--border);background:var(--panel2);color:var(--text);font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;">Odhlásit</button>
-      <button onclick="stayLoggedIn()" style="padding:10px 24px;border-radius:8px;border:none;background:#087cf4;color:#fff;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;">Ano, zůstat</button>
+      <button onclick="doLogout()" style="padding:10px 24px;border-radius:8px;border:1.5px solid var(--border);background:var(--panel2);color:var(--text);font-family:var(--font);font-size:17px;font-weight:600;cursor:pointer;">Odhlásit</button>
+      <button onclick="stayLoggedIn()" style="padding:10px 24px;border-radius:8px;border:none;background:#087cf4;color:#fff;font-family:var(--font);font-size:17px;font-weight:700;cursor:pointer;">Ano, zůstat</button>
     </div>
   </div>
 </div>
@@ -1275,7 +1304,7 @@ select.finp{cursor:pointer;}
     </div>
     <div class="dcard-actions">
       <button class="btn btn-blue" id="btn-card-send" onclick="sendCardEmail()">&#9658; Odeslat na e-mail</button>
-      <button class="btn btn-out" style="font-size:12px">&#128179; Apple / Google Wallet</button>
+      <button class="btn btn-out" style="font-size:13px">&#128179; Apple / Google Wallet</button>
       <button class="btn btn-out" onclick="closeCardModal()">Zavřít</button>
     </div>
   </div>
@@ -1343,7 +1372,7 @@ function showCenterMsg(msg, type){
   if(!el){
     el = document.createElement("div");
     el.id = "center-msg-overlay";
-    el.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;padding:20px 36px;border-radius:14px;font-size:16px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,.25);text-align:center;display:none;max-width:480px;width:90%;line-height:1.5;";
+    el.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;padding:20px 36px;border-radius:14px;font-size:18px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,.25);text-align:center;display:none;max-width:480px;width:90%;line-height:1.5;";
     document.body.appendChild(el);
   }
   if(type === "err"){
@@ -2687,7 +2716,7 @@ function renderTable(){
       tbody.innerHTML=slice.map(function(m,i){
         var av=((m.jmeno[0]||"")+(m.prijmeni[0]||"")).toUpperCase();
         return '<tr onclick="openDetail('+m.id+')">'+
-          '<td style="color:var(--text3);font-size:11px">'+((currentPage-1)*PAGE_SZ+i+1)+'</td>'+
+          '<td style="color:var(--text3);font-size:12px">'+((currentPage-1)*PAGE_SZ+i+1)+'</td>'+
           '<td><div class="mc"><div class="mav">'+av+'</div><div><div class="mn">'+m.prijmeni+' '+m.jmeno+'</div>'+(visibleCols.indexOf("email")===-1?'<div class="me">'+m.email+'</div>':'')+'</div></div></td>'+
           cols.map(function(c){ return '<td>'+(c.v?c.v(m):escHtml(c.t(m)||"—"))+'</td>'; }).join("")+
           '</tr>';
@@ -3132,9 +3161,6 @@ function initPrisRok(){
   for(var i=0;i<sel.options.length;i++){
     if(parseInt(sel.options[i].value) === now){ sel.selectedIndex=i; break; }
   }
-  // Nastavit aktualni mesic v importu
-  var mesicSel = document.getElementById("pris-mesic-import");
-  if(mesicSel) mesicSel.selectedIndex = new Date().getMonth();
 }
 
 // Platby za rok jako {osobni_cislo: {mesic: castka}}.
@@ -3165,9 +3191,12 @@ function loadPrispevky(){
   prispevkyLoaded = false;
   document.getElementById("pris-list").innerHTML = '<div class="pris-empty">Načítám…</div>';
   
-  nactiPrispevkyRoku(rok)
-    .then(function(mapa){
-      prispevkyData = mapa;
+  // vyrazene potrebujeme kvuli rozliseni plateb vyrazenych od neznamych osobnich cisel
+  var pVyr = (vyrazeniData && vyrazeniData.length) ? Promise.resolve() :
+    sbFetch("vyrazeni?select=*&order=clen_do.desc.nullslast&limit=3000").then(function(r){ return r.json(); }).then(function(d){ if(Array.isArray(d)) vyrazeniData=d; }).catch(function(){});
+  Promise.all([nactiPrispevkyRoku(rok), pVyr])
+    .then(function(res){
+      prispevkyData = res[0];
       prispevkyLoaded = true;
       prisPrisPage = 1;
       renderPrispevky();
@@ -3212,7 +3241,7 @@ function renderPrispevky(){
     var found = membersMap[osnum];
     if(found) return found;
     // Neznamy clen - zobraz jen OS cislo
-    return {osnum:osnum, jmeno:"", prijmeni:"Neznámý člen", email:"", typ:"", oddeleni:""};
+    return {osnum:osnum, jmeno:osnum, prijmeni:"Neznámé os. číslo", email:"", typ:"", oddeleni:"", nezname:true};
   }).filter(function(m){
     return (m.prijmeni+" "+m.jmeno+" "+m.osnum).toLowerCase().indexOf(q) !== -1;
   });
@@ -3221,6 +3250,7 @@ function renderPrispevky(){
   var pf = (document.getElementById("pris-filter")||{value:""}).value;
   // "Bez platby": tajni clenove, kterym chybi nektery UZAVRENY mesic vybraneho roku
   // (stejne pravidlo jako u Clenu: v zari se vybira za srpen; mesice pred vstupem se nepocitaji)
+  if(pf==="nezname") filtered = filtered.filter(function(m){ return m.nezname; });
   prisChybi = {};
   if(pf==="neplati"){
     var ci=closedMonthIndex(), posledni = rok*12+11 <= ci ? 12 : (Math.floor(ci/12)===rok ? ci%12+1 : 0);
@@ -3268,16 +3298,26 @@ var prisChybi = {}; // {osnum: [chybejici mesice]} pro filtr Bez platby
 var prisMembersMap = {};
 function fmtKc(n){ return Number(n).toLocaleString("cs-CZ")+" Kč"; }
 
+// Platici se pocitaji jen ze soucasnych clenu; platby vyrazenych a neznamych osobnich cisel zvlast
 function renderPrisStats(rok){
-  var total=0, platici=0, lastM=0;
+  var total=0, platici=0, vyrazeni=0, nezname=0, lastM=0;
+  var jeClen={}; members.forEach(function(m){ jeClen[m.osnum]=true; });
+  var jeVyr={}; (vyrazeniData||[]).forEach(function(v){ if(v.evidencni_cislo) jeVyr[v.evidencni_cislo]=true; });
   Object.keys(prispevkyData).forEach(function(o){
-    var c=getPrisCelkem(o,PRIS_ALL_M); total+=c; if(c>0) platici++;
+    var c=getPrisCelkem(o,PRIS_ALL_M); total+=c;
+    if(c>0){ if(jeClen[o]) platici++; else if(jeVyr[o]) vyrazeni++; else nezname++; }
     PRIS_ALL_M.forEach(function(m){ if((prispevkyData[o][m]||0)>0 && m>lastM) lastM=m; });
   });
+  var mimo=[];
+  if(vyrazeni) mimo.push('+ '+vyrazeni+' '+plural(vyrazeni,"vyřazený","vyřazení","vyřazených"));
+  if(nezname) mimo.push('<a href="#" onclick="document.getElementById(\'pris-filter\').value=\'nezname\';renderPrispevky();return false;">'+
+    nezname+' '+plural(nezname,"neznámé","neznámá","neznámých")+' os. '+plural(nezname,"číslo","čísla","čísel")+'</a>');
   document.getElementById("pris-stats").innerHTML =
-    '<div class="stat"><div class="stat-lbl">Vybráno '+rok+'</div><div class="stat-val">'+fmtKc(total)+'</div></div>'+
-    '<div class="stat"><div class="stat-lbl">Platících členů</div><div class="stat-val">'+platici.toLocaleString("cs-CZ")+'</div></div>'+
-    '<div class="stat"><div class="stat-lbl">Poslední zaúčtovaný měsíc</div><div class="stat-val">'+(lastM?MESICE_NAMES[lastM-1]:'—')+'</div></div>';
+    '<div class="stat stat-barevna" style="--stat-c:#087cf4"><div class="stat-lbl">Vybráno '+rok+'</div><div class="stat-val">'+fmtKc(total)+'</div></div>'+
+    '<div class="stat stat-barevna" style="--stat-c:#00eddf"><div class="stat-lbl">Platících členů</div><div class="stat-num-row"><div class="stat-val">'+platici.toLocaleString("cs-CZ")+'</div>'+
+      '<div class="stat-delta" style="color:var(--text2)">z '+members.length.toLocaleString("cs-CZ")+'</div></div>'+
+      (mimo.length?'<div class="stat-pozn">'+mimo.join(' · ')+'</div>':'')+'</div>'+
+    '<div class="stat stat-barevna" style="--stat-c:#07fa70"><div class="stat-lbl">Poslední zaúčtovaný měsíc</div><div class="stat-val">'+(lastM?MESICE_NAMES[lastM-1]:'—')+'</div></div>';
 }
 
 function selectPris(osnum){
@@ -3348,95 +3388,315 @@ function renderPrisRoky(h, vybranyRok){
 }
 
 // Import CSV příspěvků
-function importPrispevky(event){
-  if(checkGuest("Nemáte oprávnění importovat příspěvky.")) return;
-  var file = event.target.files[0]; if(!file) return;
-  var mesic = parseInt(document.getElementById("pris-mesic-import").value);
-  var rok = parseInt(document.getElementById("pris-rok").value);
-  if(!mesic || isNaN(mesic)){ showError("Vyberte měsíc před importem příspěvků."); event.target.value=""; return; }
-  if(!rok || isNaN(rok)){ showError("Vyberte rok před importem příspěvků."); event.target.value=""; return; }
-  var mesicName = MESICE_NAMES[mesic-1];
-  
-  readFileAsText(file, function(text){
-    var delim = text.indexOf(";")!==-1?";":"\t";
-    var lines = text.split("\n").map(function(l){ return l.replace("\r",""); }).filter(function(l){ return l.trim(); });
-    if(lines.length<2){ showError("CSV je prázdné."); return; }
-    
-    var header = parseCSVLine(lines[0],delim).map(function(h){ return h.trim().toLowerCase(); });
-    function col(names){ for(var i=0;i<names.length;i++){ var idx=header.indexOf(names[i]); if(idx!==-1) return idx; } return -1; }
-    
-    var idCol = col(["id","osobní číslo","osobni cislo","os. číslo","os.číslo"]);
-    var castkaCol = col(["částka","castka","amount","kč","czk","příspěvek"]);
-    
-    if(idCol===-1||castkaCol===-1){
-      showError("CSV musí obsahovat sloupce ID a Částka."); return;
-    }
-    
-    var rows = [];
-    for(var i=1;i<lines.length;i++){
-      var cols = parseCSVLine(lines[i],delim);
-      if(cols.length<2) continue;
-      var osnum = (cols[idCol]||"").trim();
-      var castka = parseFloat((cols[castkaCol]||"0").replace(",",".").replace(/[^0-9.]/g,""))||0;
-      if(osnum) rows.push({osnum:osnum, castka:castka});
-    }
-    
-    if(!rows.length){ showError("Žádné záznamy k importu."); return; }
-    
-    // Zkontroluj existenci zaznamu pro tento mesic/rok
-    var existingCount = 0;
-    members.forEach(function(m){
-      if(prispevkyData[m.osnum] && prispevkyData[m.osnum][mesic] !== undefined) existingCount++;
-    });
-    
-    var doImport = function(){
-      showSuccess("Importuji "+mesicName+" "+rok+"...");
-      
-      var duplicates = [];
-      var newRows = [];
-      
-      rows.forEach(function(r){
-        // Zkontroluj zda uz existuje zaznam pro toto OS cislo v tomto mesici
-        if(prispevkyData[r.osnum] && prispevkyData[r.osnum][mesic] !== undefined && prispevkyData[r.osnum][mesic] > 0){
-          duplicates.push({osnum: r.osnum, castka_stara: prispevkyData[r.osnum][mesic], castka_nova: r.castka});
-        } else {
-          newRows.push({osobni_cislo: r.osnum, rok: rok, mesic: mesic, castka: r.castka});
-        }
-      });
+// ===== Import příspěvků =====
+// Ofiko: měsíční soubor srážek od zaměstnavatele (list "Srážky_MM_RRRR"; A os. č., B příjmení a jméno, F částka - záporná)
+// Tajní: roční přehled (A příjmení, B jméno, C ID, D-O prosinec minulého roku .. listopad)
+// Nic se neukládá, dokud uživatel po náhledu import nepotvrdí. Uložení je v jedné transakci (rpc import_prispevky):
+// smažou se platby stejného zdroje za dané období a vloží nové - opakované nahrání tedy nic nezdvojí.
+var prisImp = null;
+var MESICE_NORM = ["leden","unor","brezen","duben","kveten","cerven","cervenec","srpen","zari","rijen","listopad","prosinec"];
+function bezDiakritiky(s){ return String(s==null?"":s).normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim(); }
+function cisloZBunky(v){
+  if(typeof v==="number") return v;
+  var s=String(v==null?"":v).replace(/\s/g,"").replace(/kč|czk/gi,"").replace(",",".");
+  if(s==="") return null;
+  var n=parseFloat(s); return isNaN(n)||!/^-?\d*\.?\d+$/.test(s) ? NaN : n;
+}
+function jeOsCislo(v){ return /^\d{5,10}$/.test(String(v==null?"":v).trim()); }
 
-      function insertBatch(offset){
-        var chunk = newRows.slice(offset, offset+100);
-        if(!chunk.length){
-          loadPrispevky();
-          prisHistorie={}; dues=null; logChange("Import příspěvků", mesicName+" "+rok+", nových: "+newRows.length+", přeskočeno: "+duplicates.length);
-          setTimeout(loadAuditLog, 500);
-          showSuccess("Import dokončen — "+mesicName+" "+rok+": nahráno "+newRows.length+" nových záznamů.");
-          // Zobraz tabulku duplicit
-          if(duplicates.length > 0){
-            showDuplicatesTable(duplicates, mesicName, rok);
-          }
-          return;
-        }
-        fetch(SUPABASE_URL+"/rest/v1/prispevky?on_conflict=osobni_cislo,rok,mesic", {
-          method:"POST",
-          headers:{
-            "apikey":SUPABASE_KEY, "Authorization":"Bearer "+ACCESS_TOKEN,
-            "Content-Type":"application/json",
-            "Prefer":"resolution=ignore-duplicates,return=minimal"
-          },
-          body:JSON.stringify(chunk)
-        }).then(function(r){
-          if(r.ok||r.status===201||r.status===204) insertBatch(offset+100);
-          else { r.text().then(function(t){ console.error("Import err:",t); }); showError("Chyba při importu dávky."); }
-        });
-      }
-      insertBatch(0);
-    };
-    
-    // Vzdy provest import - duplicity se preskoci, nove se pridaji
-    doImport();
-  });
+function openPrisImport(){
+  if(checkGuest("Nemáte oprávnění importovat příspěvky.")) return;
+  prisImp = null;
+  prisImpKrok1();
+  document.getElementById("pris-imp-modal").classList.add("show");
+}
+function closePrisImport(){ document.getElementById("pris-imp-modal").classList.remove("show"); prisImp=null; }
+
+function prisImpKrok1(){
+  document.getElementById("pris-imp-title").textContent="Nahrát příspěvky";
+  document.getElementById("pris-imp-body").innerHTML=
+    '<div class="imp-volby">'+
+      '<button class="imp-volba" onclick="prisImpVyber(\'ofiko\')"><span class="imp-volba-t">Ofiko — měsíční soubor</span>'+
+        '<span class="imp-volba-p">Soubor srážek od zaměstnavatele (.xlsx), tak jak přišel. Měsíc se pozná z názvu listu nebo souboru.</span></button>'+
+      '<button class="imp-volba" onclick="prisImpVyber(\'tajni\')"><span class="imp-volba-t">Tajní — roční přehled</span>'+
+        '<span class="imp-volba-p">Celý soubor tajných (.xlsx), prosinec minulého roku až listopad. Nahrávejte vždy celý znovu — platby tajných za dané období se srovnají podle souboru.</span></button>'+
+    '</div>'+
+    '<div class="imp-pozn">Po výběru souboru uvidíte náhled a kontrolu. Nic se neuloží, dokud import nepotvrdíte.</div>';
+  document.getElementById("pris-imp-foot").innerHTML='<button class="btn btn-out" onclick="closePrisImport()">Zrušit</button>';
+}
+
+function prisImpVyber(typ){
+  var inp=document.getElementById("pris-imp-file");
+  inp.value=""; inp.setAttribute("data-typ",typ); inp.click();
+}
+
+function prisImpSoubor(event){
+  var file=event.target.files[0]; if(!file) return;
+  var typ=event.target.getAttribute("data-typ");
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var vysledek;
+    try{
+      var wb=XLSX.read(new Uint8Array(e.target.result),{type:"array"});
+      vysledek = typ==="ofiko" ? prisImpCtiOfiko(wb, file.name) : prisImpCtiTajni(wb, file.name);
+    }catch(err){ console.error(err); showError("Soubor se nepodařilo přečíst. Je to soubor .xlsx?"); return; }
+    if(vysledek.chyba){ showError(vysledek.chyba); return; }
+    prisImp=vysledek;
+    prisImpNacist();
+  };
+  reader.readAsArrayBuffer(file);
   event.target.value="";
+}
+
+function prisImpRadky(wb, list){ return XLSX.utils.sheet_to_json(wb.Sheets[list],{header:1, raw:true, defval:""}); }
+
+function prisImpCtiOfiko(wb, nazev){
+  var list = wb.SheetNames.filter(function(n){ return /^srazky/.test(bezDiakritiky(n)); })[0] || wb.SheetNames[0];
+  var rows = prisImpRadky(wb, list);
+  // období z názvu listu ("Srážky_09_2026"), jinak z názvu souboru ("září 2026.xlsx")
+  var mesic=0, rok=0, m=list.match(/(\d{1,2})[_.\- ](20\d\d)/);
+  if(m){ mesic=parseInt(m[1]); rok=parseInt(m[2]); }
+  else {
+    var n=bezDiakritiky(nazev), y=n.match(/20\d\d/); if(y) rok=parseInt(y[0]);
+    for(var i=11;i>=0;i--){ if(n.indexOf(MESICE_NORM[i])!==-1){ mesic=i+1; break; } } // od konce: "cervenec" dřív než "cerven"
+  }
+  if(mesic<1||mesic>12) mesic=0;
+  // záhlaví: řádek se sloupcem "Os.č."; jinak pevně A, B, F
+  var hi=-1, osC=0, jmC=1, cC=5;
+  for(var r=0;r<Math.min(rows.length,10);r++){
+    var h=rows[r].map(bezDiakritiky), o=-1;
+    h.forEach(function(v,i){ if(o===-1 && /^os\.?\s*c/.test(v)) o=i; });
+    if(o!==-1){
+      hi=r; osC=o;
+      h.forEach(function(v,i){ if(/prijmeni/.test(v)) jmC=i; if(/^castka/.test(v)) cC=i; });
+      break;
+    }
+  }
+  var mapa={}, poradi=[], dvakrat=[], necitelne=[], bezId=[];
+  for(var r2=hi+1;r2<rows.length;r2++){
+    var row=rows[r2];
+    if(!jeOsCislo(row[osC])){ var cb=cisloZBunky(row[cC]); if(String(row[jmC]).trim() && cb) bezId.push({radek:r2+1, jmeno:String(row[jmC]).trim(), hodnota:String(row[osC])}); continue; }
+    var os=String(row[osC]).trim(), c=cisloZBunky(row[cC]);
+    if(c===null||isNaN(c)){ necitelne.push({os:os, jmeno:String(row[jmC]||""), hodnota:String(row[cC])}); continue; }
+    c=Math.round(Math.abs(c)*100)/100;
+    if(mapa[os]){ mapa[os].castka+=c; if(dvakrat.indexOf(os)===-1) dvakrat.push(os); }
+    else { mapa[os]={os:os, jmeno:String(row[jmC]||"").trim(), castka:c}; poradi.push(os); }
+  }
+  if(!poradi.length) return {chyba:"V souboru jsem nenašel žádné řádky s osobním číslem a částkou. Je to soubor srážek ofiko?"};
+  return {typ:"ofiko", nazev:nazev, list:list, mesic:mesic, rok:rok||new Date().getFullYear(), mesicSoubor:mesic, rokSoubor:rok,
+    osoby:poradi.map(function(os){ return mapa[os]; }), dvakrat:dvakrat, necitelne:necitelne, bezId:bezId};
+}
+
+function prisImpCtiTajni(wb, nazev){
+  var list = wb.SheetNames[0], rows = prisImpRadky(wb, list);
+  var hi=-1, idC=-1, prC=0, jmC=1, mesCols=[];
+  for(var r=0;r<Math.min(rows.length,10);r++){
+    var h=rows[r].map(bezDiakritiky);
+    if(h.indexOf("id")!==-1){
+      hi=r; idC=h.indexOf("id");
+      if(h.indexOf("prijmeni")!==-1) prC=h.indexOf("prijmeni");
+      if(h.indexOf("jmeno")!==-1) jmC=h.indexOf("jmeno");
+      h.forEach(function(v,i){ var mi=MESICE_NORM.indexOf(v); if(mi!==-1) mesCols.push({col:i, mesic:mi+1}); });
+      break;
+    }
+  }
+  if(hi===-1||mesCols.length!==12) return {chyba:"V souboru jsem nenašel záhlaví se sloupcem ID a 12 měsíci (Prosinec … Listopad). Je to roční přehled tajných?"};
+  // prosinec před lednem patří do minulého roku
+  var predLednem = mesCols.filter(function(c){ return c.mesic===12; })[0].col < mesCols.filter(function(c){ return c.mesic===1; })[0].col;
+  var y=bezDiakritiky(nazev+" "+list).match(/20\d\d/);
+  var mapa={}, poradi=[], dvakrat=[], necitelne=[], bezId=[];
+  for(var r2=hi+1;r2<rows.length;r2++){
+    var row=rows[r2];
+    if(!jeOsCislo(row[idC])){
+      // řádek se jménem a platbami, ale bez ID (součtové řádky jméno nemají)
+      var maPlatby=mesCols.some(function(mc){ var c=cisloZBunky(row[mc.col]); return c>0; });
+      if(String(row[prC]).trim() && String(row[jmC]).trim() && maPlatby) bezId.push({radek:r2+1, jmeno:(String(row[prC])+" "+String(row[jmC])).trim(), hodnota:String(row[idC])});
+      continue;
+    }
+    var os=String(row[idC]).trim();
+    var osoba=mapa[os];
+    if(osoba){ if(dvakrat.indexOf(os)===-1) dvakrat.push(os); }
+    else { osoba=mapa[os]={os:os, jmeno:(String(row[prC]||"")+" "+String(row[jmC]||"")).trim(), platby:{}}; poradi.push(os); }
+    mesCols.forEach(function(mc){
+      var c=cisloZBunky(row[mc.col]);
+      if(c===null||c===0) return;
+      if(isNaN(c)||c<0){ necitelne.push({os:os, jmeno:osoba.jmeno, hodnota:String(row[mc.col])+" ("+MESICE_NAMES[mc.mesic-1]+")"}); return; }
+      osoba.platby[mc.mesic]=(osoba.platby[mc.mesic]||0)+c;
+    });
+  }
+  if(!poradi.length) return {chyba:"V souboru jsem nenašel žádné řádky s ID."};
+  return {typ:"tajni", nazev:nazev, list:list, rok:y?parseInt(y[0]):new Date().getFullYear(), rokSoubor:y?parseInt(y[0]):0,
+    prosinecMinuly:predLednem, osoby:poradi.map(function(os){ return mapa[os]; }), dvakrat:dvakrat, necitelne:necitelne, bezId:bezId};
+}
+
+// období importu jako [{rok, mesic}]
+function prisImpObdobi(){
+  var p=prisImp;
+  if(p.typ==="ofiko") return [{rok:p.rok, mesic:p.mesic}];
+  var o=[]; for(var m=1;m<=12;m++) o.push({rok:(m===12&&p.prosinecMinuly)?p.rok-1:p.rok, mesic:m});
+  o.sort(function(a,b){ return (a.rok*12+a.mesic)-(b.rok*12+b.mesic); });
+  return o;
+}
+
+// načte stávající platby potřebné pro kontrolu a zobrazí náhled
+function prisImpNacist(){
+  var p=prisImp;
+  document.getElementById("pris-imp-title").textContent = p.typ==="ofiko" ? "Import ofiko — náhled" : "Import tajných — náhled";
+  document.getElementById("pris-imp-body").innerHTML='<div class="pris-empty">Kontroluji soubor…</div>';
+  document.getElementById("pris-imp-foot").innerHTML='';
+  var pVyr = (vyrazeniData && vyrazeniData.length) ? Promise.resolve() :
+    sbFetch("vyrazeni?select=*&limit=3000").then(function(r){ return r.json(); }).then(function(d){ if(Array.isArray(d)) vyrazeniData=d; }).catch(function(){});
+  var pStav, pRok=Promise.resolve(null);
+  if(p.typ==="ofiko" && p.mesic){
+    pStav = fetchAllRows("prispevky?rok=eq."+p.rok+"&mesic=eq."+p.mesic+"&zdroj=eq.ofiko&select=osobni_cislo,castka&order=id.asc");
+    pRok = nactiPrispevkyRoku(p.rok);
+  } else if(p.typ==="tajni"){
+    pStav = Promise.all([
+      fetchAllRows("prispevky?rok=eq."+(p.rok-1)+"&mesic=eq.12&zdroj=eq.tajni&select=osobni_cislo,castka&order=id.asc"),
+      fetchAllRows("prispevky?rok=eq."+p.rok+"&mesic=lte.11&zdroj=eq.tajni&select=osobni_cislo,castka&order=id.asc")
+    ]).then(function(a){ return p.prosinecMinuly ? a[0].concat(a[1]) : a[1]; });
+  } else pStav = Promise.resolve([]);
+  Promise.all([pStav, pRok, pVyr]).then(function(res){
+    if(prisImp!==p) return;
+    p.stavajici = res[0]||[];
+    p.rokData = res[1];
+    prisImpNahled();
+  }).catch(function(e){ console.error(e); showError("Nepodařilo se načíst stávající platby pro kontrolu."); });
+}
+
+function prisImpJmenoSedi(souborJmeno, m){
+  var f=bezDiakritiky(souborJmeno).split(/\s+/), db=bezDiakritiky(m.prijmeni+" "+m.jmeno).split(/\s+/);
+  var prijmeni=bezDiakritiky(m.prijmeni).split(/\s+/)[0];
+  return f.indexOf(prijmeni)!==-1 || db.indexOf(f[0])!==-1;
+}
+
+function prisImpNahled(){
+  var p=prisImp, ofiko=p.typ==="ofiko";
+  var clen={}; members.forEach(function(m){ clen[m.osnum]=m; });
+  var vyr={}; (vyrazeniData||[]).forEach(function(v){ if(v.evidencni_cislo) vyr[v.evidencni_cislo]=v; });
+  var ok=0, spatneJmeno=[], jinyTyp=[], vyrazeni=[], nezname=[];
+  p.osoby.forEach(function(o){
+    var m=clen[o.os];
+    if(!m){ if(vyr[o.os]) vyrazeni.push([o.os, o.jmeno]); else nezname.push([o.os, o.jmeno]); return; }
+    var dbJmeno=m.prijmeni+" "+m.jmeno, sedi=prisImpJmenoSedi(o.jmeno, m);
+    if(!sedi) spatneJmeno.push([o.os, o.jmeno, dbJmeno]);
+    if((m.typ==="Tajný člen")===ofiko) jinyTyp.push([o.os, o.jmeno, m.typ==="Tajný člen"?"tajný":"ofiko"]);
+    else if(sedi) ok++;
+  });
+
+  // součty
+  var obdobi=prisImpObdobi(), pocet=0, suma=0, poMesicich={};
+  p.osoby.forEach(function(o){
+    if(ofiko){ pocet++; suma+=o.castka; }
+    else Object.keys(o.platby).forEach(function(m){ pocet++; suma+=o.platby[m]; var x=poMesicich[m]=poMesicich[m]||{n:0,s:0}; x.n++; x.s+=o.platby[m]; });
+  });
+  var stN=p.stavajici.length, stS=0; p.stavajici.forEach(function(r){ stS+=parseFloat(r.castka)||0; });
+
+  // zastavující chyby
+  var stop=[], ted=new Date(), tedIdx=ted.getFullYear()*12+ted.getMonth()+1;
+  if(ofiko){
+    if(!p.mesic) stop.push("Vyberte měsíc, za který soubor je.");
+    else if(p.rok*12+p.mesic>tedIdx) stop.push("Měsíc "+MESICE_NAMES[p.mesic-1]+" "+p.rok+" je v budoucnosti.");
+    // soubor se shoduje s jiným, už nahraným měsícem?
+    if(p.mesic && p.rokData){
+      for(var mm=1;mm<=12;mm++){
+        if(mm===p.mesic) continue;
+        var spol=0, stejne=0;
+        p.osoby.forEach(function(o){ var d=p.rokData[o.os]; if(d && d[mm]!==undefined){ spol++; if(Math.abs(d[mm]-o.castka)<0.01) stejne++; } });
+        if(spol>=50 && stejne/spol>=0.9){
+          p.shoda={mesic:mm, procent:Math.round(stejne/spol*100)};
+          if(!p.shodaPotvrzena) stop.push("Soubor se z "+p.shoda.procent+" % shoduje s měsícem "+MESICE_NAMES[mm-1]+" "+p.rok+", který už je nahraný. Nejspíš jde o špatný soubor nebo špatně zvolený měsíc.");
+          break;
+        }
+      }
+    }
+  }
+  if(!ofiko && !p.rokSoubor && !p.rokPotvrzen) stop.push("Z názvu souboru jsem nepoznal rok. Zkontrolujte rok nahoře.");
+
+  // období a výběr měsíce / roku
+  var roky=[], r0=ted.getFullYear(); for(var y=r0-3;y<=r0+1;y++) roky.push(y);
+  var selRok='<select class="flt" onchange="prisImp.rok=parseInt(this.value);prisImp.rokPotvrzen=true;prisImp.shodaPotvrzena=false;prisImpNacist()">'+
+    roky.map(function(y){ return '<option value="'+y+'"'+(y===p.rok?' selected':'')+'>'+y+'</option>'; }).join("")+'</select>';
+  var hObdobi;
+  if(ofiko){
+    var selMes='<select class="flt" onchange="prisImp.mesic=parseInt(this.value)||0;prisImp.shodaPotvrzena=false;prisImpNacist()"><option value="">Vyberte měsíc…</option>'+
+      MESICE_NAMES.map(function(n,i){ return '<option value="'+(i+1)+'"'+(i+1===p.mesic?' selected':'')+'>'+n+'</option>'; }).join("")+'</select>';
+    var rozpoznano = p.mesicSoubor ? (p.mesicSoubor===p.mesic && p.rokSoubor===p.rok ?
+        '<span style="color:var(--green-dk);font-weight:700">&#10003; rozpoznáno ze souboru</span>' :
+        '<span style="color:var(--red);font-weight:700">&#9888; soubor je za '+MESICE_NAMES[p.mesicSoubor-1]+' '+p.rokSoubor+'!</span>') :
+      '<span style="color:var(--orange);font-weight:700">měsíc ze souboru nepoznán — vyberte ho</span>';
+    hObdobi='<div class="imp-obdobi">Platby za '+selMes+selRok+rozpoznano+'</div>';
+  } else {
+    hObdobi='<div class="imp-obdobi">Rok '+selRok+'<span>období <b>'+MESICE_NAMES[obdobi[0].mesic-1]+' '+obdobi[0].rok+' – '+MESICE_NAMES[obdobi[11].mesic-1]+' '+obdobi[11].rok+'</b></span></div>';
+  }
+
+  function tab(hlav, radky){
+    return '<div class="imp-tab"><table><tr>'+hlav.map(function(h){ return '<th>'+h+'</th>'; }).join("")+'</tr>'+
+      radky.map(function(r){ return '<tr>'+r.map(function(c){ return '<td>'+escHtml(c)+'</td>'; }).join("")+'</tr>'; }).join("")+'</table></div>';
+  }
+  function det(trida, text, hlav, radky){
+    return radky.length ? '<details class="'+trida+'"><summary>'+text+'</summary>'+tab(hlav, radky)+'</details>' : '';
+  }
+  var k='<div class="imp-k">';
+  stop.forEach(function(s){ k+='<div class="imp-r imp-stop">&#9940; '+s+'</div>'; });
+  if(ofiko && p.shoda && p.shodaPotvrzena) k+='<div class="imp-r imp-warn">&#9888; Shoda s měsícem '+MESICE_NAMES[p.shoda.mesic-1]+' ('+p.shoda.procent+' %) — potvrdili jste, že je soubor správný.</div>';
+  k+='<div class="imp-r imp-ok">&#10003; <b>'+ok+'</b> '+(ofiko?'členů ofiko':'tajných členů')+' — osobní číslo i jméno sedí</div>';
+  k+=det("imp-warn","&#9888; <b>"+spatneJmeno.length+"</b> — osobní číslo existuje, ale jméno nesedí (zkontrolujte, zda nejsou posunuté řádky)",["Os. č.","Jméno v souboru","Jméno v databázi"],spatneJmeno);
+  k+=det("imp-warn","&#9888; <b>"+jinyTyp.length+"</b> — "+(ofiko?"v databázi vedeni jako tajní":"v databázi vedeni jako ofiko"),["Os. č.","Jméno v souboru","Typ v databázi"],jinyTyp);
+  k+=det("imp-warn","&#9888; <b>"+vyrazeni.length+"</b> — vyřazení členové (platby se zapíšou)",["Os. č.","Jméno v souboru"],vyrazeni);
+  k+=det("imp-warn","&#9888; <b>"+nezname.length+"</b> — nejsou v databázi (platby se zapíšou; v Příspěvcích je najdete pod filtrem „Neznámé osobní číslo“)",["Os. č.","Jméno v souboru"],nezname);
+  k+=det("imp-warn","&#9888; <b>"+p.dvakrat.length+"</b> — osobní číslo je v souboru vícekrát (částky se sečtou)",["Os. č."],p.dvakrat.map(function(o){ return [o]; }));
+  k+=det("imp-warn","&#9888; <b>"+p.bezId.length+"</b> — řádek bez osobního čísla: platby se NENAHRAJÍ, doplňte číslo v souboru a nahrajte znovu",["Řádek","Jméno","Os. č. v souboru"],p.bezId.map(function(n){ return [n.radek,n.jmeno,n.hodnota||"(prázdné)"]; }));
+  k+=det("imp-warn","&#9888; <b>"+p.necitelne.length+"</b> — v buňce je text místo částky (přeskočeno)",["Os. č.","Jméno","Text"],p.necitelne.map(function(n){ return [n.os,n.jmeno,n.hodnota]; }));
+  k+='</div>';
+
+  var hSum='<div class="imp-sum">'+
+    '<div>'+(ofiko?'Plateb v souboru':'Lidí / plateb')+'<b>'+(ofiko?pocet.toLocaleString("cs-CZ"):p.osoby.length+' / '+pocet.toLocaleString("cs-CZ"))+'</b></div>'+
+    '<div>Celkem<b>'+fmtKc(Math.round(suma))+'</b></div>'+
+    '<div>Nahradí stávající<b>'+(stN?stN.toLocaleString("cs-CZ")+' plateb':'nic')+'</b>'+(stN?fmtKc(Math.round(stS)):'')+'</div></div>';
+  var hMesice='';
+  if(!ofiko) hMesice='<div class="imp-mesice">'+obdobi.map(function(o){ var x=poMesicich[o.mesic]||{n:0,s:0};
+      return '<div>'+MESICE_SHORT[o.mesic-1]+' '+String(o.rok).slice(2)+'<b>'+x.n+'</b>'+fmtKc(Math.round(x.s))+'</div>'; }).join("")+'</div>';
+
+  document.getElementById("pris-imp-body").innerHTML=
+    '<div class="imp-soubor">Soubor <b>'+escHtml(p.nazev)+'</b> · list <b>'+escHtml(p.list)+'</b></div>'+hObdobi+hSum+hMesice+k;
+
+  var popis = ofiko ? (p.mesic?MESICE_NAMES[p.mesic-1]+' '+p.rok:'') : 'tajní '+p.rok;
+  var foot='<button class="btn btn-out" onclick="closePrisImport()">Zrušit</button>'+
+    '<button class="btn btn-out" onclick="prisImpKrok1()">Jiný soubor</button>';
+  if(ofiko && p.shoda && !p.shodaPotvrzena && stop.length===1)
+    foot+='<button class="btn btn-out" style="color:var(--red)" onclick="prisImp.shodaPotvrzena=true;prisImpNahled()">Soubor je správný, pokračovat</button>';
+  if(!ofiko && !p.rokSoubor && !p.rokPotvrzen && stop.length===1)
+    foot+='<button class="btn btn-out" onclick="prisImp.rokPotvrzen=true;prisImpNahled()">Rok je správně</button>';
+  if(!stop.length) foot+='<button class="btn btn-blue" onclick="prisImpUlozit()">&#10003; Nahrát '+pocet.toLocaleString("cs-CZ")+' plateb ('+popis+')</button>';
+  document.getElementById("pris-imp-foot").innerHTML=foot;
+  p.souhrn={pocet:pocet, suma:Math.round(suma), nahrazeno:stN, popis:popis};
+}
+
+function prisImpUlozit(){
+  var p=prisImp; if(!p) return;
+  var obdobi=prisImpObdobi(), radky=[];
+  var rokMesice={}; obdobi.forEach(function(o){ rokMesice[o.mesic]=o.rok; });
+  p.osoby.forEach(function(o){
+    if(p.typ==="ofiko") radky.push({osobni_cislo:o.os, rok:p.rok, mesic:p.mesic, castka:o.castka});
+    else Object.keys(o.platby).forEach(function(m){ m=parseInt(m); radky.push({osobni_cislo:o.os, rok:rokMesice[m], mesic:m, castka:o.platby[m]}); });
+  });
+  document.getElementById("pris-imp-foot").innerHTML='<span style="font-size:14px;color:var(--text2)">Ukládám…</span>';
+  sbFetch("rpc/import_prispevky",{method:"POST", body:JSON.stringify({p_zdroj:p.typ, p_obdobi:obdobi, p_radky:radky})})
+    .then(function(r){ return r.json().then(function(d){ if(!r.ok) throw new Error(d&&d.message||("HTTP "+r.status)); return d; }); })
+    .then(function(d){
+      var s=p.souhrn;
+      logChange("Import příspěvků — "+(p.typ==="ofiko"?"ofiko":"tajní"),
+        s.popis+": "+s.pocet+" plateb, "+fmtKc(s.suma)+(d&&d.smazano?", nahrazeno "+d.smazano:"")+", soubor "+p.nazev);
+      setTimeout(loadAuditLog, 500);
+      closePrisImport();
+      var sel=document.getElementById("pris-rok"), rok=p.typ==="ofiko"?p.rok:obdobi[11].rok;
+      if(sel && sel.querySelector('option[value="'+rok+'"]')) sel.value=String(rok);
+      prisHistorie={}; dues=null;
+      loadPrispevky();
+      showSuccess("Import dokončen — "+s.popis+": nahráno "+s.pocet+" plateb ("+fmtKc(s.suma)+").");
+    })
+    .catch(function(e){ console.error("import_prispevky:", e); showError("Import se nepodařilo uložit: "+e.message); prisImpNahled(); });
 }
 
 // Ruční editace příspěvků
@@ -3466,7 +3726,7 @@ function openPrisEdit(osnum, name){
       for(var mi=0;mi<MESICE_NAMES.length;mi++){
         btns+='<button type="button" onclick="prisSelectMesic('+(mi+1)+')" id="pris-m-btn-'+(mi+1)+'" '+
           'style="padding:8px 4px;border-radius:8px;border:2px solid var(--border);background:var(--panel2);'+
-          'color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;">'+
+          'color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;transition:.15s;">'+
           MESICE_NAMES[mi]+'</button>';
       }
       return btns;
@@ -3478,7 +3738,7 @@ function openPrisEdit(osnum, name){
     '<select class="finp" id="pris-edit-rok">'+rokOpts+'</select></div>'+
     '</div>'+
     '<div><label class="lbl">Částka (Kč)</label>'+
-    '<input class="finp" id="pris-edit-castka" type="number" min="0" max="9999" step="1" placeholder="0" style="font-size:22px;font-weight:700;text-align:center;"/></div>';
+    '<input class="finp" id="pris-edit-castka" type="number" min="0" max="9999" step="1" placeholder="0" style="font-size:24px;font-weight:700;text-align:center;"/></div>';
   
   document.getElementById("pris-edit-fields").innerHTML = fields;
 
@@ -3641,7 +3901,7 @@ function showToast(msg, type){
   if(!el){
     el = document.createElement("div");
     el.id = "toast";
-    el.style.cssText = "position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;font-family:var(--font);box-shadow:0 4px 20px rgba(0,0,0,.15);display:none;max-width:320px;";
+    el.style.cssText = "position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:15px;font-weight:600;font-family:var(--font);box-shadow:0 4px 20px rgba(0,0,0,.15);display:none;max-width:320px;";
     document.body.appendChild(el);
   }
   el.textContent = msg;
@@ -3963,7 +4223,7 @@ function logChange(akce, detail, osobniCislo){
 function loadAuditLog(){
   var el=document.getElementById("audit-log-list");
   if(!el) return;
-  el.innerHTML="<div style='color:var(--text2);font-size:13px;padding:8px 0;'>Načítám...</div>";
+  el.innerHTML="<div style='color:var(--text2);font-size:14px;padding:8px 0;'>Načítám...</div>";
   fetch(SUPABASE_URL+"/rest/v1/audit_log?select=*&order=created_at.desc&limit=20",{
     headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+ACCESS_TOKEN,"Content-Type":"application/json"}
   }).then(function(r){
@@ -3971,7 +4231,7 @@ function loadAuditLog(){
     return r.json();
   }).then(function(data){
     if(!Array.isArray(data)||data.length===0){
-      el.innerHTML="<div style='color:var(--text2);font-size:13px;padding:8px 0;'>Zatím žádné změny.</div>";
+      el.innerHTML="<div style='color:var(--text2);font-size:14px;padding:8px 0;'>Zatím žádné změny.</div>";
       return;
     }
     el.innerHTML=data.map(function(log){
@@ -3979,13 +4239,13 @@ function loadAuditLog(){
       var dtStr=dt?dt.toLocaleDateString("cs-CZ")+" "+dt.toLocaleTimeString("cs-CZ",{hour:"2-digit",minute:"2-digit"}):"—";
       var color=log.akce&&log.akce.indexOf("Smazán")!==-1?"var(--red)":log.akce&&log.akce.indexOf("Přidán")!==-1?"#05c957":log.akce&&(log.akce.indexOf("mail")!==-1||log.akce.indexOf("SMS")!==-1)?"#087cf4":"var(--text2)";
       return "<div class='zm-row'>"+
-        "<div style='min-width:130px;font-size:11px;color:var(--text2);'>"+dtStr+"</div>"+
-        "<div style='flex:1;min-width:0;'><span style='font-size:12px;font-weight:700;color:"+color+";'>"+escHtml(log.akce||"")+"</span>"+
-        (log.detail?"<span style='font-size:12px;color:var(--text2);'> — "+escHtml(log.detail)+"</span>":"")+
-        "</div><div style='font-size:11px;color:var(--text2);min-width:80px;text-align:right;'>"+escHtml(log.uzivatel||"")+"</div></div>";
+        "<div style='min-width:130px;font-size:12px;color:var(--text2);'>"+dtStr+"</div>"+
+        "<div style='flex:1;min-width:0;'><span style='font-size:13px;font-weight:700;color:"+color+";'>"+escHtml(log.akce||"")+"</span>"+
+        (log.detail?"<span style='font-size:13px;color:var(--text2);'> — "+escHtml(log.detail)+"</span>":"")+
+        "</div><div style='font-size:12px;color:var(--text2);min-width:80px;text-align:right;'>"+escHtml(log.uzivatel||"")+"</div></div>";
     }).join("");
   }).catch(function(err){
-    el.innerHTML="<div style='color:var(--text2);font-size:13px;padding:8px 0;'>Nepodařilo se načíst změny.</div>";
+    el.innerHTML="<div style='color:var(--text2);font-size:14px;padding:8px 0;'>Nepodařilo se načíst změny.</div>";
   });
 }
 
@@ -4086,7 +4346,7 @@ function renderStatistiky(){
   document.getElementById("stat-odd").innerHTML=oddArr.map(function(o){
     var dTxt=o.d?'<span style="color:'+(o.d<0?'var(--red)':'var(--green-dk)')+'">'+(o.d>0?"+":"−")+Math.abs(o.d)+'</span>':'';
     return '<div class="hb"><div class="hb-top"><span>'+o.k+'</span><b>'+o.n.toLocaleString("cs-CZ")+' '+dTxt+'</b></div><div class="hb-bar"><i style="width:'+Math.max(3,o.n/maxN*100)+'%"></i></div></div>';
-  }).join("")||'<div style="color:var(--text2);font-size:12px">Žádná data.</div>';
+  }).join("")||'<div style="color:var(--text2);font-size:13px">Žádná data.</div>';
 
   // Graf
   var hasData=s.total.some(function(v){ return v>0; });
@@ -4178,9 +4438,9 @@ function exportMembersPDF(){
     "<div class='no-print' style='text-align:right;margin-bottom:16px;'>"+
     "<button onclick='window.print()' style='padding:8px 16px;background:#087cf4;color:#fff;border:none;border-radius:6px;cursor:pointer;'>🖨️ Tisk / PDF</button></div>"+
     "<div style='display:flex;justify-content:space-between;margin-bottom:16px;'>"+
-    "<div><b>Základní organizace OS KOVO Hyundai Czech</b><br><span style='font-size:12px;color:#666;'>Průmyslová zóna Nošovice 700/1, Nižní Lhoty 739 51</span></div>"+
-    "<div style='font-size:12px;color:#666;text-align:right;'>Datum: "+new Date().toLocaleDateString("cs-CZ")+"<br>Počet: "+filtered.length+"</div></div>"+
-    "<h3 style='text-align:center;margin:0 0 12px;font-size:14px;'>SEZNAM ČLENŮ"+(typ?" — "+typ:"")+(odd?" — "+odd:"")+(skupina?" — "+skupina:"")+"</h3>"+
+    "<div><b>Základní organizace OS KOVO Hyundai Czech</b><br><span style='font-size:13px;color:#666;'>Průmyslová zóna Nošovice 700/1, Nižní Lhoty 739 51</span></div>"+
+    "<div style='font-size:13px;color:#666;text-align:right;'>Datum: "+new Date().toLocaleDateString("cs-CZ")+"<br>Počet: "+filtered.length+"</div></div>"+
+    "<h3 style='text-align:center;margin:0 0 12px;font-size:15px;'>SEZNAM ČLENŮ"+(typ?" — "+typ:"")+(odd?" — "+odd:"")+(skupina?" — "+skupina:"")+"</h3>"+
     "<table style='width:100%;border-collapse:collapse;'><thead><tr>"+
     "<th style='padding:6px 8px;border:1px solid #ccc;background:#1a2332;color:#fff;font-size:11px;text-align:left;'>Příjmení</th>"+
     "<th style='padding:6px 8px;border:1px solid #ccc;background:#1a2332;color:#fff;font-size:11px;text-align:left;'>Jméno</th>"+
@@ -4886,7 +5146,7 @@ function savePrisEdit(){
       "Content-Type":"application/json",
       "Prefer":"resolution=merge-duplicates,return=minimal"
     },
-    body:JSON.stringify({osobni_cislo:prisEditOsnum, rok:rok, mesic:mesic, castka:castka})
+    body:JSON.stringify({osobni_cislo:prisEditOsnum, rok:rok, mesic:mesic, castka:castka, zdroj:"rucne"})
   }).then(function(r){
     if(r.ok||r.status===201||r.status===204||r.status===200){
       onSuccess();
@@ -4938,9 +5198,9 @@ function openPrisCard(osnum, nameEnc){
   box.style.cssText = "background:var(--panel);border-radius:16px;max-width:480px;width:95%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.3);";
   box.innerHTML =
     "<div style='padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;'>"+
-      "<div><div style='font-size:17px;font-weight:700;color:var(--text);'>"+name+"</div>"+
-      "<div style='font-size:13px;color:var(--text2);margin-top:2px;'>OS: "+osnum+"</div></div>"+
-      "<button id='pris-card-close' style='background:none;border:none;font-size:22px;cursor:pointer;color:var(--text2);'>✕</button>"+
+      "<div><div style='font-size:19px;font-weight:700;color:var(--text);'>"+name+"</div>"+
+      "<div style='font-size:14px;color:var(--text2);margin-top:2px;'>OS: "+osnum+"</div></div>"+
+      "<button id='pris-card-close' style='background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);'>✕</button>"+
     "</div>"+
     "<div id='pris-card-body' style='overflow-y:auto;flex:1;padding:0;'>"+
       "<div style='text-align:center;padding:30px;color:var(--text2);'>Načítám...</div>"+
@@ -4984,7 +5244,7 @@ function openPrisCard(osnum, nameEnc){
       var celkem = 0;
       for(var i=1;i<=12;i++) celkem += pd[i]||0;
 
-      html += "<div style='padding:10px 16px;background:var(--panel2);font-weight:700;font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;display:flex;justify-content:space-between;border-bottom:1px solid var(--border);'>";
+      html += "<div style='padding:10px 16px;background:var(--panel2);font-weight:700;font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;display:flex;justify-content:space-between;border-bottom:1px solid var(--border);'>";
       html += "<span>"+rok+"</span><span style='color:#087cf4;'>"+celkem+" Kč</span></div>";
 
       for(var i=0;i<MESICE_NAMES.length;i++){
@@ -5043,16 +5303,16 @@ function showDuplicatesTable(duplicates, mesicName, rok){
   box.style.cssText = "background:var(--panel);border-radius:16px;max-width:620px;width:95%;max-height:80vh;overflow:auto;box-shadow:0 8px 40px rgba(0,0,0,.3);";
   box.innerHTML =
     "<div style='padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;'>"+
-      "<div><div style='font-size:17px;font-weight:700;color:var(--text);'>Přeskočené záznamy</div>"+
-      "<div style='font-size:13px;color:var(--text2);margin-top:4px;'>"+mesicName+" "+rok+" — "+duplicates.length+" záznamů již existovalo a nebylo přepsáno</div></div>"+
-      "<button id='dup-close' style='background:none;border:none;font-size:22px;cursor:pointer;color:var(--text2);'>✕</button>"+
+      "<div><div style='font-size:19px;font-weight:700;color:var(--text);'>Přeskočené záznamy</div>"+
+      "<div style='font-size:14px;color:var(--text2);margin-top:4px;'>"+mesicName+" "+rok+" — "+duplicates.length+" záznamů již existovalo a nebylo přepsáno</div></div>"+
+      "<button id='dup-close' style='background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);'>✕</button>"+
     "</div>"+
     "<table style='width:100%;border-collapse:collapse;'>"+
     "<thead><tr>"+
-      "<th style='padding:8px 12px;text-align:left;font-size:11px;color:var(--text2);text-transform:uppercase;'>OS číslo</th>"+
-      "<th style='padding:8px 12px;text-align:left;font-size:11px;color:var(--text2);text-transform:uppercase;'>Jméno</th>"+
-      "<th style='padding:8px 12px;text-align:left;font-size:11px;color:var(--text2);text-transform:uppercase;'>Stávající</th>"+
-      "<th style='padding:8px 12px;text-align:left;font-size:11px;color:var(--text2);text-transform:uppercase;'>V souboru</th>"+
+      "<th style='padding:8px 12px;text-align:left;font-size:12px;color:var(--text2);text-transform:uppercase;'>OS číslo</th>"+
+      "<th style='padding:8px 12px;text-align:left;font-size:12px;color:var(--text2);text-transform:uppercase;'>Jméno</th>"+
+      "<th style='padding:8px 12px;text-align:left;font-size:12px;color:var(--text2);text-transform:uppercase;'>Stávající</th>"+
+      "<th style='padding:8px 12px;text-align:left;font-size:12px;color:var(--text2);text-transform:uppercase;'>V souboru</th>"+
     "</tr></thead><tbody>"+rows+"</tbody></table>"+
     "<div style='padding:16px 24px;border-top:1px solid var(--border);text-align:right;'>"+
       "<button id='dup-close2' class='btn btn-blue'>Rozumím</button>"+
@@ -5078,13 +5338,13 @@ function closePrisEdit(){
   <div class="modal" style="max-width:360px;padding:0;overflow:hidden;">
     <div style="padding:14px 16px;border-bottom:1px solid var(--border);background:var(--panel2);">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <select id="dp-month-sel" onchange="dpSetMonth(this.value)" style="flex:1;padding:6px 8px;border-radius:7px;border:1.5px solid var(--border);background:var(--panel);color:var(--text);font-family:var(--font);font-size:14px;"></select>
-        <select id="dp-year-sel" onchange="dpSetYear(this.value)" style="width:90px;padding:6px 8px;border-radius:7px;border:1.5px solid var(--border);background:var(--panel);color:var(--text);font-family:var(--font);font-size:14px;"></select>
+        <select id="dp-month-sel" onchange="dpSetMonth(this.value)" style="flex:1;padding:6px 8px;border-radius:7px;border:1.5px solid var(--border);background:var(--panel);color:var(--text);font-family:var(--font);font-size:15px;"></select>
+        <select id="dp-year-sel" onchange="dpSetYear(this.value)" style="width:90px;padding:6px 8px;border-radius:7px;border:1.5px solid var(--border);background:var(--panel);color:var(--text);font-family:var(--font);font-size:15px;"></select>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;">
-        <button onclick="dpPrev()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text2);padding:4px 10px;border-radius:6px;">&#8249;</button>
-        <div id="dp-selected-display" style="font-size:13px;color:var(--blue);font-weight:600;">Vyberte datum</div>
-        <button onclick="dpNext()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text2);padding:4px 10px;border-radius:6px;">&#8250;</button>
+        <button onclick="dpPrev()" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text2);padding:4px 10px;border-radius:6px;">&#8249;</button>
+        <div id="dp-selected-display" style="font-size:14px;color:var(--blue);font-weight:600;">Vyberte datum</div>
+        <button onclick="dpNext()" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text2);padding:4px 10px;border-radius:6px;">&#8250;</button>
       </div>
     </div>
     <div id="dp-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:8px;"></div>
