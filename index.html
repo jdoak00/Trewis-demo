@@ -1086,6 +1086,7 @@ select.finp{cursor:pointer;}
             </div>
             <button class="btn btn-out" onclick="csvExportVyrazeni()">Export</button>
             <button class="btn btn-out" onclick="document.getElementById('vyr-import-inp').click()">Import</button>
+            <button class="btn btn-out" id="vyr-vratit-btn" style="display:none" onclick="vratitImportVyr()"></button>
             <input type="file" id="vyr-import-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="importVyrazeni(event)"/>
           </div>
           <div style="overflow-x:auto;">
@@ -1271,7 +1272,8 @@ select.finp{cursor:pointer;}
         </select></div>
         <div><label class="lbl">Člen od</label><input class="finp" id="vyr-clen-od" readonly onclick="dpOpen(this)" style="cursor:pointer"/></div>
         <div><label class="lbl">Člen do</label><input class="finp" id="vyr-clen-do" readonly onclick="dpOpen(this)" style="cursor:pointer"/></div>
-        <div style="grid-column:1/-1"><label class="lbl">Linka a směna</label><input class="finp" id="vyr-linka-smena"/></div>
+        <div><label class="lbl">Linka a směna</label><input class="finp" id="vyr-linka-smena"/></div>
+        <div><label class="lbl">Za svobodna</label><input class="finp" id="vyr-za-svobodna"/></div>
         <div style="grid-column:1/-1"><label class="lbl">Důvod ukončení</label><textarea class="ftxt" id="vyr-duvod" rows="2"></textarea></div>
         <div style="grid-column:1/-1"><label class="lbl">Poznámky</label><textarea class="ftxt" id="vyr-poznamky" rows="4"></textarea></div>
       </div>
@@ -4795,6 +4797,7 @@ function loadVyrazeni(){
     .then(function(data){
       vyrazeniData = Array.isArray(data) ? data : [];
       renderVyrazeni();
+      nactiDavkuVyr();
     }).catch(function(){ showToast("Chyba načítání vyřazených.","err"); });
 }
 
@@ -4869,6 +4872,7 @@ function openEditVyrModal(id){
   var oEl = document.getElementById("vyr-oddeleni");
   if(oEl){ vyrZajistitOddeleni(oEl, v.oddeleni); oEl.value = v.oddeleni||""; }
   var nEl = document.getElementById("vyr-poznamky"); if(nEl) nEl.value = v.poznamky||"";
+  var zsEl = document.getElementById("vyr-za-svobodna"); if(zsEl) zsEl.value = (v.data_clena&&v.data_clena.za_svobodna)||"";
   var lEl = document.getElementById("vyr-linka-smena"); if(lEl) lEl.value = v.linka_smena||"";
   var dEl = document.getElementById("vyr-duvod"); if(dEl) dEl.value = (v.duvod_ukonceni||" ").split("||{")[0].trim();
   var od = document.getElementById("vyr-clen-od");
@@ -4903,6 +4907,10 @@ function saveEditVyr(){
     })(),
     poznamky: (document.getElementById("vyr-poznamky")||{value:""}).value.trim()||null
   };
+  // za svobodna se drží v uložené kartě člena (při obnovení se vrátí na kartu)
+  var origV = vyrazeniData.find(function(x){ return x.id===editVyrId; });
+  var zs = (document.getElementById("vyr-za-svobodna")||{value:""}).value.trim();
+  row.data_clena = Object.assign({}, (origV&&origV.data_clena)||{}, {za_svobodna: zs||null});
   sbFetch("vyrazeni?id=eq."+editVyrId, {method:"PATCH", body:JSON.stringify(row)}).then(function(r){
     if(r.ok){
       var idx = vyrazeniData.findIndex(function(x){ return x.id === editVyrId; });
@@ -4920,7 +4928,7 @@ function saveEditVyr(){
 function openAddVyrazeniModal(){
   if(checkGuest("Nemáte oprávnění přidávat záznamy.")) return;
   editVyrId = null;
-  ["vyr-jmeno","vyr-prijmeni","vyr-evid","vyr-linka-smena","vyr-duvod","vyr-poznamky"].forEach(function(id){
+  ["vyr-jmeno","vyr-prijmeni","vyr-evid","vyr-linka-smena","vyr-duvod","vyr-poznamky","vyr-za-svobodna"].forEach(function(id){
     var el = document.getElementById(id); if(el) el.value = "";
   });
   var od = document.getElementById("vyr-clen-od"); if(od){ od.value=""; od.dataset.isoValue=""; }
@@ -4954,6 +4962,8 @@ function addVyrazeni(){
     duvod_ukonceni:(document.getElementById("vyr-duvod")||{value:""}).value.trim(),
     poznamky:(document.getElementById("vyr-poznamky")||{value:""}).value.trim()||null
   };
+  var zsN = (document.getElementById("vyr-za-svobodna")||{value:""}).value.trim();
+  if(zsN) row.data_clena = {za_svobodna: zsN};
   sbFetch("vyrazeni", {method:"POST", body:JSON.stringify(row)})
     .then(function(r){ return r.json(); })
     .then(function(data){
@@ -4980,6 +4990,8 @@ function csvExportVyrazeni(){
 // ===== Import vyřazených (jednorázově z evidence: list "Vyřazení_členové") =====
 // Sloupce podle záhlaví: Příjmení a jméno (nebo zvlášť), Evid. číslo, Člen od, Člen do, Oddělení,
 // Linka a směna, Důvod ukončení; poznámky = sloupec "Poznámky", jinak sloupec I (za důvodem).
+// Jméno: první slovo = příjmení, zbytek = jméno; "Nováková býv. Dubová Jana" = příjmení Nováková,
+// za svobodna Dubová, jméno Jana. Každý import je dávka (import_davky), kterou lze celou vrátit.
 var vyrImp = null;
 
 function importVyrazeni(event){
@@ -5012,6 +5024,15 @@ function excelDatum(v){
   return iso || undefined; // undefined = nečitelné
 }
 
+// "Nováková býv. Dubová Jana" -> {prijmeni:"Nováková", zaSvobodna:"Dubová", jmeno:"Jana"}
+function rozdelJmeno(cele){
+  var s=String(cele||"").replace(/\(|\)/g," ").replace(/(^|\s)b[yý]v(\.\s*|\s+)/gi,"$1býv. ").replace(/([^\s.])b[yý]v\.\s*/gi,"$1 býv. ").replace(/\s+/g," ").trim();
+  var t=s.split(" ").filter(Boolean), i=-1;
+  t.forEach(function(x,k){ if(i===-1 && /^b[yý]v\.?$/i.test(x)) i=k; });
+  if(i>0) return {prijmeni:t.slice(0,i).join(" "), zaSvobodna:t[i+1]||"", jmeno:t.slice(i+2).join(" ")};
+  return {prijmeni:t[0]||"", zaSvobodna:"", jmeno:t.slice(1).join(" ")};
+}
+
 function vyrImpCti(wb, nazev){
   var list=wb.SheetNames.filter(function(n){ return /vyrazen/.test(bezDiakritiky(n)); })[0] || wb.SheetNames[0];
   var rows=XLSX.utils.sheet_to_json(wb.Sheets[list],{header:1, raw:true, defval:""});
@@ -5035,35 +5056,36 @@ function vyrImpCti(wb, nazev){
   if(hi===-1) return {chyba:"V souboru jsem nenašel záhlaví (Příjmení a jméno, Evid. číslo, Člen od, Člen do…). Je to list vyřazených?"};
   if(c.pozn===undefined && c.duvod!==undefined) c.pozn=c.duvod+1;
   function txt(row,i){ return i===undefined ? "" : String(row[i]==null?"":row[i]).replace(/\s+/g," ").trim(); }
-  var osoby=[], spatneDatum=[], viceslovne=[];
+  var osoby=[], spatneDatum=[], viceslovne=[], byvale=[];
   for(var r2=hi+1;r2<rows.length;r2++){
-    var row=rows[r2], prijmeni, jmeno;
+    var row=rows[r2], j;
     if(c.cele!==undefined){
-      var t=txt(row,c.cele).split(" ").filter(Boolean); if(!t.length) continue;
-      prijmeni=t[0]; jmeno=t.slice(1).join(" ");
-      if(t.length>2) viceslovne.push([r2+1, txt(row,c.cele), prijmeni+" | "+jmeno]);
+      if(!txt(row,c.cele)) continue;
+      j=rozdelJmeno(txt(row,c.cele));
     } else {
-      prijmeni=txt(row,c.prijmeni); jmeno=txt(row,c.jmeno); if(!prijmeni&&!jmeno) continue;
+      j=rozdelJmeno(txt(row,c.prijmeni)); j.jmeno=txt(row,c.jmeno) || j.jmeno;
+      if(!j.prijmeni && !j.jmeno) continue;
     }
+    if(j.zaSvobodna) byvale.push([r2+1, txt(row,c.cele!==undefined?c.cele:c.prijmeni), j.prijmeni, j.zaSvobodna, j.jmeno]);
+    else if(j.jmeno.indexOf(" ")!==-1) viceslovne.push([r2+1, j.prijmeni, j.jmeno]);
     var evid=txt(row,c.evid).replace(/\.0+$/,"");
     var od=excelDatum(row[c.od]), d=excelDatum(row[c.do_]);
-    if(od===undefined||d===undefined) spatneDatum.push([r2+1, prijmeni+" "+jmeno, (od===undefined?String(row[c.od]):"")+" "+(d===undefined?String(row[c.do_]):"")]);
+    if(od===undefined||d===undefined) spatneDatum.push([r2+1, j.prijmeni+" "+j.jmeno, (od===undefined?String(row[c.od]):"")+" "+(d===undefined?String(row[c.do_]):"")]);
     var poz=c.pozn!==undefined ? String(row[c.pozn]==null?"":row[c.pozn]).trim() : "";
-    osoby.push({radek:r2+1, jmeno:jmeno, prijmeni:prijmeni, evidencni_cislo:evid||null,
+    osoby.push({radek:r2+1, jmeno:j.jmeno, prijmeni:j.prijmeni, zaSvobodna:j.zaSvobodna, evidencni_cislo:evid||null,
       clen_od:od||null, clen_do:d||null, oddeleni:txt(row,c.odd)||null, linka_smena:txt(row,c.linka)||null,
       duvod_ukonceni:txt(row,c.duvod)||null, poznamky:poz||null});
   }
   if(!osoby.length) return {chyba:"V souboru nejsou žádní vyřazení."};
-  return {nazev:nazev, list:list, osoby:osoby, spatneDatum:spatneDatum, viceslovne:viceslovne};
+  return {nazev:nazev, list:list, osoby:osoby, spatneDatum:spatneDatum, viceslovne:viceslovne, byvale:byvale};
 }
 
 function vyrImpNahled(){
   var p=vyrImp;
   var clen={}; members.forEach(function(m){ if(m.osnum) clen[m.osnum]=m; });
   var uz={}; vyrazeniData.forEach(function(v){ if(v.evidencni_cislo) uz[v.evidencni_cislo]=true; });
-  // stejné číslo v souboru vícekrát (odešel, vrátil se, znovu odešel): nahraje se poslední odchod,
-  // dřívější členství se připíše do jeho poznámek
-  // stejný člověk = stejné číslo i jméno; stejné číslo u různých jmen se nahraje zvlášť (s upozorněním)
+  // stejný člověk = stejné číslo i jméno (odešel, vrátil se, znovu odešel): nahraje se poslední odchod,
+  // dřívější členství se připíše do jeho poznámek; stejné číslo u různých jmen se nahraje zvlášť
   function klic(o){ return o.evidencni_cislo+"|"+bezDiakritiky(o.prijmeni+" "+o.jmeno); }
   var posledni={}, jmenaCisla={};
   p.osoby.forEach(function(o){
@@ -5074,6 +5096,7 @@ function vyrImpNahled(){
   var stejneCislo=[];
   Object.keys(jmenaCisla).forEach(function(os){ var j=Object.keys(jmenaCisla[os]); if(j.length>1) stejneCislo.push([os, j.map(function(x){ return jmenaCisla[os][x]; }).join(", ")]); });
   var nahrat=[], uzJsou=[], clenove=[], dalsi=[], bezCisla=[], bezData=[];
+  p.osoby.forEach(function(o){ o._drivejsi=null; });
   p.osoby.forEach(function(o){
     var os=o.evidencni_cislo, popis=[o.radek, o.prijmeni+" "+o.jmeno, os||"", formatDate(o.clen_od)+" – "+formatDate(o.clen_do)];
     if(os && uz[os]){ uzJsou.push(popis); return; }
@@ -5083,13 +5106,21 @@ function vyrImpNahled(){
     if(!o.clen_do) bezData.push(popis);
     nahrat.push(o);
   });
-  // dřívější členství k nahrávaným záznamům
   p.osoby.forEach(function(o){
     var os=o.evidencni_cislo; if(!os || posledni[klic(o)]===o || uz[os] || clen[os]) return;
     var cil=posledni[klic(o)];
     cil._drivejsi=(cil._drivejsi||[]).concat(["Dřívější členství: "+formatDate(o.clen_od)+" – "+formatDate(o.clen_do)+(o.duvod_ukonceni?", důvod: "+o.duvod_ukonceni:"")]);
   });
-  p.nahrat=nahrat; p.clenove=clenove;
+  // texty, které se připíšou do poznámek současným členům (ti, kteří se vrátili)
+  var podleOs={}; p.osoby.forEach(function(o){ if(o.evidencni_cislo) (podleOs[o.evidencni_cislo]=podleOs[o.evidencni_cislo]||[]).push(o); });
+  var zmeny=[], hotovo={};
+  clenove.forEach(function(c){
+    var os=c[2], m=clen[os]; if(hotovo[os]) return; hotovo[os]=true;
+    var radky=podleOs[os].map(function(o){ return "Dřívější členství: "+formatDate(o.clen_od)+" – "+formatDate(o.clen_do)+(o.duvod_ukonceni?", důvod: "+o.duvod_ukonceni:""); })
+      .filter(function(t){ return (m.poznamky||"").indexOf(t)===-1; });
+    if(radky.length) zmeny.push({id:m.id, m:m, pridano:(m.poznamky?"\n":"")+radky.join("\n")});
+  });
+  p.nahrat=nahrat; p.zmeny=zmeny;
 
   function tab(hlav, radky){
     return '<div class="imp-tab"><table><tr>'+hlav.map(function(h){ return '<th>'+h+'</th>'; }).join("")+'</tr>'+
@@ -5098,61 +5129,95 @@ function vyrImpNahled(){
   function det(trida, text, hlav, radky){ return radky.length ? '<details class="'+trida+'"><summary>'+text+'</summary>'+tab(hlav, radky)+'</details>' : ''; }
   var H=["Řádek","Jméno","Os. č.","Členství"];
   var k='<div class="imp-k">'+
-    '<div class="imp-r imp-ok">&#10003; <b>'+nahrat.length.toLocaleString("cs-CZ")+'</b> vyřazených se nahraje (včetně poznámek)</div>'+
-    det("imp-warn","&#9888; <b>"+clenove.length+"</b> — jsou mezi současnými členy (vrátili se): nenahrají se do Vyřazených, dřívější členství se jim připíše do poznámky na kartě",H.concat(["Člen v databázi"]),clenove)+
-    det("imp-ok","&#10003; <b>"+uzJsou.length+"</b> — už jsou ve Vyřazených (přeskočí se)",H,uzJsou)+
-    det("imp-ok","&#10003; <b>"+dalsi.length+"</b> — dřívější odchod téhož člověka (připíše se do poznámek k poslednímu odchodu)",H,dalsi)+
-    det("imp-warn","&#9888; <b>"+stejneCislo.length+"</b> — stejné osobní číslo u různých lidí (nahrají se zvlášť, zkontrolujte čísla)",["Os. č.","Jména"],stejneCislo)+
-    det("imp-warn","&#9888; <b>"+bezCisla.length+"</b> — bez osobního čísla (nahrají se, ale nespárují se s platbami)",H,bezCisla)+
-    det("imp-warn","&#9888; <b>"+bezData.length+"</b> — chybí datum ukončení",H,bezData)+
-    det("imp-warn","&#9888; <b>"+p.spatneDatum.length+"</b> — nečitelné datum (nahraje se bez něj)",["Řádek","Jméno","Hodnota"],p.spatneDatum)+
-    det("imp-warn","&#9888; <b>"+p.viceslovne.length+"</b> — víceslovné jméno, zkontrolujte rozdělení na příjmení | jméno",["Řádek","V souboru","Rozděleno"],p.viceslovne)+
-    '</div>';
+    '<div class="imp-r imp-ok">&#10003; <b>'+nahrat.length.toLocaleString("cs-CZ")+'</b> vyřazených se nahraje do Vyřazených (včetně poznámek)</div>'+
+    det("imp-ok","&#10003; <b>"+p.byvale.length+"</b> — „býv.“ = rodné příjmení: uloží se jako za svobodna",["Řádek","V souboru","Příjmení","Za svobodna","Jméno"],p.byvale)+
+    det("imp-ok","&#10003; <b>"+p.viceslovne.length+"</b> — víceslovné jméno: první slovo je příjmení, zbytek jméno",["Řádek","Příjmení","Jméno"],p.viceslovne)+
+    det("imp-ok","&#10003; <b>"+dalsi.length+"</b> — dřívější odchod téhož člověka: nenahraje se zvlášť, připíše se do poznámek k jeho poslednímu odchodu",H,dalsi)+
+    det("imp-ok","&#10003; <b>"+uzJsou.length+"</b> — už jsou ve Vyřazených: přeskočí se",H,uzJsou)+
+    det("imp-warn","&#9888; <b>"+clenove.length+"</b> — jsou mezi současnými členy (vrátili se): do Vyřazených se nedají, dřívější členství se jim připíše do poznámky na kartě",H.concat(["Člen v databázi"]),clenove)+
+    det("imp-warn","&#9888; <b>"+stejneCislo.length+"</b> — stejné osobní číslo u různých lidí: nahrají se zvlášť, číslo zkontrolujte",["Os. č.","Jména"],stejneCislo)+
+    det("imp-warn","&#9888; <b>"+bezCisla.length+"</b> — bez osobního čísla: nahrají se, ale nespárují se s platbami",H,bezCisla)+
+    det("imp-warn","&#9888; <b>"+bezData.length+"</b> — chybí datum ukončení: nahrají se bez data",H,bezData)+
+    det("imp-warn","&#9888; <b>"+p.spatneDatum.length+"</b> — nečitelné datum: nahraje se bez něj, lze doplnit ručně",["Řádek","Jméno","Hodnota"],p.spatneDatum)+
+    '</div>'+
+    '<div class="imp-pozn">Import půjde celý vrátit tlačítkem „Vrátit import“ ve Vyřazených.</div>';
   document.getElementById("pris-imp-body").innerHTML=
     '<div class="imp-soubor">Soubor <b>'+escHtml(p.nazev)+'</b> · list <b>'+escHtml(p.list)+'</b></div>'+
     '<div class="imp-sum"><div>V souboru<b>'+p.osoby.length.toLocaleString("cs-CZ")+'</b></div>'+
     '<div>Nahraje se<b>'+nahrat.length.toLocaleString("cs-CZ")+'</b></div>'+
-    '<div>Připíše se členům<b>'+clenove.length+'</b></div></div>'+k;
+    '<div>Připíše se členům<b>'+zmeny.length+'</b></div></div>'+k;
   document.getElementById("pris-imp-foot").innerHTML='<button class="btn btn-out" onclick="closePrisImport()">Zrušit</button>'+
-    (nahrat.length||clenove.length ? '<button class="btn btn-blue" onclick="vyrImpUlozit()">&#10003; Nahrát '+nahrat.length.toLocaleString("cs-CZ")+' vyřazených</button>' : '');
+    (nahrat.length||zmeny.length ? '<button class="btn btn-blue" onclick="vyrImpUlozit()">&#10003; Nahrát '+nahrat.length.toLocaleString("cs-CZ")+' vyřazených</button>' : '');
 }
 
 function vyrImpUlozit(){
   var p=vyrImp; if(!p) return;
+  var davka="vyr-"+new Date().toISOString().replace(/\D/g,"").slice(0,14);
   var radky=p.nahrat.map(function(o){
     var poz=[o.poznamky].concat(o._drivejsi||[]).filter(Boolean).join("\n");
     return {jmeno:o.jmeno, prijmeni:o.prijmeni, evidencni_cislo:o.evidencni_cislo, clen_od:o.clen_od, clen_do:o.clen_do,
-      oddeleni:o.oddeleni, linka_smena:o.linka_smena, duvod_ukonceni:o.duvod_ukonceni, poznamky:poz||null};
+      oddeleni:o.oddeleni, linka_smena:o.linka_smena, duvod_ukonceni:o.duvod_ukonceni, poznamky:poz||null,
+      data_clena:o.zaSvobodna?{za_svobodna:o.zaSvobodna}:null, import_davka:davka};
   });
+  var popis=radky.length+" vyřazených"+(p.zmeny.length?", "+p.zmeny.length+" členům připsáno dřívější členství":"")+", soubor "+p.nazev;
+  function chyba(r){ return r.text().then(function(t){ throw new Error(t||("HTTP "+r.status)); }); }
   document.getElementById("pris-imp-foot").innerHTML='<span style="font-size:14px;color:var(--text2)">Ukládám…</span>';
-  // jeden požadavek = jedna transakce: buď se nahrají všichni, nebo nikdo
-  var pIns = radky.length ? sbFetch("vyrazeni",{method:"POST", extraHeaders:{"Prefer":"return=minimal"}, body:JSON.stringify(radky)})
-    .then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t||("HTTP "+r.status)); }); }) : Promise.resolve();
-  pIns.then(function(){
-    // současným členům, kteří už jednou odešli, připsat dřívější členství do poznámky
-    var fronta=p.clenove.map(function(c){ return c; }), hotovo=0;
-    var podleOs={}; p.osoby.forEach(function(o){ if(o.evidencni_cislo) (podleOs[o.evidencni_cislo]=podleOs[o.evidencni_cislo]||[]).push(o); });
-    var cleni={}; members.forEach(function(m){ if(m.osnum) cleni[m.osnum]=m; });
-    var hotovaOs={};
-    function dalsi(){
-      var c=fronta.shift(); if(!c) return Promise.resolve();
-      var os=c[2]; if(hotovaOs[os]) return dalsi(); hotovaOs[os]=true;
-      var m=cleni[os]; if(!m) return dalsi();
-      var radkyPoz=podleOs[os].map(function(o){ return "Dřívější členství: "+formatDate(o.clen_od)+" – "+formatDate(o.clen_do)+(o.duvod_ukonceni?", důvod: "+o.duvod_ukonceni:""); })
-        .filter(function(t){ return (m.poznamky||"").indexOf(t)===-1; });
-      if(!radkyPoz.length) return dalsi();
-      var poz=(m.poznamky?m.poznamky+"\n":"")+radkyPoz.join("\n");
-      return sbFetch("clenove?id=eq."+m.id,{method:"PATCH",extraHeaders:{"Prefer":"return=minimal"},body:JSON.stringify({poznamky:poz})})
-        .then(function(r){ if(r.ok){ m.poznamky=poz; hotovo++; } return dalsi(); });
-    }
-    return dalsi().then(function(){ return hotovo; });
-  }).then(function(pripsano){
-    logChange("Import vyřazených", radky.length+" vyřazených"+(pripsano?", poznámka o dřívějším členství připsána "+pripsano+" "+plural(pripsano,"členovi","členům","členům"):"")+", soubor "+p.nazev);
-    setTimeout(loadAuditLog,500);
-    closePrisImport(); vyrImp=null;
-    loadVyrazeni();
-    showSuccess("Import dokončen — nahráno "+radky.length+" vyřazených"+(pripsano?", "+pripsano+" členům připsáno dřívější členství":"")+".");
-  }).catch(function(e){ console.error("import vyrazenych:", e); showError("Import se nepodařilo uložit, nic se nenahrálo. "+e.message); vyrImpNahled(); });
+  // 1) dávka se seznamem změn poznámek (kvůli vrácení), 2) vyřazení jedním požadavkem = buď všichni, nebo nikdo,
+  // 3) poznámky současných členů
+  sbFetch("import_davky",{method:"POST", extraHeaders:{"Prefer":"return=minimal"},
+      body:JSON.stringify({id:davka, typ:"vyrazeni", popis:popis, zmeny:p.zmeny.map(function(z){ return {id:z.id, pridano:z.pridano}; })})})
+    .then(function(r){ if(!r.ok) return chyba(r); })
+    .then(function(){
+      if(!radky.length) return;
+      return sbFetch("vyrazeni",{method:"POST", extraHeaders:{"Prefer":"return=minimal"}, body:JSON.stringify(radky)})
+        .then(function(r){ if(!r.ok) return chyba(r).catch(function(e){ sbFetch("import_davky?id=eq."+davka,{method:"DELETE"}); throw e; }); });
+    })
+    .then(function(){
+      var fronta=p.zmeny.slice(), hotovo=0;
+      function dalsi(){
+        var z=fronta.shift(); if(!z) return Promise.resolve(hotovo);
+        var poz=(z.m.poznamky||"")+z.pridano;
+        return sbFetch("clenove?id=eq."+z.id,{method:"PATCH",extraHeaders:{"Prefer":"return=minimal"},body:JSON.stringify({poznamky:poz})})
+          .then(function(r){ if(r.ok){ z.m.poznamky=poz; hotovo++; } return dalsi(); });
+      }
+      return dalsi();
+    })
+    .then(function(){
+      logChange("Import vyřazených", popis);
+      setTimeout(loadAuditLog,500);
+      closePrisImport(); vyrImp=null;
+      loadVyrazeni();
+      showSuccess("Import dokončen — "+popis+".");
+    })
+    .catch(function(e){ console.error("import vyrazenych:", e); showError("Import se nepodařilo uložit, nic se nenahrálo. "+e.message); vyrImpNahled(); });
+}
+
+// tlačítko "Vrátit import" ve Vyřazených: nabízí poslední dávku importu
+var vyrPosledniDavka = null;
+function nactiDavkuVyr(){
+  var btn=document.getElementById("vyr-vratit-btn"); if(!btn) return;
+  if(CURRENT_USER_ROLE!=="editor"){ btn.style.display="none"; return; }
+  sbFetch("import_davky?typ=eq.vyrazeni&select=id,created_at,popis,autor&order=created_at.desc&limit=1")
+    .then(function(r){ return r.ok ? r.json() : []; })
+    .then(function(d){
+      vyrPosledniDavka=(Array.isArray(d)&&d[0])||null;
+      btn.style.display=vyrPosledniDavka?"":"none";
+      if(vyrPosledniDavka) btn.innerHTML="&#8630; Vrátit import ("+new Date(vyrPosledniDavka.created_at).toLocaleString("cs-CZ",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})+")";
+    }).catch(function(){ btn.style.display="none"; });
+}
+function vratitImportVyr(){
+  var d=vyrPosledniDavka; if(!d) return;
+  if(!potvrdA("Vrátit import vyřazených?\n\n"+(d.popis||"")+"\n\nSmažou se všichni vyřazení nahraní tímto importem a z karet členů se odebere připsané dřívější členství. Ručně přidaní vyřazení zůstanou.",
+    function(){ vratitImportVyr(); }, "Vrátit import", true)) return;
+  sbFetch("rpc/vratit_import",{method:"POST", body:JSON.stringify({p_davka:d.id})})
+    .then(function(r){ return r.json().then(function(x){ if(!r.ok) throw new Error(x&&x.message||("HTTP "+r.status)); return x; }); })
+    .then(function(x){
+      logChange("Vrácen import vyřazených", (d.popis||d.id)+" — smazáno "+x.smazano+", poznámky upraveny "+x.poznamky);
+      setTimeout(loadAuditLog,500);
+      loadVyrazeni(); loadMembers();
+      showSuccess("Import byl vrácen: smazáno "+x.smazano+" vyřazených"+(x.poznamky?", upraveno "+x.poznamky+" poznámek":"")+".");
+    })
+    .catch(function(e){ console.error(e); showError("Vrácení se nepodařilo. "+e.message); });
 }
 
 function deleteCurrentVyr(){
