@@ -795,7 +795,7 @@ select.finp{cursor:pointer;}
             <div class="toolbar-row">
               <div class="srch">
                 <span class="srch-ic">&#128269;</span>
-                <input id="srch-inp" placeholder="Hledat jméno, OS číslo, e-mail..." oninput="filterMembers()"/>
+                <input id="srch-inp" placeholder="Hledat jméno, za svobodna, OS číslo, e-mail..." oninput="filterMembers()"/>
               </div>
               <div class="toolbar-actions">
                 <button class="btn btn-out" onclick="toggleColsMenu(event)">Sloupce</button>
@@ -1865,6 +1865,12 @@ function copyText(t){
     .catch(function(){ showToast("Kopírování se nepodařilo.","err"); });
 }
 function plural(n,a,b,c){ return n===1?a:(n>=2&&n<=4?b:c); }
+// vyhledávání: bez ohledu na diakritiku a velikost písmen, slova v libovolném pořadí ("novakova jana" najde i "Jana Nováková")
+function hledaniSedi(q, text){
+  var slova=bezDiakritiky(q).split(/\s+/).filter(Boolean); if(!slova.length) return true;
+  var h=bezDiakritiky(text);
+  return slova.every(function(w){ return h.indexOf(w)!==-1; });
+}
 function lengthOfMembership(iso){
   if(!iso) return "";
   var d=new Date(iso), n=new Date();
@@ -2578,8 +2584,7 @@ function getSorted(){
   if(currentView.indexOf("dq:")===0) dqRefreshDup();
   var byVstup = sortMode.indexOf("vstup")===0;
   var list=members.filter(function(m){
-    var s=(m.jmeno+" "+m.prijmeni+" "+m.email+" "+m.osnum+" "+m.oddeleni).toLowerCase();
-    return s.indexOf(q)!==-1
+    return hledaniSedi(q, m.jmeno+" "+m.prijmeni+" "+(m.za_svobodna||"")+" "+m.email+" "+m.osnum+" "+m.oddeleni)
       &&(!typ||m.typ===typ)
       &&(!odd||m.oddeleni===odd)
       &&(!smena||m.smena===smena)
@@ -3227,7 +3232,7 @@ function renderPrispevky(){
     // Neznamy clen - zobraz jen OS cislo
     return {osnum:osnum, jmeno:osnum, prijmeni:"Neznámé os. číslo", email:"", typ:"", oddeleni:"", nezname:true};
   }).filter(function(m){
-    return (m.prijmeni+" "+m.jmeno+" "+m.osnum).toLowerCase().indexOf(q) !== -1;
+    return hledaniSedi(q, m.prijmeni+" "+m.jmeno+" "+(m.za_svobodna||"")+" "+m.osnum);
   });
   
   // Filtr plati / neplati
@@ -3548,10 +3553,12 @@ function prisImpNacist(){
   }).catch(function(e){ console.error(e); showError("Nepodařilo se načíst stávající platby pro kontrolu."); });
 }
 
+// jméno ze souboru sedí, když obsahuje příjmení nebo jméno za svobodna (soubor může mít ještě rodné příjmení)
 function prisImpJmenoSedi(souborJmeno, m){
-  var f=bezDiakritiky(souborJmeno).split(/\s+/), db=bezDiakritiky(m.prijmeni+" "+m.jmeno).split(/\s+/);
-  var prijmeni=bezDiakritiky(m.prijmeni).split(/\s+/)[0];
-  return f.indexOf(prijmeni)!==-1 || db.indexOf(f[0])!==-1;
+  var f=bezDiakritiky(souborJmeno).replace(/[().,]/g," ").split(/\s+/).filter(Boolean);
+  var db=bezDiakritiky(m.prijmeni+" "+m.jmeno+" "+(m.za_svobodna||"")).split(/\s+/).filter(Boolean);
+  var prijmeni=bezDiakritiky(m.prijmeni).split(/\s+/)[0], zs=bezDiakritiky(m.za_svobodna||"").split(/\s+/)[0];
+  return f.indexOf(prijmeni)!==-1 || (zs && f.indexOf(zs)!==-1) || db.indexOf(f[0])!==-1;
 }
 
 function prisImpNahled(){
@@ -4406,8 +4413,7 @@ function exportMembersPDF(){
   var skupina=(document.getElementById("skupina-flt")||{value:""}).value;
   var q=(document.getElementById("srch-inp")||{value:""}).value.toLowerCase();
   var filtered=members.filter(function(m){
-    var s=(m.jmeno+" "+m.prijmeni+" "+m.osnum).toLowerCase();
-    return s.indexOf(q)!==-1&&(!typ||m.typ===typ)&&(!odd||m.oddeleni===odd)&&(!skupina||m.skupina===skupina);
+    return hledaniSedi(q, m.jmeno+" "+m.prijmeni+" "+(m.za_svobodna||"")+" "+m.osnum)&&(!typ||m.typ===typ)&&(!odd||m.oddeleni===odd)&&(!skupina||m.skupina===skupina);
   }).sort(function(a,b){ return a.prijmeni.localeCompare(b.prijmeni,"cs")||a.jmeno.localeCompare(b.jmeno,"cs"); });
   var rows=filtered.map(function(m){
     return "<tr>"+
@@ -4809,7 +4815,7 @@ function filterVyrazeni(){ vyrPage=1; renderVyrazeni(); }
 function renderVyrazeni(){
   var q = (document.getElementById("vyr-srch")||{value:""}).value.toLowerCase();
   var filtered = vyrazeniData.filter(function(v){
-    return (v.prijmeni+" "+v.jmeno+" "+(v.evidencni_cislo||"")+" "+(v.oddeleni||"")).toLowerCase().indexOf(q) !== -1;
+    return hledaniSedi(q, v.prijmeni+" "+v.jmeno+" "+((v.data_clena&&v.data_clena.za_svobodna)||"")+" "+(v.evidencni_cislo||"")+" "+(v.oddeleni||""));
   });
   var pages = Math.max(1, Math.ceil(filtered.length/VYR_PAGE_SZ));
   if(vyrPage > pages) vyrPage = 1;
