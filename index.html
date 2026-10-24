@@ -1975,7 +1975,9 @@ function loadCardPayments(){
     .then(function(d){
       if(detailMember!==m) return;
       var paid={}, sum=0, cnt=0;
-      (Array.isArray(d)?d:[]).forEach(function(p){ var c=parseFloat(p.castka)||0; if(c>0){ paid[p.mesic]=c; sum+=c; cnt++; } });
+      // měsíc může mít platby z více zdrojů (ofiko, tajní, ruční oprava) - sečíst
+      var mes={}; (Array.isArray(d)?d:[]).forEach(function(p){ mes[p.mesic]=(mes[p.mesic]||0)+(parseFloat(p.castka)||0); });
+      Object.keys(mes).forEach(function(k){ var c=mes[k]; if(c>0){ paid[k]=c; sum+=c; cnt++; } });
       var dots=document.querySelectorAll("#mc-pay-dots i");
       dots.forEach(function(el,i){
         var mm=i+1;
@@ -2045,7 +2047,7 @@ function cardPdf(){
     .then(function(d){
       if(Array.isArray(d)){
         prispevkyData[m.osnum]={};
-        d.forEach(function(p){ prispevkyData[m.osnum][p.mesic]=parseFloat(p.castka)||0; });
+        d.forEach(function(p){ prispevkyData[m.osnum][p.mesic]=(prispevkyData[m.osnum][p.mesic]||0)+(parseFloat(p.castka)||0); });
       }
       exportClenPDF(m.osnum, m.prijmeni+" "+m.jmeno);
     }).catch(function(){ showError("Nepodařilo se načíst platby člena."); });
@@ -3169,7 +3171,7 @@ function nactiPrispevkyRoku(rok){
     .catch(function(){
       return fetchAllRows("prispevky?rok=eq."+rok+"&select=osobni_cislo,mesic,castka&order=id.asc").then(function(data){
         var mapa={};
-        data.forEach(function(p){ (mapa[p.osobni_cislo]=mapa[p.osobni_cislo]||{})[p.mesic]=parseFloat(p.castka)||0; });
+        data.forEach(function(p){ var x=(mapa[p.osobni_cislo]=mapa[p.osobni_cislo]||{}); x[p.mesic]=(x[p.mesic]||0)+(parseFloat(p.castka)||0); });
         return mapa;
       });
     });
@@ -3355,7 +3357,8 @@ function nactiPrisHistorii(osnum){
   fetchAllRows("prispevky?osobni_cislo=eq."+encodeURIComponent(osnum)+"&select=rok,mesic,castka&order=rok.desc,mesic.asc")
     .then(function(rows){
       var h={};
-      rows.forEach(function(p){ var c=parseFloat(p.castka)||0; if(c>0){ (h[p.rok]=h[p.rok]||{})[p.mesic]=c; } });
+      rows.forEach(function(p){ var r=(h[p.rok]=h[p.rok]||{}); r[p.mesic]=(r[p.mesic]||0)+(parseFloat(p.castka)||0); });
+      Object.keys(h).forEach(function(y){ Object.keys(h[y]).forEach(function(k){ if(!(h[y][k]>0)) delete h[y][k]; }); });
       prisHistorie[osnum]=h;
       if(prisSelOsnum===osnum) renderPrisDetail();
     }).catch(function(){ delete prisHistorie[osnum]; });
@@ -3469,7 +3472,7 @@ function prisImpCtiOfiko(wb, nazev){
     if(c===null||isNaN(c)){ necitelne.push({os:os, jmeno:String(row[jmC]||""), hodnota:String(row[cC])}); continue; }
     c=Math.round(Math.abs(c)*100)/100;
     if(mapa[os]){ mapa[os].castka+=c; if(dvakrat.indexOf(os)===-1) dvakrat.push(os); }
-    else { mapa[os]={os:os, jmeno:String(row[jmC]||"").trim(), castka:c}; poradi.push(os); }
+    else { mapa[os]={os:os, jmeno:cistyJmeno(row[jmC]), castka:c}; poradi.push(os); }
   }
   if(!poradi.length) return {chyba:"V souboru jsem nenašel žádné řádky s osobním číslem a částkou. Je to soubor srážek ofiko?"};
   return {typ:"ofiko", nazev:nazev, list:list, mesic:mesic, rok:rok||new Date().getFullYear(), mesicSoubor:mesic, rokSoubor:rok,
@@ -3505,7 +3508,7 @@ function prisImpCtiTajni(wb, nazev){
     var os=String(row[idC]).trim();
     var osoba=mapa[os];
     if(osoba){ if(dvakrat.indexOf(os)===-1) dvakrat.push(os); }
-    else { osoba=mapa[os]={os:os, jmeno:(String(row[prC]||"")+" "+String(row[jmC]||"")).trim(), platby:{}}; poradi.push(os); }
+    else { osoba=mapa[os]={os:os, jmeno:cistyJmeno(String(row[prC]||"")+" "+String(row[jmC]||"")), platby:{}}; poradi.push(os); }
     mesCols.forEach(function(mc){
       var c=cisloZBunky(row[mc.col]);
       if(c===null||c===0) return;
@@ -3549,13 +3552,48 @@ function prisImpNacist(){
     if(prisImp!==p) return;
     p.stavajici = res[0]||[];
     p.rokData = res[1];
+    prisImpPreciselit(p);
     prisImpNahled();
   }).catch(function(e){ console.error(e); showError("Nepodařilo se načíst stávající platby pro kontrolu."); });
 }
 
+// jméno bez poznámky v závorce (např. kdo za člena platí): "Novák (platí Dvořák) Jan" -> "Novák Jan"
+function cistyJmeno(s){ return String(s==null?"":s).replace(/\([^)]*\)?/g," ").replace(/\s+/g," ").trim(); }
+
+// staré osobní číslo: v souboru 8000…, v evidenci 1810… (nebo obráceně) se stejným jménem
+// -> platba se přiřadí členovi z evidence a v náhledu se upozorní, ať se číslo sjednotí
+function prisImpPreciselit(p){
+  if(p.preciselovano) return;
+  p.preciselovano=true; p.precislovano=[];
+  var clen={}; members.forEach(function(m){ if(m.osnum) clen[m.osnum]=m; });
+  function pref(os){ return String(os||"").slice(0,4); }
+  var nove={}, poradi=[];
+  p.osoby.forEach(function(o){
+    var cil=o.os;
+    if(!clen[o.os] && (pref(o.os)==="8000" || pref(o.os)==="1810")){
+      var hledany=pref(o.os)==="8000" ? "1810" : "8000";
+      var f=bezDiakritiky(o.jmeno).split(/\s+/).filter(Boolean);
+      var kand=members.filter(function(m){
+        if(pref(m.osnum)!==hledany) return false;
+        var pr=bezDiakritiky(m.prijmeni).split(/\s+/)[0], zs=bezDiakritiky(m.za_svobodna||"").split(/\s+/)[0], jm=bezDiakritiky(m.jmeno).split(/\s+/)[0];
+        return jm && f.indexOf(jm)!==-1 && (f.indexOf(pr)!==-1 || (zs && f.indexOf(zs)!==-1));
+      });
+      if(kand.length===1){ cil=kand[0].osnum; p.precislovano.push([o.os, cil, o.jmeno]); }
+    }
+    var x=nove[cil];
+    if(!x){ x=nove[cil]=Object.assign({}, o, {os:cil}); if(o.platby) x.platby=Object.assign({}, o.platby); poradi.push(cil); }
+    else {
+      if(p.typ==="ofiko") x.castka+=o.castka;
+      else Object.keys(o.platby).forEach(function(k){ x.platby[k]=(x.platby[k]||0)+o.platby[k]; });
+      if(p.dvakrat.indexOf(cil)===-1) p.dvakrat.push(cil);
+    }
+  });
+  p.osoby=poradi.map(function(os){ return nove[os]; });
+}
+
 // jméno ze souboru sedí, když obsahuje příjmení nebo jméno za svobodna (soubor může mít ještě rodné příjmení)
 function prisImpJmenoSedi(souborJmeno, m){
-  var f=bezDiakritiky(souborJmeno).replace(/[().,]/g," ").split(/\s+/).filter(Boolean);
+  var f=bezDiakritiky(cistyJmeno(souborJmeno)).replace(/[.,]/g," ").split(/\s+/).filter(Boolean);
   var db=bezDiakritiky(m.prijmeni+" "+m.jmeno+" "+(m.za_svobodna||"")).split(/\s+/).filter(Boolean);
   var prijmeni=bezDiakritiky(m.prijmeni).split(/\s+/)[0], zs=bezDiakritiky(m.za_svobodna||"").split(/\s+/)[0];
   return f.indexOf(prijmeni)!==-1 || (zs && f.indexOf(zs)!==-1) || db.indexOf(f[0])!==-1;
@@ -3572,7 +3610,7 @@ function prisImpNahled(){
     var dbJmeno=m.prijmeni+" "+m.jmeno, sedi=prisImpJmenoSedi(o.jmeno, m);
     if(!sedi) spatneJmeno.push([o.os, o.jmeno, dbJmeno]);
     if((m.typ==="Tajný člen")===ofiko) jinyTyp.push([o.os, o.jmeno, m.typ==="Tajný člen"?"tajný":"ofiko"]);
-    else if(sedi) ok++;
+    if(sedi) ok++;
   });
 
   // součty
@@ -3631,14 +3669,15 @@ function prisImpNahled(){
   var k='<div class="imp-k">';
   stop.forEach(function(s){ k+='<div class="imp-r imp-stop">&#9940; '+s+'</div>'; });
   if(ofiko && p.shoda && p.shodaPotvrzena) k+='<div class="imp-r imp-warn">&#9888; Shoda s měsícem '+MESICE_NAMES[p.shoda.mesic-1]+' ('+p.shoda.procent+' %) — potvrdili jste, že je soubor správný.</div>';
-  k+='<div class="imp-r imp-ok">&#10003; <b>'+ok+'</b> '+(ofiko?'členů ofiko':'tajných členů')+' — osobní číslo i jméno sedí</div>';
+  k+='<div class="imp-r imp-ok">&#10003; <b>'+ok+'</b> — osobní číslo i jméno sedí</div>';
+  k+=det("imp-warn","&#9888; <b>"+(p.precislovano||[]).length+"</b> — staré osobní číslo v souboru (8000… / 1810…): platba se přiřadí členovi z evidence podle jména, číslo v souboru prosím sjednoťte",["Os. č. v souboru","Os. č. v evidenci","Jméno"],p.precislovano||[]);
   k+=det("imp-warn","&#9888; <b>"+spatneJmeno.length+"</b> — osobní číslo existuje, ale jméno nesedí (zkontrolujte, zda nejsou posunuté řádky)",["Os. č.","Jméno v souboru","Jméno v databázi"],spatneJmeno);
-  k+=det("imp-warn","&#9888; <b>"+jinyTyp.length+"</b> — "+(ofiko?"v databázi vedeni jako tajní":"v databázi vedeni jako ofiko"),["Os. č.","Jméno v souboru","Typ v databázi"],jinyTyp);
+  k+=det("imp-ok","&#10003; <b>"+jinyTyp.length+"</b> — "+(ofiko?"v evidenci vedeni jako tajní":"v evidenci vedeni jako ofiko")+": platba se zapíše normálně (přechod mezi ofiko a tajnými je běžný; platby z obou souborů se v měsíci sečtou, nepřepíšou)",["Os. č.","Jméno v souboru","Typ v evidenci"],jinyTyp);
   k+=det("imp-warn","&#9888; <b>"+vyrazeni.length+"</b> — vyřazení členové (platby se zapíšou)",["Os. č.","Jméno v souboru"],vyrazeni);
   k+=det("imp-warn","&#9888; <b>"+nezname.length+"</b> — nejsou v databázi (platby se zapíšou; v Příspěvcích je najdete pod filtrem „Neznámé osobní číslo“)",["Os. č.","Jméno v souboru"],nezname);
   k+=det("imp-warn","&#9888; <b>"+p.dvakrat.length+"</b> — osobní číslo je v souboru vícekrát (částky se sečtou)",["Os. č."],p.dvakrat.map(function(o){ return [o]; }));
   k+=det("imp-warn","&#9888; <b>"+p.bezId.length+"</b> — řádek bez osobního čísla: platby se NENAHRAJÍ, doplňte číslo v souboru a nahrajte znovu",["Řádek","Jméno","Os. č. v souboru"],p.bezId.map(function(n){ return [n.radek,n.jmeno,n.hodnota||"(prázdné)"]; }));
-  k+=det("imp-warn","&#9888; <b>"+p.necitelne.length+"</b> — v buňce je text místo částky (přeskočeno)",["Os. č.","Jméno","Text"],p.necitelne.map(function(n){ return [n.os,n.jmeno,n.hodnota]; }));
+  k+=det("imp-ok","&#10003; <b>"+p.necitelne.length+"</b> — v buňce je text (poznámka), ne částka: ignorováno",["Os. č.","Jméno","Text"],p.necitelne.map(function(n){ return [n.os,n.jmeno,n.hodnota]; }));
   k+='</div>';
 
   var hSum='<div class="imp-sum">'+
@@ -5351,16 +5390,19 @@ function savePrisEdit(){
     showSuccess("Příspěvek uložen — "+MESICE_NAMES[mesic-1]+" "+rok+": "+castka+" Kč");
   }
 
-  // Pouzit upsert (POST s on_conflict) - spolehlivejsi nez PATCH+POST
-  fetch(SUPABASE_URL+"/rest/v1/prispevky?on_conflict=osobni_cislo,rok,mesic", {
-    method:"POST",
-    headers:{
-      "apikey":SUPABASE_KEY, "Authorization":"Bearer "+ACCESS_TOKEN,
-      "Content-Type":"application/json",
-      "Prefer":"resolution=merge-duplicates,return=minimal"
-    },
-    body:JSON.stringify({osobni_cislo:prisEditOsnum, rok:rok, mesic:mesic, castka:castka, zdroj:"rucne"})
-  }).then(function(r){
+  // Ruční zadání = požadovaný součet měsíce. Platby z importů (ofiko/tajní) zůstávají,
+  // ruční řádek nese jen rozdíl proti nim (opakovaný import tak ruční opravu nepřepíše).
+  var filtr="prispevky?osobni_cislo=eq."+encodeURIComponent(prisEditOsnum)+"&rok=eq."+rok+"&mesic=eq."+mesic;
+  sbFetch(filtr+"&zdroj=neq.rucne&select=castka")
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var importy=0; (Array.isArray(d)?d:[]).forEach(function(p){ importy+=parseFloat(p.castka)||0; });
+      var rozdil=Math.round((castka-importy)*100)/100;
+      if(rozdil===0) return sbFetch(filtr+"&zdroj=eq.rucne",{method:"DELETE"});
+      return sbFetch("prispevky?on_conflict=osobni_cislo,rok,mesic,zdroj",{method:"POST",
+        extraHeaders:{"Prefer":"resolution=merge-duplicates,return=minimal"},
+        body:JSON.stringify({osobni_cislo:prisEditOsnum, rok:rok, mesic:mesic, castka:rozdil, zdroj:"rucne"})});
+    }).then(function(r){
     if(r.ok||r.status===201||r.status===204||r.status===200){
       onSuccess();
     } else {
@@ -5448,7 +5490,7 @@ function openPrisCard(osnum, nameEnc){
     var roky = {};
     data.forEach(function(p){
       if(!roky[p.rok]) roky[p.rok] = {};
-      roky[p.rok][p.mesic] = parseFloat(p.castka)||0;
+      roky[p.rok][p.mesic] = (roky[p.rok][p.mesic]||0) + (parseFloat(p.castka)||0);
     });
 
     var html = "";
