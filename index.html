@@ -3101,10 +3101,13 @@ function parseCSVLine(line,delim){
 
 function parseDate(s){
   if(!s) return null;
-  var m=s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/); if(m) return m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0");
-  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(m) return m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0");
-  return null;
+  var iso=null;
+  var m=s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/); if(m) iso=m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0");
+  else if(/^\d{4}-\d{2}-\d{2}$/.test(s)) iso=s;
+  else { m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(m) iso=m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0"); }
+  // jen skutečné datum (ne 13. měsíc, 31.2. apod.)
+  if(iso){ var d=new Date(iso+"T00:00:00Z"); if(isNaN(d) || d.toISOString().slice(0,10)!==iso) return null; }
+  return iso;
 }
 
 // CARD
@@ -5019,8 +5022,8 @@ function importVyrazeni(event){
 function excelDatum(v){
   if(v===""||v==null) return null;
   if(typeof v==="number"){ if(v<1000||v>80000) return undefined; return new Date(Math.round((v-25569)*86400000)).toISOString().slice(0,10); }
-  var s=String(v).trim(); if(!s) return null;
-  var iso=/^\d{4}-\d{2}-\d{2}$/.test(s) ? s : parseDate(s);
+  var s=String(v).trim().replace(/\s+/g,"").replace(/,/g,"."); if(!s) return null;
+  var iso=parseDate(s);
   return iso || undefined; // undefined = nečitelné
 }
 
