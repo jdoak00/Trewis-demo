@@ -2720,7 +2720,7 @@ function renderTable(){
         var av=((m.jmeno[0]||"")+(m.prijmeni[0]||"")).toUpperCase();
         return '<tr onclick="openDetail('+m.id+')">'+
           '<td style="color:var(--text3);font-size:12px">'+((currentPage-1)*PAGE_SZ+i+1)+'</td>'+
-          '<td><div class="mc"><div class="mav">'+av+'</div><div><div class="mn">'+m.prijmeni+' '+m.jmeno+'</div>'+(visibleCols.indexOf("email")===-1?'<div class="me">'+m.email+'</div>':'')+'</div></div></td>'+
+          '<td><div class="mc"><div class="mav">'+av+'</div><div><div class="mn">'+escHtml(m.prijmeni+' '+m.jmeno)+'</div></div></div></td>'+
           cols.map(function(c){ return '<td>'+(c.v?c.v(m):escHtml(c.t(m)||"—"))+'</td>'; }).join("")+
           '</tr>';
       }).join("");
