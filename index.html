@@ -423,6 +423,20 @@ tr.selected{background:var(--blue-bg)!important;}
 .pr-m.on b{color:var(--green-dk);}
 .pr-m.on span{color:var(--green-dk);}
 .pr-m.fut{background:transparent;border-style:dashed;}
+.pr-m{cursor:pointer;}
+.pr-m:hover,.pr-m:focus-visible{border-color:var(--blue);outline:none;}
+.pr-m.neg{background:var(--red-bg);border-color:rgba(224,49,49,.4);}
+.pr-m.neg b,.pr-m.neg span{color:var(--red);}
+.pe-rozpis{font-size:14px;color:var(--text2);margin-top:8px;min-height:20px;}
+.pe-napoveda{font-size:13px;color:var(--text3);margin-top:4px;}
+.kc-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.kc-row.on{background:var(--blue-bg);}
+.kc-info{display:flex;flex-direction:column;min-width:0;}
+.kc-info b{font-size:15px;overflow-wrap:anywhere;}
+.kc-info span{font-size:13px;color:var(--text2);}
+.kc-akce{display:flex;gap:6px;}
+.kc-stav{font-size:14px;color:var(--blue);font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.zm-hledat{margin:0 16px 10px;}
 .doc-viewer{z-index:600;}
 .doc-box{width:900px;max-width:100%;height:92vh;background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:var(--sh-lg);
   display:flex;flex-direction:column;overflow:hidden;animation:mcIn .16s ease-out;}
@@ -831,6 +845,7 @@ select.finp{cursor:pointer;}
             <option value="skupina:Důvěrníci">Důvěrníci</option>
           </select>
           <div class="rcpt-bar"><span>Příjemci: <span class="rcpt-n" id="email-rcpt-n">0</span> adres</span><span style="font-size:12px;color:var(--text3)">brevo.com</span></div>
+          <div class="kc-stav" id="koncept-stav" hidden></div>
           <label class="lbl" style="margin-bottom:6px">Předmět</label>
           <input class="finp" id="email-sub" style="margin-bottom:12px"/>
 
@@ -861,6 +876,7 @@ select.finp{cursor:pointer;}
           </div>
 
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+            <button class="btn btn-out" onclick="ulozKoncept()">&#128190; Uložit koncept</button>
             <button class="btn btn-out" onclick="sendTestEmail()" style="border-color:var(--cyan);color:var(--cyan);">🔍 Kontrolní e-mail</button>
             <button class="btn btn-blue" id="btn-send-email" onclick="sendEmail()">&#9658; Odeslat všem</button>
           </div>
@@ -870,6 +886,10 @@ select.finp{cursor:pointer;}
             <div class="progress-wrap"><div class="progress-bar" id="email-prog-bar" style="width:0%"></div></div>
           </div>
           <div class="ok-box" id="email-ok" style="display:none">Hotovo! E-mail odeslán.</div>
+        </div>
+        <div class="card" style="margin-top:12px;">
+          <div class="card-hd"><div>Moje koncepty<div class="card-sub">Rozepsané e-maily uložené tlačítkem „Uložit koncept“ (i s přílohami). Vidíte jen své koncepty. Po odeslání se koncept sám smaže.</div></div></div>
+          <div id="koncepty-list"><div class="hist-empty">Načítám…</div></div>
         </div>
         <div class="card" style="margin-top:12px;">
           <div class="card-hd"><div>Historie odeslaných e-mailů<div class="card-sub">Kliknutím na zprávu zobrazíte celý text a seznam příjemců.</div></div>
@@ -1017,7 +1037,8 @@ select.finp{cursor:pointer;}
       <!-- ZMENY PAGE -->
       <div id="page-zmeny" style="display:none;">
         <div class="card">
-          <div class="card-hd"><div>Posledních 20 změn<div class="card-sub">Kdo a kdy co v aplikaci změnil. Historii nelze upravit ani smazat.</div></div></div>
+          <div class="card-hd"><div>Změny za posledních 30 dní<span class="pris-count" id="zm-pocet"></span><div class="card-sub">Kdo a kdy co v aplikaci změnil. Historii nelze upravit ani smazat, starší změny zůstávají uložené.</div></div></div>
+          <div class="srch zm-hledat"><span class="srch-ic">&#128269;</span><input id="zm-srch" placeholder="Hledat v změnách (jméno, akce, uživatel)…" oninput="renderAuditLog()"/></div>
           <div id="audit-log-list"><div class="hist-empty">Načítám…</div></div>
         </div>
       </div>
@@ -1125,6 +1146,7 @@ select.finp{cursor:pointer;}
               </select>
               <select class="flt" id="pris-filter" onchange="renderPrispevky()">
                 <option value="">Všichni členové</option>
+                <option value="aktivni">Aktivní členové</option>
                 <option value="neplati">Bez platby (tajní)</option>
                 <option value="nezname">Neznámé osobní číslo</option>
               </select>
@@ -2555,6 +2577,7 @@ function switchPage(pg){
   if(pg==="zmeny") loadAuditLog();
   if(pg==="email") renderPodpis();
   if(pg==="email"||pg==="sms") loadZpravy(pg);
+  if(pg==="email") nactiKoncepty();
   document.getElementById("pg-title").textContent=pagesMeta[pg].title;
   document.getElementById("pg-sub").textContent=pagesMeta[pg].sub;
   // Kdyz otevreme nastaveni, nacti aktualni hodnoty
@@ -3242,6 +3265,8 @@ function renderPrispevky(){
   // "Bez platby": tajni clenove, kterym chybi nektery UZAVRENY mesic vybraneho roku
   // (stejne pravidlo jako u Clenu: v zari se vybira za srpen; mesice pred vstupem se nepocitaji)
   if(pf==="nezname") filtered = filtered.filter(function(m){ return m.nezname; });
+  // Aktivní členové: jen současní členové (bez vyřazených a neznámých osobních čísel)
+  if(pf==="aktivni") filtered = filtered.filter(function(m){ return !m.nezname && m.typ!=="vyřazený"; });
   prisChybi = {};
   if(pf==="neplati"){
     var ci=closedMonthIndex(), posledni = rok*12+11 <= ci ? 12 : (Math.floor(ci/12)===rok ? ci%12+1 : 0);
@@ -3358,7 +3383,7 @@ function nactiPrisHistorii(osnum){
     .then(function(rows){
       var h={};
       rows.forEach(function(p){ var r=(h[p.rok]=h[p.rok]||{}); r[p.mesic]=(r[p.mesic]||0)+(parseFloat(p.castka)||0); });
-      Object.keys(h).forEach(function(y){ Object.keys(h[y]).forEach(function(k){ if(!(h[y][k]>0)) delete h[y][k]; }); });
+      Object.keys(h).forEach(function(y){ Object.keys(h[y]).forEach(function(k){ if(!h[y][k]) delete h[y][k]; }); }); // záporné nechat vidět, ať jdou opravit
       prisHistorie[osnum]=h;
       if(prisSelOsnum===osnum) renderPrisDetail();
     }).catch(function(){ delete prisHistorie[osnum]; });
@@ -3370,9 +3395,10 @@ function renderPrisRoky(h, vybranyRok){
   return roky.map(function(r){
     var d=h[r]||{}, soucet=0, pocet=0;
     var bunky=PRIS_ALL_M.map(function(i){
-      var v=d[i]||0; if(v>0){ soucet+=v; pocet++; }
-      var cls = v>0 ? 'on' : ((r>rokTed || (r===rokTed && i>mesicTed)) ? 'fut' : '');
-      return '<div class="pr-m '+cls+'" title="'+MESICE_NAMES[i-1]+' '+r+'"><span>'+MESICE_SHORT[i-1]+'</span><b>'+(v>0?v.toLocaleString("cs-CZ"):'—')+'</b></div>';
+      var v=d[i]||0; if(v>0){ soucet+=v; pocet++; } else if(v<0) soucet+=v;
+      var cls = v>0 ? 'on' : (v<0 ? 'neg' : ((r>rokTed || (r===rokTed && i>mesicTed)) ? 'fut' : ''));
+      // kliknutím na měsíc se otevře úprava platby za tento měsíc
+      return '<div class="pr-m '+cls+'" role="button" tabindex="0" title="'+MESICE_NAMES[i-1]+' '+r+' – kliknutím upravíte" onclick="prisUpravMesic('+r+','+i+')" onkeydown="if(event.key===\'Enter\')prisUpravMesic('+r+','+i+')"><span>'+MESICE_SHORT[i-1]+'</span><b>'+(v!==0?v.toLocaleString("cs-CZ"):'—')+'</b></div>';
     }).join("");
     return '<div class="pr-rok'+(r===vybranyRok?' sel':'')+'"><div class="pr-rok-hd"><b>'+r+'</b><span>'+fmtKc(soucet)+' · '+pocet+' / 12 měsíců</span></div>'+
       '<div class="pr-mesice">'+bunky+'</div></div>';
@@ -3733,12 +3759,18 @@ function prisImpUlozit(){
 var prisEditOsnum = null;
 var prisEditName = null;
 
-function openPrisEdit(osnum, name){
+// kliknutí na měsíc v detailu platby: otevře úpravu s předvybraným rokem a měsícem
+function prisUpravMesic(rok, mesic){
+  if(!prisSelOsnum) return;
+  var m=prisMembersMap[prisSelOsnum]||{prijmeni:"",jmeno:""};
+  openPrisEdit(prisSelOsnum, (m.prijmeni+" "+m.jmeno).trim()||prisSelOsnum, rok, mesic);
+}
+
+function openPrisEdit(osnum, name, predRok, predMesic){
   if(checkGuest("Nemáte oprávnění upravovat příspěvky.")) return;
   prisEditOsnum = osnum;
   prisEditName = name;
-  var rok = parseInt(document.getElementById("pris-rok").value);
-  var pd = prispevkyData[osnum]||{};
+  var rok = predRok || parseInt(document.getElementById("pris-rok").value);
   
   // Sestavit selecty pro mesic a rok
   var mesiceOpts = '<option value="">-- Vyberte měsíc --</option>';
@@ -3765,10 +3797,12 @@ function openPrisEdit(osnum, name){
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">'+
     '<input type="hidden" id="pris-edit-mesic" value=""/>'+
     '<div style="grid-column:1/-1"><label class="lbl">Rok</label>'+
-    '<select class="finp" id="pris-edit-rok">'+rokOpts+'</select></div>'+
+    '<select class="finp" id="pris-edit-rok" onchange="prisNactiRozpis()">'+rokOpts+'</select></div>'+
     '</div>'+
     '<div><label class="lbl">Částka (Kč)</label>'+
-    '<input class="finp" id="pris-edit-castka" type="number" min="0" max="9999" step="1" placeholder="0" style="font-size:24px;font-weight:700;text-align:center;"/></div>';
+    '<input class="finp" id="pris-edit-castka" type="number" min="0" max="99999" step="1" placeholder="0" style="font-size:24px;font-weight:700;text-align:center;"/>'+
+    '<div class="pe-napoveda">Zadejte celkovou částku za měsíc. Pro zrušení platby zadejte 0.</div>'+
+    '<div class="pe-rozpis" id="pris-edit-rozpis"></div></div>';
   
   document.getElementById("pris-edit-fields").innerHTML = fields;
 
@@ -3776,6 +3810,7 @@ function openPrisEdit(osnum, name){
   document.getElementById("pris-edit-title").textContent = "Příspěvky — "+name;
   document.getElementById("pris-edit-name").textContent = osnum;
   document.getElementById("pris-edit-modal").classList.add("show");
+  if(predMesic) prisSelectMesic(predMesic);
 }
 
 
@@ -4069,16 +4104,142 @@ function sendBrevoEmail(recipients, subject, htmlContent, attachments){
 
 // Přílohy se nahrají do úložiště (bucket "prilohy"); server pak Brevu předá jen odkaz,
 // takže velké soubory nejdou přes serverovou funkci. Vrací [{name, path}].
-function nahrajPrilohy(files){
+// Už nahrané přílohy (z konceptu, mají path) se znovu nenahrávají. prefix: "email" (odeslání) nebo "koncept".
+function nahrajPrilohy(files, prefix){
   return Promise.all(files.map(function(f, i){
+    if(f.path) return Promise.resolve({name:f.name, path:f.path});
     var bezpecne=bezDiakritiky(f.name).replace(/[^a-z0-9._-]+/g,"-").replace(/^-+|-+$/g,"").slice(-80) || "priloha";
-    var path="email/"+Date.now()+"-"+i+"-"+Math.random().toString(36).slice(2,8)+"-"+bezpecne;
+    var path=(prefix||"email")+"/"+Date.now()+"-"+i+"-"+Math.random().toString(36).slice(2,8)+"-"+bezpecne;
     return sbAuth.storage.from("prilohy").upload(path, f, {contentType: f.type || "application/octet-stream", upsert:false})
       .then(function(res){
         if(res.error) throw new Error("Přílohu "+f.name+" se nepodařilo nahrát: "+res.error.message);
         return {name:f.name, path:path};
       });
   }));
+}
+
+// ===== KONCEPTY E-MAILU =====
+// Každý správce vidí jen své koncepty. Přílohy konceptu se nahrají do úložiště (koncept/...),
+// takže po otevření konceptu jsou připravené k odeslání.
+var konceptId = null;
+
+function nactiKoncepty(){
+  var el=document.getElementById("koncepty-list"); if(!el) return;
+  sbFetch("email_koncepty?select=id,predmet,prilohy,updated_at&order=updated_at.desc")
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!Array.isArray(d) || !d.length){ el.innerHTML='<div class="hist-empty">Žádné uložené koncepty.</div>'; return; }
+      el.innerHTML=d.map(function(k){
+        var dt=new Date(k.updated_at), n=(k.prilohy||[]).length;
+        return '<div class="kc-row'+(k.id===konceptId?' on':'')+'"><div class="kc-info"><b>'+escHtml(k.predmet||"(bez předmětu)")+'</b>'+
+          '<span>uloženo '+dt.toLocaleDateString("cs-CZ")+' '+dt.toLocaleTimeString("cs-CZ",{hour:"2-digit",minute:"2-digit"})+(n?' · '+n+' '+plural(n,"příloha","přílohy","příloh"):'')+(k.id===konceptId?' · právě upravujete':'')+'</span></div>'+
+          '<div class="kc-akce"><button class="btn btn-out btn-sm" onclick="otevriKoncept('+k.id+')">Otevřít</button>'+
+          '<button class="btn btn-out btn-sm" onclick="smazKoncept('+k.id+')">Smazat</button></div></div>';
+      }).join("");
+    }).catch(function(){ el.innerHTML='<div class="hist-empty">Koncepty se nepodařilo načíst.</div>'; });
+}
+
+function zobrazStavKonceptu(){
+  var el=document.getElementById("koncept-stav"); if(!el) return;
+  el.hidden=!konceptId;
+  el.innerHTML=konceptId ? 'Upravujete uložený koncept. <button class="btn btn-out btn-sm" onclick="novyEmail()">Nový e-mail</button>' : '';
+}
+
+function emailJePrazdny(){
+  var ed=document.getElementById("email-editor");
+  return !(document.getElementById("email-sub")||{value:""}).value.trim() && !(ed && ed.innerText.trim()) && !emailAttachments.length;
+}
+
+function ulozKoncept(){
+  if(checkGuest("Nemáte oprávnění ukládat e-maily.")) return;
+  if(emailJePrazdny()){ showError("Koncept je prázdný – vyplňte předmět, text nebo přidejte přílohu."); return; }
+  var ed=document.getElementById("email-editor");
+  var filtr=(document.getElementById("email-typ")||{value:""}).value;
+  var data={
+    predmet:(document.getElementById("email-sub")||{value:""}).value.trim(),
+    html:ed ? ed.innerHTML : "",
+    prijemci_filtr:filtr,
+    vybrani_ids:filtr==="vybrani" ? Array.from(msgSel) : [],
+    updated_at:new Date().toISOString()
+  };
+  nahrajPrilohy(emailAttachments, "koncept").then(function(pr){
+    // nahrané soubory si zapamatovat, aby se při dalším uložení nebo odeslání nenahrávaly znovu
+    emailAttachments=pr.map(function(p, i){ return {name:p.name, path:p.path, size:emailAttachments[i].size||0}; });
+    renderAttachments();
+    data.prilohy=emailAttachments.map(function(a){ return {name:a.name, path:a.path, size:a.size}; });
+    return konceptId ? sbFetch("email_koncepty?id=eq."+konceptId, {method:"PATCH", body:JSON.stringify(data)})
+                     : sbFetch("email_koncepty", {method:"POST", body:JSON.stringify(data)});
+  }).then(function(r){
+    return r.json().then(function(x){ if(!r.ok) throw new Error(x&&x.message||("HTTP "+r.status)); return x; });
+  }).then(function(x){
+    var k=Array.isArray(x) ? x[0] : x;
+    if(k && k.id) konceptId=k.id;
+    zobrazStavKonceptu(); nactiKoncepty();
+    showSuccess("Koncept uložen.");
+  }).catch(function(e){ showError("Koncept se nepodařilo uložit. "+e.message); });
+}
+
+function otevriKoncept(id){
+  if(konceptId!==id && !emailJePrazdny() &&
+     !potvrdA("Otevřít koncept? Rozepsaný e-mail, který není uložený, se zahodí.", function(){ otevriKoncept(id); }, "Otevřít koncept")) return;
+  sbFetch("email_koncepty?id=eq."+id+"&select=*").then(function(r){ return r.json(); }).then(function(d){
+    var k=Array.isArray(d) && d[0]; if(!k){ showError("Koncept nenalezen."); return; }
+    konceptId=k.id;
+    document.getElementById("email-sub").value=k.predmet||"";
+    document.getElementById("email-editor").innerHTML=k.html||"";
+    emailAttachments=(k.prilohy||[]).map(function(a){ return {name:a.name, path:a.path, size:a.size||0}; });
+    renderAttachments();
+    var s=document.getElementById("email-typ");
+    var ids=(k.vybrani_ids||[]).filter(function(i){ return members.some(function(m){ return m.id===i; }); });
+    if(k.prijemci_filtr==="vybrani" && ids.length){
+      msgSel=new Set(ids);
+      var o=s.querySelector('option[value="vybrani"]');
+      if(!o){ o=document.createElement("option"); o.value="vybrani"; s.insertBefore(o, s.firstChild); }
+      o.textContent=ids.length===1 ? "Vybraný člen: "+memberName(ids[0]) : "Vybraní členové ("+ids.length+")";
+      s.value="vybrani";
+    } else {
+      s.value=k.prijemci_filtr && k.prijemci_filtr!=="vybrani" ? k.prijemci_filtr : "";
+      if(s.selectedIndex<0) s.value="";
+    }
+    updateEmailRcpt(); zobrazStavKonceptu(); nactiKoncepty();
+    showSuccess("Koncept otevřen. Zkontrolujte příjemce a můžete pokračovat.");
+  }).catch(function(){ showError("Koncept se nepodařilo otevřít."); });
+}
+
+function smazKoncept(id){
+  if(!potvrdA("Smazat koncept i s jeho přílohami?", function(){ smazKoncept(id); }, "Smazat", true)) return;
+  sbFetch("email_koncepty?id=eq."+id+"&select=prilohy").then(function(r){ return r.json(); }).then(function(d){
+    var cesty=((Array.isArray(d)&&d[0]&&d[0].prilohy)||[]).map(function(a){ return a.path; }).filter(Boolean);
+    return sbFetch("email_koncepty?id=eq."+id, {method:"DELETE"}).then(function(r){
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      if(cesty.length) sbAuth.storage.from("prilohy").remove(cesty);
+      if(konceptId===id){
+        // otevřený koncept: text zůstane, smazané přílohy z formuláře zmizí
+        konceptId=null;
+        emailAttachments=emailAttachments.filter(function(a){ return cesty.indexOf(a.path)===-1; });
+        renderAttachments(); zobrazStavKonceptu();
+      }
+      nactiKoncepty(); showSuccess("Koncept smazán.");
+    });
+  }).catch(function(e){ showError("Koncept se nepodařilo smazat. "+e.message); });
+}
+
+function novyEmail(){
+  if(!emailJePrazdny() && !potvrdA("Začít nový e-mail? Neuložené změny se zahodí.", function(){ novyEmail(); }, "Nový e-mail")) return;
+  konceptId=null;
+  document.getElementById("email-sub").value="";
+  document.getElementById("email-editor").innerHTML="";
+  emailAttachments=[]; renderAttachments();
+  zrusVybranePrijemce();
+  var s=document.getElementById("email-typ"); if(s) s.value="";
+  updateEmailRcpt(); zobrazStavKonceptu(); nactiKoncepty();
+}
+
+// Po odeslání: koncept smazat (jeho soubory si Brevo ještě stahuje, úložiště je uklidí po 7 dnech)
+function konceptOdeslan(){
+  if(!konceptId) return;
+  var id=konceptId; konceptId=null;
+  sbFetch("email_koncepty?id=eq."+id, {method:"DELETE"}).then(function(){ zobrazStavKonceptu(); nactiKoncepty(); });
 }
 
 function fileToBase64(file){
@@ -4268,14 +4429,24 @@ function loadAuditLog(){
   var el=document.getElementById("audit-log-list");
   if(!el) return;
   el.innerHTML="<div style='color:var(--text2);font-size:14px;padding:8px 0;'>Načítám...</div>";
-  fetch(SUPABASE_URL+"/rest/v1/audit_log?select=*&order=created_at.desc&limit=20",{
-    headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+ACCESS_TOKEN,"Content-Type":"application/json"}
-  }).then(function(r){
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    return r.json();
-  }).then(function(data){
-    if(!Array.isArray(data)||data.length===0){
-      el.innerHTML="<div style='color:var(--text2);font-size:14px;padding:8px 0;'>Zatím žádné změny.</div>";
+  var od=new Date(Date.now()-30*864e5).toISOString();
+  fetchAllRows("audit_log?select=*&created_at=gte."+encodeURIComponent(od)+"&order=created_at.desc,id.desc")
+  .then(function(data){
+    auditData=Array.isArray(data)?data:[];
+    renderAuditLog();
+  }).catch(function(err){
+    el.innerHTML="<div style='color:var(--text2);font-size:14px;padding:8px 0;'>Nepodařilo se načíst změny.</div>";
+  });
+}
+var auditData=[];
+function renderAuditLog(){
+  var el=document.getElementById("audit-log-list"); if(!el) return;
+  var q=(document.getElementById("zm-srch")||{value:""}).value;
+  var data=auditData.filter(function(l){ return hledaniSedi(q, (l.akce||"")+" "+(l.detail||"")+" "+(l.uzivatel||"")); });
+  var pc=document.getElementById("zm-pocet"); if(pc) pc.textContent=data.length.toLocaleString("cs-CZ")+" "+plural(data.length,"změna","změny","změn");
+  {
+    if(data.length===0){
+      el.innerHTML="<div style='color:var(--text2);font-size:14px;padding:8px 0;'>"+(auditData.length?"Nic neodpovídá hledání.":"Za posledních 30 dní žádné změny.")+"</div>";
       return;
     }
     el.innerHTML=data.map(function(log){
@@ -4288,9 +4459,7 @@ function loadAuditLog(){
         (log.detail?"<span style='font-size:13px;color:var(--text2);'> — "+escHtml(log.detail)+"</span>":"")+
         "</div><div style='font-size:12px;color:var(--text2);min-width:80px;text-align:right;'>"+escHtml(log.uzivatel||"")+"</div></div>";
     }).join("");
-  }).catch(function(err){
-    el.innerHTML="<div style='color:var(--text2);font-size:14px;padding:8px 0;'>Nepodařilo se načíst změny.</div>";
-  });
+  }
 }
 
 // ===== STATISTIKY =====
@@ -4788,7 +4957,7 @@ function sendEmail(){
         setTimeout(loadAuditLog,500);
         loadZpravy("email");
         emailAttachments=[]; renderAttachments();
-        if(sent>0) showSuccess("E-mail odeslán "+sent+" příjemcům!");
+        if(sent>0){ showSuccess("E-mail odeslán "+sent+" příjemcům!"); konceptOdeslan(); }
         else showError(posledniChyba || "E-mail se nepodařilo odeslat. Zkontrolujte nastavení Brevo.");
         // Obnovit auto-odhlaseni
         window._emailInProgress = false;
@@ -5396,10 +5565,13 @@ function savePrisEdit(){
   var castka = parseFloat(castkaEl.value)||0;
   if(!mesic){ showError("Vyberte měsíc."); return; }
   if(!rok){ showError("Vyberte rok."); return; }
+  if(castka<0){ showError("Částka nemůže být záporná. Pro zrušení platby zadejte 0."); return; }
 
   function onSuccess(){
-    if(!prispevkyData[prisEditOsnum]) prispevkyData[prisEditOsnum]={};
-    prispevkyData[prisEditOsnum][mesic] = castka;
+    if(rok===parseInt(document.getElementById("pris-rok").value)){
+      if(!prispevkyData[prisEditOsnum]) prispevkyData[prisEditOsnum]={};
+      prispevkyData[prisEditOsnum][mesic] = castka;
+    }
     dues = null; // prepocitat "Bez platby"
     delete prisHistorie[prisEditOsnum];
     if(detailMember && detailMember.osnum===prisEditOsnum && document.getElementById("detail-overlay").classList.contains("show")) loadCardPayments();
@@ -5446,13 +5618,23 @@ function prisSelectMesic(mesic){
   // Uloz hodnotu
   var hidEl=document.getElementById("pris-edit-mesic");
   if(hidEl) hidEl.value=mesic;
-  // Nacti aktualni hodnotu pro tento mesic
+  prisNactiRozpis();
+}
+// Aktuální stav vybraného měsíce z databáze: součet do pole a rozpis podle zdroje
+function prisNactiRozpis(){
+  var mesic=parseInt((document.getElementById("pris-edit-mesic")||{value:""}).value);
   var rok=parseInt((document.getElementById("pris-edit-rok")||{value:""}).value);
-  var castkaEl=document.getElementById("pris-edit-castka");
-  if(castkaEl && prisEditOsnum){
-    castkaEl.value=(prispevkyData[prisEditOsnum]||{})[mesic]||0;
-    castkaEl.focus();
-  }
+  var castkaEl=document.getElementById("pris-edit-castka"), roz=document.getElementById("pris-edit-rozpis");
+  if(!mesic || !rok || !prisEditOsnum || !castkaEl) return;
+  if(roz) roz.textContent="Načítám…";
+  sbFetch("prispevky?osobni_cislo=eq."+encodeURIComponent(prisEditOsnum)+"&rok=eq."+rok+"&mesic=eq."+mesic+"&select=zdroj,castka")
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var NAZ={ofiko:"ofiko", tajni:"tajní", rucne:"ruční oprava"}, sum=0, casti=[];
+      (Array.isArray(d)?d:[]).forEach(function(p){ var c=parseFloat(p.castka)||0; sum+=c; casti.push((NAZ[p.zdroj]||p.zdroj)+" "+fmtKc(c)); });
+      castkaEl.value=Math.round(sum*100)/100; castkaEl.focus();
+      if(roz) roz.innerHTML = casti.length ? "Nyní zapsáno: "+escHtml(casti.join(" + "))+(casti.length>1?" = <b>"+fmtKc(sum)+"</b>":"") : "Za "+MESICE_NAMES[mesic-1].toLowerCase()+" "+rok+" zatím nic zapsáno.";
+    }).catch(function(){ if(roz) roz.textContent=""; });
 }
 
 function openPrisCard(osnum, nameEnc){
