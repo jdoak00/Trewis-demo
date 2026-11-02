@@ -809,7 +809,7 @@ select.finp{cursor:pointer;}
             <div class="toolbar-row">
               <div class="srch">
                 <span class="srch-ic">&#128269;</span>
-                <input id="srch-inp" placeholder="Hledat jméno, za svobodna, OS číslo, e-mail..." oninput="filterMembers()"/>
+                <input id="srch-inp" placeholder="Hledat jméno, za svobodna, OS číslo, e-mail, telefon..." oninput="filterMembers()"/>
               </div>
               <div class="toolbar-actions">
                 <button class="btn btn-out" onclick="toggleColsMenu(event)">Sloupce</button>
@@ -2609,7 +2609,9 @@ function getSorted(){
   if(currentView.indexOf("dq:")===0) dqRefreshDup();
   var byVstup = sortMode.indexOf("vstup")===0;
   var list=members.filter(function(m){
-    return hledaniSedi(q, m.jmeno+" "+m.prijmeni+" "+(m.za_svobodna||"")+" "+m.email+" "+m.osnum+" "+m.oddeleni)
+    // telefon i bez mezer a předvolby, aby šlo hledat "777123456" i "+420 777 123 456"
+    var tel=String(m.telefon||""), telCisla=tel.replace(/\D/g,"");
+    return hledaniSedi(q, m.jmeno+" "+m.prijmeni+" "+(m.za_svobodna||"")+" "+m.email+" "+m.osnum+" "+m.oddeleni+" "+tel+" "+tel.replace(/\s/g,"")+" "+telCisla+" "+telCisla.replace(/^420/,""))
       &&(!typ||m.typ===typ)
       &&(!odd||m.oddeleni===odd)
       &&(!smena||m.smena===smena)
