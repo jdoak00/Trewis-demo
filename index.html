@@ -435,6 +435,7 @@ tr.selected{background:var(--blue-bg)!important;}
 .kc-info b{font-size:15px;overflow-wrap:anywhere;}
 .kc-info span{font-size:13px;color:var(--text2);}
 .kc-akce{display:flex;gap:6px;}
+.hd-dokoncit{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;padding:10px 12px;border-radius:8px;background:var(--orange-bg);font-size:14px;font-weight:600;}
 .kc-stav{font-size:14px;color:var(--blue);font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
 .zm-hledat{margin:0 16px 10px;}
 .doc-viewer{z-index:600;}
@@ -1836,8 +1837,9 @@ function loadZpravy(kanal){
         var uvod=String(z.uvod||"").replace(/\s+/g," ").trim();
         var nadpis = kanal==="email" ? (z.predmet||"(bez předmětu)") : (uvod.length>70?uvod.slice(0,70)+"…":uvod);
         var plne = z.pocet_odeslano>=z.pocet_prijemcu;
+        var nedokonceno = kanal==="email" && !plne ? ' <span class="bdg bdg-orange">nedokončeno</span>' : '';
         return '<details class="hist-row" ontoggle="if(this.open) nactiDetailZpravy('+z.id+',this)">'+
-          '<summary><div class="hist-main"><div class="hist-sub">'+escHtml(nadpis)+'</div>'+
+          '<summary><div class="hist-main"><div class="hist-sub">'+escHtml(nadpis)+nedokonceno+'</div>'+
           '<div class="hist-meta">'+dt.toLocaleDateString("cs-CZ")+' '+dt.toLocaleTimeString("cs-CZ",{hour:"2-digit",minute:"2-digit"})+
           ' · komu: <b>'+escHtml(z.skupina||"—")+'</b> · odeslal: '+escHtml(z.odeslal||"—")+'</div></div>'+
           '<span class="bdg '+(plne?'bdg-green':'bdg-orange')+'" title="odesláno / příjemců">'+z.pocet_odeslano+' / '+z.pocet_prijemcu+'</span></summary>'+
@@ -1866,7 +1868,10 @@ function nactiDetailZpravy(id, det){
         '<div class="hd-lbl">Text zprávy</div><div class="hd-text">'+escHtml(z.text||"")+'</div>'+
         '<div class="hd-lbl">Komu</div><div class="hd-komu"><b>'+escHtml(z.skupina||"—")+'</b> · odesláno '+z.pocet_odeslano+' z '+z.pocet_prijemcu+'</div>'+
         (rucne && vypsat.length ? '<div class="hd-lbl">Vybraní příjemci</div>'+stitky(vypsat) : '')+
-        (!rucne && vypsat.length ? '<div class="hd-lbl">Nepodařilo se doručit ('+vypsat.length+')</div>'+stitky(vypsat) : '');
+        (!rucne && vypsat.length ? '<div class="hd-lbl">Nepodařilo se doručit ('+vypsat.length+')</div>'+stitky(vypsat) : '')+
+        (z.kanal==="email" && z.pocet_odeslano<z.pocet_prijemcu ?
+          '<div class="hd-dokoncit"><span>Rozesílka nebyla dokončena – zbývá '+(z.pocet_prijemcu-z.pocet_odeslano)+' příjemců.</span>'+
+          '<button class="btn btn-blue btn-sm" onclick="dokoncitOdeslani('+id+')">Dokončit odeslání</button></div>' : '');
     }).catch(function(){ box.innerHTML='<div class="hist-empty">Detail se nepodařilo načíst.</div>'; });
 }
 
@@ -4154,6 +4159,7 @@ function emailJePrazdny(){
 
 function ulozKoncept(){
   if(checkGuest("Nemáte oprávnění ukládat e-maily.")) return;
+  if(window._emailInProgress){ showError("Počkejte, až odesílání skončí."); return; }
   if(emailJePrazdny()){ showError("Koncept je prázdný – vyplňte předmět, text nebo přidejte přílohu."); return; }
   var ed=document.getElementById("email-editor");
   var filtr=(document.getElementById("email-typ")||{value:""}).value;
@@ -4227,6 +4233,7 @@ function smazKoncept(id){
 }
 
 function novyEmail(){
+  if(window._emailInProgress){ showError("Počkejte, až odesílání skončí."); return; }
   if(!emailJePrazdny() && !potvrdA("Začít nový e-mail? Neuložené změny se zahodí.", function(){ novyEmail(); }, "Nový e-mail")) return;
   konceptId=null;
   document.getElementById("email-sub").value="";
@@ -4906,82 +4913,125 @@ function sendTestEmail(){
 
 function sendEmail(){
   if(checkGuest("Nemáte oprávnění odesílat e-maily.")) return;
+  if(window._emailInProgress){ showError("Odesílání už probíhá."); return; }
   var sub=cleanPaste((document.getElementById("email-sub")||{value:""}).value);
   var editorEl=document.getElementById("email-editor");
   var msg=cleanPaste(editorEl ? (editorEl.innerText||editorEl.textContent||"") : "");
   var msgHtml=editorEl ? editorEl.innerHTML : "";
   if(!sub||!msg.trim()){ showError("Vyplňte předmět a text e-mailu."); return; }
   var val=(document.getElementById("email-typ")||{value:""}).value;
-  var rcpt=members.filter(function(m){
+  var rcpt=prijemciEmailu(val, Array.from(msgSel));
+  var total=rcpt.length;
+  if(!total){ showError("Žádní příjemci e-mailu."); return; }
+  var skupina=(document.getElementById("email-typ")||{}).options?document.getElementById("email-typ").options[document.getElementById("email-typ").selectedIndex].text:"";
+  if(!potvrdA("Opravdu odeslat e-mail "+total+" příjemcům?\n\nKomu: "+skupina+"\nPředmět: "+sub+"\n\nBěhem odesílání nezavírejte stránku a nezamykejte telefon.", function(){ sendEmail(); }, "Odeslat e-mail")) return;
+  var jmeno=(document.getElementById("user-name")||{textContent:""}).textContent||"";
+  var sig=EMAIL_SIGNATURE.replace("{{JMENO}}",jmeno).replace("{{ROLE}}","#ODBORYHYUNDAI");
+  var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+(msgHtml||msg.replace(/\n/g,"<br>"))+"</div>"+sig;
+  odesilaniZacatek();
+  nahrajPrilohy(emailAttachments).then(function(prilohy){
+    rozeslatEmail({ rcpt:rcpt, sub:sub, htmlMsg:htmlMsg, msg:msg, prilohy:prilohy, skupina:skupina, celkem:total,
+      zpravaId:null, vypis:(val==="vybrani"), filtr:val, vybraniIds:(val==="vybrani"?Array.from(msgSel):[]) });
+  }).catch(function(e){
+    // příloha se nenahrála: nic se neodeslalo
+    odesilaniKonec();
+    showError(e.message+" Nic se neodeslalo.");
+  });
+}
+
+// Příjemci podle filtru (stejně jako výběr v sekci E-mail)
+function prijemciEmailu(val, vybraniIds){
+  var vybrani=new Set(vybraniIds||[]);
+  return members.filter(function(m){
     if(!m.email) return false;
-    if(val==="vybrani") return msgSel.has(m.id);
+    if(val==="vybrani") return vybrani.has(m.id);
     if(!val) return true;
     if(val.indexOf("typ:")===0) return m.typ===val.substring(4);
     if(val.indexOf("skupina:")===0) return m.skupina===val.substring(8);
     return true;
   });
-  var total=rcpt.length;
-  if(!total){ showError("Žádní příjemci e-mailu."); return; }
-  var smsTypLabel=(document.getElementById("email-typ")||{}).options?document.getElementById("email-typ").options[document.getElementById("email-typ").selectedIndex].text:"";
-  if(!potvrdA("Opravdu odeslat e-mail "+total+" příjemcům?\n\nKomu: "+smsTypLabel+"\nPředmět: "+sub, function(){ sendEmail(); }, "Odeslat e-mail")) return;
-  var jmeno=(document.getElementById("user-name")||{textContent:""}).textContent||"";
-  var sig=EMAIL_SIGNATURE.replace("{{JMENO}}",jmeno).replace("{{ROLE}}","#ODBORYHYUNDAI");
-  var htmlMsg="<div style='font-family:sans-serif;font-size:13px;line-height:1.6;color:#333;'>"+(msgHtml||msg.replace(/\n/g,"<br>"))+"</div>"+sig;
-  var progEl=document.getElementById("email-progress");
-  var okEl=document.getElementById("email-ok");
-  var sendBtn=document.getElementById("btn-send-email");
+}
+
+// Během odesílání: neodhlašovat, varovat před zavřením stránky, nenechat zhasnout obrazovku
+var _wakeLock=null;
+function odesilaniZacatek(){
+  var progEl=document.getElementById("email-progress"), okEl=document.getElementById("email-ok"), sendBtn=document.getElementById("btn-send-email");
   if(progEl) progEl.style.display="block";
   if(okEl) okEl.style.display="none";
   if(sendBtn) sendBtn.disabled=true;
-  // Pozastavit auto-odhlaseni a chranit pred zavrenim stranky
+  var pt=document.getElementById("email-prog-txt"), pb=document.getElementById("email-prog-bar");
+  if(pt) pt.textContent="Připravuji odesílání…"; if(pb) pb.style.width="0%";
   clearTimeout(inactivityTimer);
   clearTimeout(inactivityWarningTimer);
   window._emailInProgress = true;
   window.onbeforeunload = function(){ return "Probíhá odesílání e-mailů. Opravdu chcete opustit stránku?"; };
-  var sent=0, errors=0, zpravaId=null, DAVKA=50, posledniChyba="";
-  nahrajPrilohy(emailAttachments).catch(function(e){
-    // příloha se nenahrála: nic se neodeslalo, vrátit formulář do původního stavu
-    if(progEl) progEl.style.display="none";
-    if(sendBtn) sendBtn.disabled=false;
-    window._emailInProgress=false; window.onbeforeunload=null; resetInactivityTimer();
-    showError(e.message+" Nic se neodeslalo.");
-    return null;
-  }).then(function(attachBase64){
-    if(!attachBase64) return;
-    // Odesila server po davkach; kazdy prijemce dostane vlastni e-mail (ostatni adresy nevidi)
-    function sendBatch(offset){
-      var batch=rcpt.slice(offset,offset+DAVKA);
-      if(batch.length===0){
-        if(progEl) progEl.style.display="none";
-        if(okEl){ okEl.style.display="block"; okEl.textContent="Hotovo! Odesláno "+sent+" e-mailů."+(errors>0?" Chyb: "+errors+".":"")+(attachBase64.length>0?" ("+attachBase64.length+" příloha)":""); }
-        if(sendBtn){ sendBtn.disabled=false; }
-        logChange("Odeslán hromadný e-mail","Komu: "+smsTypLabel+", odesláno: "+sent+(errors>0?", chyb: "+errors:"")+(attachBase64.length>0?", příloh: "+attachBase64.length:""));
-        setTimeout(loadAuditLog,500);
-        loadZpravy("email");
-        emailAttachments=[]; renderAttachments();
-        if(sent>0){ showSuccess("E-mail odeslán "+sent+" příjemcům!"); konceptOdeslan(); }
-        else showError(posledniChyba || "E-mail se nepodařilo odeslat. Zkontrolujte nastavení Brevo.");
-        // Obnovit auto-odhlaseni
-        window._emailInProgress = false;
-        window.onbeforeunload = null;
-        resetInactivityTimer();
-        return;
-      }
-      var to=batch.map(function(m){ return {email:m.email,name:m.prijmeni+" "+m.jmeno}; });
-      apiCall("odeslat-email", { predmet:sub, html:htmlMsg, text_nahled:msg, prijemci:to, prilohy:attachBase64, skupina:smsTypLabel, celkem:total, zprava_id:zpravaId, vypis:(val==="vybrani") })
-        .then(function(r){ sent+=r.odeslano; errors+=r.chyby; if(r.zprava_id) zpravaId=r.zprava_id; })
-        .catch(function(e){ errors+=batch.length; posledniChyba=e.message; console.error("E-mail:", e.message); })
-        .then(function(){
-          var hotovo=Math.min(offset+DAVKA,total), pct=Math.round(hotovo/total*100);
-          var pt=document.getElementById("email-prog-txt");
-          var pb=document.getElementById("email-prog-bar");
-          if(pt) pt.textContent="Odesílám "+hotovo+"/"+total+"... "+pct+"%";
-          if(pb) pb.style.width=pct+"%";
-          setTimeout(function(){ sendBatch(offset+DAVKA); },300);
-        });
+  try { if(navigator.wakeLock) navigator.wakeLock.request("screen").then(function(w){ _wakeLock=w; }).catch(function(){}); } catch(e){}
+}
+function odesilaniKonec(){
+  var progEl=document.getElementById("email-progress"), sendBtn=document.getElementById("btn-send-email");
+  if(progEl) progEl.style.display="none";
+  if(sendBtn) sendBtn.disabled=false;
+  window._emailInProgress = false;
+  window.onbeforeunload = null;
+  try { if(_wakeLock) _wakeLock.release(); } catch(e){}
+  _wakeLock=null;
+  resetInactivityTimer();
+}
+
+// Rozeslání po dávkách (server odešle každému vlastní e-mail). Při doposlání (o.zpravaId) se
+// výsledky přičítají k původní zprávě v historii; server si pamatuje, komu už zpráva odešla.
+function rozeslatEmail(o){
+  var sent=0, errors=0, zpravaId=o.zpravaId||null, DAVKA=50, posledniChyba="", total=o.rcpt.length;
+  var okEl=document.getElementById("email-ok");
+  function sendBatch(offset){
+    var batch=o.rcpt.slice(offset,offset+DAVKA);
+    if(batch.length===0){
+      odesilaniKonec();
+      if(okEl){ okEl.style.display="block"; okEl.textContent="Hotovo! "+(o.zpravaId?"Doposláno ":"Odesláno ")+sent+" e-mailů."+(errors>0?" Chyb: "+errors+".":"")+(o.prilohy.length>0?" ("+o.prilohy.length+" příloha)":""); }
+      logChange(o.zpravaId?"Doposlán hromadný e-mail":"Odeslán hromadný e-mail","Předmět: "+o.sub+", komu: "+o.skupina+", odesláno: "+sent+(errors>0?", chyb: "+errors:"")+(o.prilohy.length>0?", příloh: "+o.prilohy.length:""));
+      setTimeout(loadAuditLog,500);
+      loadZpravy("email");
+      if(!o.zpravaId){ emailAttachments=[]; renderAttachments(); }
+      if(sent>0){ showSuccess("E-mail "+(o.zpravaId?"doposlán ":"odeslán ")+sent+" příjemcům!"); if(!o.zpravaId) konceptOdeslan(); }
+      else showError(posledniChyba || "E-mail se nepodařilo odeslat. Zkontrolujte nastavení Brevo.");
+      return;
     }
-    sendBatch(0);
-  });
+    var to=batch.map(function(m){ return {email:m.email,name:m.prijmeni+" "+m.jmeno}; });
+    apiCall("odeslat-email", { predmet:o.sub, html:o.htmlMsg, text_nahled:o.msg, prijemci:to, prilohy:o.prilohy, skupina:o.skupina, celkem:o.celkem,
+        zprava_id:zpravaId, vypis:o.vypis, filtr:o.filtr, vybrani_ids:o.vybraniIds })
+      .then(function(r){ sent+=r.odeslano; errors+=r.chyby; if(r.zprava_id) zpravaId=r.zprava_id; if(r.detail) posledniChyba=r.detail; })
+      .catch(function(e){ errors+=batch.length; posledniChyba=e.message; console.error("E-mail:", e.message); })
+      .then(function(){
+        var hotovo=Math.min(offset+DAVKA,total), pct=Math.round(hotovo/total*100);
+        var pt=document.getElementById("email-prog-txt"), pb=document.getElementById("email-prog-bar");
+        if(pt) pt.textContent="Odesílám "+hotovo+"/"+total+"… "+pct+" % – nezavírejte stránku a nezamykejte telefon";
+        if(pb) pb.style.width=pct+"%";
+        setTimeout(function(){ sendBatch(offset+DAVKA); },300);
+      });
+  }
+  sendBatch(0);
+}
+
+// Doposlání přerušené rozesílky: stejný text a přílohy těm, komu zpráva ještě neodešla
+function dokoncitOdeslani(id){
+  if(checkGuest("Nemáte oprávnění odesílat e-maily.")) return;
+  if(window._emailInProgress){ showError("Odesílání už probíhá."); return; }
+  sbFetch("zpravy?id=eq."+id+"&select=id,predmet,text,html,prilohy,filtr,vybrani_ids,odeslane,skupina,pocet_prijemcu,pocet_odeslano")
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var z=Array.isArray(d)&&d[0]; if(!z){ showError("Zpráva nenalezena."); return; }
+      if(!z.html){ showError("U této zprávy není uložený text pro doposlání."); return; }
+      var hotovo=new Set((z.odeslane||[]).map(function(e){ return String(e).trim().toLowerCase(); }));
+      var rcpt=prijemciEmailu(z.filtr||"", z.vybrani_ids||[]).filter(function(m){ return !hotovo.has(String(m.email).trim().toLowerCase()); });
+      if(!rcpt.length){ showSuccess("Všichni příjemci už e-mail dostali."); return; }
+      if(!potvrdA("Doposlat e-mail „"+(z.predmet||"")+"“?\n\nUž odesláno: "+z.pocet_odeslano+"\nDoposlat ještě: "+rcpt.length+" členům ("+(z.skupina||"")+")"+
+          ((z.prilohy||[]).length?"\nPřílohy: "+z.prilohy.map(function(a){ return a.name; }).join(", "):"")+"\n\nBěhem odesílání nezavírejte stránku a nezamykejte telefon.",
+          function(){ dokoncitOdeslani(id); }, "Doposlat "+rcpt.length+" členům")) return;
+      switchPage("email");
+      odesilaniZacatek();
+      rozeslatEmail({ rcpt:rcpt, sub:z.predmet||"", htmlMsg:z.html, msg:z.text||"", prilohy:z.prilohy||[], skupina:z.skupina||"", celkem:z.pocet_prijemcu,
+        zpravaId:z.id, vypis:(z.filtr==="vybrani"), filtr:z.filtr||"", vybraniIds:z.vybrani_ids||[] });
+    }).catch(function(){ showError("Zprávu se nepodařilo načíst."); });
 }
 
 // ===== EDIT FORM =====
