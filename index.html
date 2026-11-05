@@ -5024,13 +5024,16 @@ function dokoncitOdeslani(id){
       var hotovo=new Set((z.odeslane||[]).map(function(e){ return String(e).trim().toLowerCase(); }));
       var rcpt=prijemciEmailu(z.filtr||"", z.vybrani_ids||[]).filter(function(m){ return !hotovo.has(String(m.email).trim().toLowerCase()); });
       if(!rcpt.length){ showSuccess("Všichni příjemci už e-mail dostali."); return; }
-      if(!potvrdA("Doposlat e-mail „"+(z.predmet||"")+"“?\n\nUž odesláno: "+z.pocet_odeslano+"\nDoposlat ještě: "+rcpt.length+" členům ("+(z.skupina||"")+")"+
+      // potvrzení přímo (potvrdA by po opětovném načtení zprávy ze serveru potvrzení zapomnělo a ptalo se dokola)
+      potvrd("Doposlat e-mail „"+(z.predmet||"")+"“?\n\nUž odesláno: "+z.pocet_odeslano+"\nDoposlat ještě: "+rcpt.length+" členům ("+(z.skupina||"")+")"+
           ((z.prilohy||[]).length?"\nPřílohy: "+z.prilohy.map(function(a){ return a.name; }).join(", "):"")+"\n\nBěhem odesílání nezavírejte stránku a nezamykejte telefon.",
-          function(){ dokoncitOdeslani(id); }, "Doposlat "+rcpt.length+" členům")) return;
-      switchPage("email");
-      odesilaniZacatek();
-      rozeslatEmail({ rcpt:rcpt, sub:z.predmet||"", htmlMsg:z.html, msg:z.text||"", prilohy:z.prilohy||[], skupina:z.skupina||"", celkem:z.pocet_prijemcu,
-        zpravaId:z.id, vypis:(z.filtr==="vybrani"), filtr:z.filtr||"", vybraniIds:z.vybrani_ids||[] });
+          "Doposlat "+rcpt.length+" členům", "Zrušit").then(function(ok){
+        if(!ok || window._emailInProgress) return;
+        switchPage("email");
+        odesilaniZacatek();
+        rozeslatEmail({ rcpt:rcpt, sub:z.predmet||"", htmlMsg:z.html, msg:z.text||"", prilohy:z.prilohy||[], skupina:z.skupina||"", celkem:z.pocet_prijemcu,
+          zpravaId:z.id, vypis:(z.filtr==="vybrani"), filtr:z.filtr||"", vybraniIds:z.vybrani_ids||[] });
+      });
     }).catch(function(){ showError("Zprávu se nepodařilo načíst."); });
 }
 
