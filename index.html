@@ -435,6 +435,13 @@ tr.selected{background:var(--blue-bg)!important;}
 .kc-info b{font-size:15px;overflow-wrap:anywhere;}
 .kc-info span{font-size:13px;color:var(--text2);}
 .kc-akce{display:flex;gap:6px;}
+.pr-box{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;border:1.5px dashed var(--blue);border-radius:var(--r-lg);background:var(--blue-bg);}
+.pr-napoveda{font-size:13px;color:var(--text2);}
+.pr-stav{font-size:14px;margin-bottom:12px;padding:10px 12px;border-radius:8px;background:var(--panel2);}
+.pr-stav.ok{background:var(--green-bg);}
+.pr-stav.err{background:var(--red-bg);color:var(--red);}
+.pr-stav ul{margin:6px 0 0;padding-left:18px;}
+.finp.pr-nejiste{border-color:var(--orange)!important;box-shadow:0 0 0 3px var(--orange-bg);}
 .hd-dokoncit{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;padding:10px 12px;border-radius:8px;background:var(--orange-bg);font-size:14px;font-weight:600;}
 .kc-stav{font-size:14px;color:var(--blue);font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
 .zm-hledat{margin:0 16px 10px;}
@@ -1001,6 +1008,17 @@ select.finp{cursor:pointer;}
           </div>
         
 
+          <!-- CTENI PRIHLASEK Z FOTKY -->
+          <div id="set-anthropic-box" hidden style="border-top:1px solid var(--border);margin-top:28px;padding-top:20px;">
+            <div class="dp-sec">&#128247; Čtení přihlášek z fotky — Claude (Anthropic)</div>
+            <div class="info-bar">Klíč z <b>Claude Console</b> (platform.claude.com → API Keys). Uloží se jen na serveru, zpět se nezobrazí. Čtení se platí z kreditu v Console (asi 0,70 Kč za přihlášku). PDF vyplněné v počítači se čte zdarma bez klíče.</div>
+            <label class="lbl" style="margin-bottom:6px;">Anthropic API klíč</label>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <input class="finp" id="set-anthropic-key" type="password" placeholder="sk-ant-..." style="flex:1;min-width:220px;"/>
+              <button class="btn btn-blue" onclick="ulozAnthropicKlic()">&#10003; Uložit klíč</button>
+            </div>
+          </div>
+
           <!-- SMS NASTAVENI -->
           <div style="border-top:1px solid var(--border);margin-top:28px;padding-top:20px;">
             <div class="dp-sec">&#128241; Nastavení SMS — SmsManager.cz</div>
@@ -1237,6 +1255,12 @@ select.finp{cursor:pointer;}
   <div class="modal">
     <div class="modal-h"><span class="modal-t">Přidat nového člena</span><button class="btn btn-out btn-sm" onclick="closeAddModal()">&#10005;</button></div>
     <div class="modal-b">
+      <div class="pr-box" id="add-prihlaska-box" hidden>
+        <button type="button" class="btn btn-out" onclick="prihlaskaVybrat()">&#128247; Načíst z přihlášky (fotka / PDF)</button>
+        <span class="pr-napoveda">Údaje se předvyplní – před přidáním je zkontrolujte.</span>
+        <input type="file" id="add-prihlaska-file" accept="image/*,.heic,.heif,application/pdf,.pdf" style="display:none" onchange="prihlaskaSoubor(event)"/>
+      </div>
+      <div class="pr-stav" id="add-prihlaska-stav" hidden></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
         <div><label class="lbl">Jméno</label><input class="finp" id="add-jmeno"/></div>
         <div><label class="lbl">Příjmení</label><input class="finp" id="add-prijmeni"/></div>
@@ -2822,15 +2846,14 @@ function switchToEdit(){
 function saveEdit(){
   if(checkGuest("Nemáte oprávnění upravovat členy.")) return;
   var m=detailMember;
-  // Kontrola povinných polí
+  // Kontrola povinných polí (jen identita člena; e-mail a ostatní údaje mohou chybět)
   var chyby=[];
   if(!document.getElementById("e-jmeno").value.trim()) chyby.push("Jméno");
   if(!document.getElementById("e-prijmeni").value.trim()) chyby.push("Příjmení");
-  if(!document.getElementById("e-email").value.trim()) chyby.push("E-mail");
   if(!document.getElementById("e-osnum").value.trim()) chyby.push("Osobní číslo");
   if(chyby.length>0){
     showToast("Vyplňte povinná pole: "+chyby.join(", "),"err");
-    ["e-jmeno","e-prijmeni","e-email","e-osnum"].forEach(function(id){
+    ["e-jmeno","e-prijmeni","e-osnum"].forEach(function(id){
       var el=document.getElementById(id);
       if(el) el.style.borderColor=el.value.trim()?"":"var(--red)";
     });
@@ -2941,6 +2964,7 @@ function openAddModal(){
   if(checkGuest("Nemáte oprávnění přidávat členy.")) return;
   _volbaDuplikat=null;
   document.getElementById("add-modal").classList.add("show");
+  prihlaskaReset();
   // Reset všech polí na výchozí hodnoty
   var defaults = {
     "add-jmeno":"", "add-prijmeni":"", "add-email":"", "add-adresa":"",
@@ -3004,17 +3028,16 @@ function addMember(){
   var email=document.getElementById("add-email").value.trim();
   var osnum=document.getElementById("add-osnum").value.trim();
   var oddeleni=document.getElementById("add-oddeleni").value.trim();
-  // Kontrola povinných polí
+  // Kontrola povinných polí (e-mail může chybět)
   var missing=[];
   if(!jmeno) missing.push("Jméno");
   if(!prijmeni) missing.push("Příjmení");
-  if(!email) missing.push("E-mail");
   if(!osnum) missing.push("Osobní číslo");
   if(!oddeleni) missing.push("Hala");
   if(missing.length>0){
     showToast("Vyplňte povinná pole: "+missing.join(", "),"err");
     // Zvýraznit chybějící pole
-    ["add-jmeno","add-prijmeni","add-email","add-osnum","add-oddeleni"].forEach(function(id){
+    ["add-jmeno","add-prijmeni","add-osnum","add-oddeleni"].forEach(function(id){
       var el=document.getElementById(id);
       if(el) el.style.borderColor=el.value.trim()?"":"var(--red)";
     });
@@ -4048,6 +4071,9 @@ function vyplnNastaveni(s){
   var emailEl = document.getElementById("set-email"); if(emailEl) emailEl.value = BREVO_FROM_EMAIL;
   var nameEl = document.getElementById("set-name"); if(nameEl) nameEl.value = BREVO_FROM_NAME;
   var smsSenderEl = document.getElementById("set-sms-sender"); if(smsSenderEl) smsSenderEl.value = SMS_SENDER;
+  var anBox = document.getElementById("set-anthropic-box"); if(anBox) anBox.hidden = false;
+  var anEl = document.getElementById("set-anthropic-key");
+  if(anEl){ anEl.value = ""; anEl.placeholder = s.anthropic_klic ? "Uloženo ("+s.anthropic_klic+") – vyplňte jen pro změnu" : "sk-ant-..."; }
 }
 
 function loadSettings(){
@@ -4123,6 +4149,228 @@ function nahrajPrilohy(files, prefix){
         return {name:f.name, path:path};
       });
   }));
+}
+
+// ===== NAČTENÍ PŘIHLÁŠKY (fotka / PDF) =====
+// PDF vyplněné v počítači se přečte přímo v prohlížeči (zdarma, nikam se neposílá).
+// Fotka nebo sken se pošle přes serverovou funkci Claudovi (Anthropic), který údaje vyčte.
+// Nic se neukládá - údaje se jen předvyplní do formuláře a člověk je před přidáním zkontroluje.
+
+function nactiSkript(url, globalni){
+  return new Promise(function(ok, chyba){
+    if(window[globalni]) return ok(window[globalni]);
+    var s=document.createElement("script"); s.src=url;
+    s.onload=function(){ ok(window[globalni]); };
+    s.onerror=function(){ chyba(new Error("Potřebnou knihovnu se nepodařilo načíst.")); };
+    document.head.appendChild(s);
+  });
+}
+var PDFJS_URL="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+function nactiPdfJs(){
+  return nactiSkript(PDFJS_URL+"pdf.min.js","pdfjsLib").then(function(p){ p.GlobalWorkerOptions.workerSrc=PDFJS_URL+"pdf.worker.min.js"; return p; });
+}
+
+function prihlaskaStav(html, druh){
+  var el=document.getElementById("add-prihlaska-stav"); if(!el) return;
+  el.hidden=!html; el.className="pr-stav"+(druh?" "+druh:""); el.innerHTML=html||"";
+}
+function prihlaskaReset(){
+  prihlaskaStav("");
+  ["add-jmeno","add-prijmeni","add-email","add-telefon","add-osnum","add-adresa","add-vstup","add-typ","add-oddeleni","add-linka","add-smena"].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.classList.remove("pr-nejiste");
+  });
+  var box=document.getElementById("add-prihlaska-box"); if(box) box.hidden=false;
+}
+function prihlaskaVybrat(){ document.getElementById("add-prihlaska-file").click(); }
+
+function prihlaskaSoubor(ev){
+  var f=ev.target.files[0]; ev.target.value=""; if(!f) return;
+  prihlaskaReset();
+  prihlaskaStav("Načítám přihlášku…");
+  var jePdf=/pdf$/i.test(f.type) || /\.pdf$/i.test(f.name);
+  (jePdf ? prihlaskaZPdf(f) : obrazekNaJpeg(f).then(prihlaskaPresClaude))
+    .then(vyplnZPrihlasky)
+    .catch(function(e){ console.error("Přihláška:", e); prihlaskaStav("&#9888; "+escHtml(e.message||"Přihlášku se nepodařilo načíst.")+" Údaje můžete vyplnit ručně.","err"); });
+}
+
+// Fotka -> JPEG (nejvýš 1600 px, správně otočený); iPhone HEIC se nejdřív převede
+function obrazekNaJpeg(f){
+  var heic=/hei[cf]$/i.test(f.type) || /\.hei[cf]$/i.test(f.name);
+  var p = heic ? nactiSkript("https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js","heic2any")
+                   .then(function(h){ return h({blob:f, toType:"image/jpeg", quality:0.9}); })
+                   .then(function(b){ return Array.isArray(b)?b[0]:b; })
+               : Promise.resolve(f);
+  return p.then(function(blob){ return createImageBitmap(blob, {imageOrientation:"from-image"}); })
+    .then(function(bmp){ return platnoNaJpeg(bmp, bmp.width, bmp.height); })
+    .catch(function(e){ throw new Error(e && e.message && /knihovnu/.test(e.message) ? e.message : "Obrázek se nepodařilo otevřít (podporované: JPG, PNG, HEIC, PDF)."); });
+}
+function platnoNaJpeg(zdroj, w, h){
+  var k=Math.min(1, 1600/Math.max(w,h)), c=document.createElement("canvas");
+  c.width=Math.round(w*k); c.height=Math.round(h*k);
+  var ctx=c.getContext("2d"); ctx.fillStyle="#fff"; ctx.fillRect(0,0,c.width,c.height);
+  ctx.drawImage(zdroj, 0, 0, c.width, c.height);
+  return c.toDataURL("image/jpeg", 0.85).split(",")[1];
+}
+
+function prihlaskaPresClaude(b64){
+  prihlaskaStav("Čtu údaje z fotky… (pár sekund)");
+  return apiCall("precist-prihlasku", { obrazek:b64, media_type:"image/jpeg" }).then(function(r){
+    var u=r.udaje||{};
+    return { udaje:u, nejiste:u.nejiste||[], poznamka:u.poznamka||"", zdroj:"foto" };
+  });
+}
+
+// Pole přihlášky (verze 2026) v poměru ke stránce: [x1, y1, x2, y2] od levého horního rohu
+var PRIHLASKA_POLE = {
+  prijmeni:[0.04,0.120,0.339,0.152], jmeno:[0.351,0.120,0.650,0.152],
+  email:[0.04,0.202,0.500,0.234], mobil:[0.544,0.202,0.973,0.234],
+  ulice:[0.04,0.275,0.500,0.306], mesto:[0.544,0.275,0.841,0.306], psc:[0.866,0.275,0.973,0.306],
+  osobni_cislo:[0.04,0.354,0.209,0.386], hala:[0.234,0.354,0.500,0.386], linka:[0.544,0.354,0.841,0.386], smena:[0.866,0.354,0.973,0.386],
+  vstup_mesic:[0.04,0.465,0.339,0.497], vstup_rok:[0.351,0.465,0.650,0.497]
+};
+var PRIHLASKA_POPISKY = ["PŘÍJMENÍ","KŘESTNÍ","JMÉNO","@","E-MAIL","MOBIL","ULICE","/","Č.P.","MĚSTO","PSČ","ID","ČÍSLO","HALA","LINKA","SMĚNA","MĚSÍC","ROK"];
+// nadpisy sekcí formuláře (v PDF i se zdvojenými písmeny, např. "OOSSOOBBNNÍÍ ÚÚDDAAJJEE")
+function prihlaskaNadpis(s){
+  var n=bezDiakritiky(s).replace(/[^a-z]/g,"");
+  var nadpisy=["osobniudaje","osobni","udaje","kontakty","bydliste","pracoviste","vstupod","vstup","odborovaprihlaska","tajnehoclena"];
+  return !!n && (nadpisy.indexOf(n)!==-1 || nadpisy.indexOf(n.replace(/(.)\1/g,"$1"))!==-1);
+}
+
+// PDF: vyplněný text (i poznámky/pole formuláře) se přečte přímo; sken bez textu jde jako obrázek Claudovi
+function prihlaskaZPdf(f){
+  var pdfjs;
+  return nactiPdfJs().then(function(p){ pdfjs=p; return f.arrayBuffer(); })
+    .then(function(buf){ return pdfjs.getDocument({data:new Uint8Array(buf)}).promise; })
+    .then(function(doc){ return doc.getPage(1); })
+    .then(function(page){
+      var vp=page.getViewport({scale:1});
+      return Promise.all([page.getTextContent(), page.getAnnotations()]).then(function(r){
+        var body=[], vse="";
+        r[0].items.forEach(function(it){
+          if(!it.str || !it.str.trim()) return;
+          vse+=" "+it.str;
+          if(prihlaskaNadpis(it.str)) return;
+          var v=vp.convertToViewportPoint(it.transform[4]+(it.width||0)/2, it.transform[5]+Math.abs(it.transform[3]||8)/3);
+          body.push({t:it.str, x:v[0]/vp.width, y:v[1]/vp.height});
+        });
+        r[1].forEach(function(a){
+          var t=a.fieldValue || (a.contentsObj&&a.contentsObj.str) || a.contents || "";
+          if(!t || typeof t!=="string" || !a.rect) return;
+          var p1=vp.convertToViewportPoint(a.rect[0],a.rect[1]), p2=vp.convertToViewportPoint(a.rect[2],a.rect[3]);
+          body.push({t:t, x:(p1[0]+p2[0])/2/vp.width, y:(p1[1]+p2[1])/2/vp.height});
+        });
+        var u={}, nalezeno=0;
+        Object.keys(PRIHLASKA_POLE).forEach(function(k){
+          var b=PRIHLASKA_POLE[k];
+          var t=body.filter(function(o){ return o.x>=b[0] && o.x<=b[2] && o.y>=b[1]-0.01 && o.y<=b[3]+0.01; })
+            .map(function(o){ return o.t; }).join(" ").split(/\s+/)
+            .filter(function(s){ return s && PRIHLASKA_POPISKY.indexOf(s)===-1; }).join(" ").trim();
+          u[k]=t; if(t) nalezeno++;
+        });
+        if(nalezeno>=3){
+          u.typ = /TAJN[ÉE]HO/i.test(vse) ? "tajny" : "ofiko";
+          return { udaje:u, nejiste:[], poznamka:"", zdroj:"pdf" };
+        }
+        // PDF bez vyplněného textu (sken / fotka uložená jako PDF): vykreslit a poslat jako obrázek
+        var k=Math.min(2.5, 1600/Math.max(vp.width,vp.height)), v2=page.getViewport({scale:k});
+        var c=document.createElement("canvas"); c.width=Math.round(v2.width); c.height=Math.round(v2.height);
+        return page.render({canvasContext:c.getContext("2d"), viewport:v2}).promise
+          .then(function(){ return prihlaskaPresClaude(platnoNaJpeg(c, c.width, c.height)); });
+      });
+    });
+}
+
+function vyplnZPrihlasky(v){
+  var u=v.udaje||{}, nejiste=(v.nejiste||[]).slice(), poznamky=[];
+  function nastav(id, hodnota){ var el=document.getElementById(id); if(el && hodnota!=null && hodnota!=="") el.value=hodnota; return el; }
+  function oznac(id){ var el=document.getElementById(id); if(el) el.classList.add("pr-nejiste"); }
+  function velke(s){ return String(s||"").toLowerCase().replace(/(^|[\s-])(\S)/g, function(m,a,b){ return a+b.toUpperCase(); }); }
+  var cist=function(s){ return String(s==null?"":s).trim(); };
+
+  nastav("add-prijmeni", v.zdroj==="pdf" ? velke(u.prijmeni) : cist(u.prijmeni));
+  nastav("add-jmeno", v.zdroj==="pdf" ? velke(u.jmeno) : cist(u.jmeno));
+  nastav("add-email", cist(u.email).toLowerCase().replace(/\s+/g,""));
+  var tel=cist(u.mobil).replace(/[^\d+]/g,"");
+  if(/^\d{9}$/.test(tel)) tel="+420"+tel; else if(/^420\d{9}$/.test(tel)) tel="+"+tel;
+  if(/^\+420\d{9}$/.test(tel)) tel=tel.replace(/^\+420(\d{3})(\d{3})(\d{3})$/,"+420 $1 $2 $3");
+  if(tel) nastav("add-telefon", tel);
+  var os=cist(u.osobni_cislo).replace(/\D/g,"");
+  if(os) nastav("add-osnum", os);
+  if(os && !/^(1810|8000)\d{4}$/.test(os)){ nejiste.push("osobni_cislo"); poznamky.push("Osobní číslo nemá obvyklý tvar (8 číslic od 1810 / 8000)."); }
+  var psc=cist(u.psc).replace(/\D/g,""); if(psc.length===5) psc=psc.slice(0,3)+" "+psc.slice(3);
+  var adresa=[cist(u.ulice), [psc, cist(u.mesto)].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  nastav("add-adresa", adresa);
+
+  // hala a směna jen z nabídky; co v ní není, se nevyplní a ukáže se v poznámce
+  function vyberZNabidky(id, hodnota, pole, nazev){
+    var el=document.getElementById(id), h=cist(hodnota); if(!el || !h) return;
+    var moznosti=[].slice.call(el.options).filter(function(op){ return op.value; });
+    var o=moznosti.find(function(op){ return bezDiakritiky(op.value)===bezDiakritiky(h); });
+    if(o){ el.value=o.value; return; }
+    // překlep (např. "stampong"): nejbližší možnost, ale označit ke kontrole
+    var nej=null, nejVzd=99;
+    moznosti.forEach(function(op){ var d=vzdalenost(bezDiakritiky(op.value), bezDiakritiky(h)); if(d<nejVzd){ nejVzd=d; nej=op; } });
+    nejiste.push(pole);
+    if(nej && h.length>=4 && nejVzd<=2){ el.value=nej.value; poznamky.push(nazev+" na přihlášce: „"+h+"“ – vybráno „"+nej.value+"“, zkontrolujte."); }
+    else {
+      // nic nepředvybírat (jinak by zůstala první možnost a dala se přehlédnout); Přidat bez výběru neprojde
+      if(![].slice.call(el.options).some(function(op){ return op.value===""; })){ var pr=document.createElement("option"); pr.value=""; pr.textContent="— Vyberte —"; el.insertBefore(pr, el.firstChild); }
+      el.value="";
+      poznamky.push(nazev+" na přihlášce: „"+h+"“ – vyberte ručně.");
+    }
+  }
+  function vzdalenost(a, b){
+    var d=[]; for(var i=0;i<=a.length;i++){ d[i]=[i]; } for(var j=0;j<=b.length;j++) d[0][j]=j;
+    for(i=1;i<=a.length;i++) for(j=1;j<=b.length;j++) d[i][j]=Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+    return d[a.length][b.length];
+  }
+  // prohozené jméno a příjmení: porovnat s křestními jmény členů v evidenci
+  var krestni={}; members.forEach(function(m){ if(m.jmeno) krestni[bezDiakritiky(m.jmeno.split(" ")[0])]=1; });
+  var pr=bezDiakritiky(cist(u.prijmeni).split(" ")[0]), jm=bezDiakritiky(cist(u.jmeno).split(" ")[0]);
+  if(pr && jm && krestni[pr] && !krestni[jm]){
+    nejiste.push("prijmeni"); nejiste.push("jmeno");
+    poznamky.push("Jméno a příjmení jsou možná prohozené („"+cist(u.prijmeni)+"“ je obvykle křestní jméno). <button type=\"button\" class=\"btn btn-out btn-sm\" onclick=\"prohoditJmeno()\">Prohodit</button>");
+  }
+  vyberZNabidky("add-oddeleni", u.hala, "hala", "Hala");
+  vyberZNabidky("add-smena", u.smena, "smena", "Směna");
+  nastav("add-linka", cist(u.linka));
+
+  var mesic=cist(u.vstup_mesic), rok=cist(u.vstup_rok).replace(/\D/g,"");
+  if(mesic && !/^\d+$/.test(mesic)){ var mi=MESICE_NORM.indexOf(bezDiakritiky(mesic)); mesic=mi>=0 ? String(mi+1) : ""; }
+  if(rok.length===2) rok="20"+rok;
+  var vstup=document.getElementById("add-vstup");
+  if(vstup && /^\d{1,2}$/.test(mesic) && +mesic>=1 && +mesic<=12 && /^\d{4}$/.test(rok)){
+    var mm=("0"+mesic).slice(-2);
+    vstup.value="01."+mm+"."+rok; vstup.dataset.isoValue=rok+"-"+mm+"-01";
+  } else if(mesic || rok){ nejiste.push("vstup_mesic"); poznamky.push("Datum vstupu se nepodařilo přečíst – vyberte ho ručně."); }
+  var typ=document.getElementById("add-typ");
+  if(typ && u.typ==="tajny") typ.value="Tajný člen"; else if(typ && u.typ==="ofiko") typ.value="Řádný člen";
+  else nejiste.push("typ");
+
+  var MAPA={prijmeni:"add-prijmeni", jmeno:"add-jmeno", email:"add-email", mobil:"add-telefon", ulice:"add-adresa", mesto:"add-adresa", psc:"add-adresa",
+    osobni_cislo:"add-osnum", hala:"add-oddeleni", linka:"add-linka", smena:"add-smena", vstup_mesic:"add-vstup", vstup_rok:"add-vstup", typ:"add-typ"};
+  nejiste.forEach(function(k){ if(MAPA[k]) oznac(MAPA[k]); });
+  // prázdná povinná pole také označit
+  ["add-jmeno","add-prijmeni","add-osnum"].forEach(function(id){ var el=document.getElementById(id); if(el && !el.value.trim()) oznac(id); });
+
+  if(v.poznamka) poznamky.unshift(v.poznamka);
+  // poznámky jsou text; jen tlačítko Prohodit je naše vlastní HTML
+  prihlaskaStav("&#10003; Načteno "+(v.zdroj==="pdf"?"z PDF":"z fotky")+". <b>Zkontrolujte všechna pole</b>"+(nejiste.length?", oranžově označená zvlášť pečlivě":"")+
+    ", a pak klikněte na Přidat člena."+(poznamky.length?"<ul>"+poznamky.map(function(p){ var i=p.indexOf(" <button"); return "<li>"+(i>=0 ? escHtml(p.slice(0,i))+p.slice(i) : escHtml(p))+"</li>"; }).join("")+"</ul>":""), "ok");
+}
+function prohoditJmeno(){
+  var j=document.getElementById("add-jmeno"), p=document.getElementById("add-prijmeni"), t=j.value; j.value=p.value; p.value=t;
+  showSuccess("Jméno a příjmení prohozeno.");
+}
+
+// Nastavení: klíč Anthropic (jen server, z prohlížeče se zpátky nečte)
+function ulozAnthropicKlic(){
+  if(checkGuest("Nemáte oprávnění měnit nastavení.")) return;
+  var el=document.getElementById("set-anthropic-key"), k=(el.value||"").trim();
+  if(!k){ showError("Vložte klíč (začíná sk-ant-)."); return; }
+  apiCall("nastaveni-ulozit", { anthropic_api_key:k }).then(function(s){
+    vyplnNastaveni(s); setTimeout(loadAuditLog,500); showSuccess("Klíč pro čtení přihlášek byl uložen.");
+  }).catch(function(e){ showError(e.message); });
 }
 
 // ===== KONCEPTY E-MAILU =====
