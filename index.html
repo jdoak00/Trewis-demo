@@ -2075,7 +2075,7 @@ function addNote(){
     .then(function(r){
       if(!r.ok){ showError("Poznámku se nepodařilo uložit."); return; }
       m.poznamky=nove;
-      logChange("Přidána poznámka", m.prijmeni+" "+m.jmeno+" (OS: "+m.osnum+")");
+      logChange("Přidána poznámka", m.prijmeni+" "+m.jmeno+" (OS: "+m.osnum+") — "+(t.length>200?t.slice(0,197)+"…":t), m.osnum);
       renderDetailView();
       showSuccess("Poznámka uložena.");
     });
@@ -2859,6 +2859,7 @@ function saveEdit(){
     });
     return;
   }
+  var predUpravou=Object.assign({}, m);
   m.jmeno=document.getElementById("e-jmeno").value;
   m.prijmeni=document.getElementById("e-prijmeni").value;
   m.email=document.getElementById("e-email").value;
@@ -2900,7 +2901,7 @@ function saveEdit(){
       document.getElementById("dp-av").textContent=((m.jmeno[0]||"")+(m.prijmeni[0]||"")).toUpperCase();
       document.getElementById("dp-name").textContent=m.jmeno+" "+m.prijmeni;
       renderDetailView(); renderStats(); renderTable();
-      logChange("Upraven člen", m.prijmeni+" "+m.jmeno+" (OS: "+m.osnum+")");
+      logChange("Upraven člen", m.prijmeni+" "+m.jmeno+" (OS: "+m.osnum+")"+popisZmen(predUpravou, m, ZMENY_CLEN), m.osnum);
       setTimeout(loadAuditLog, 500);
       showSuccess("Údaje člena "+m.prijmeni+" "+m.jmeno+" byly úspěšně uloženy.");
       showSuccess("Údaje člena byly úspěšně uloženy.");
@@ -4682,6 +4683,29 @@ function logChange(akce, detail, osobniCislo){
   sbFetch("audit_log",{method:"POST",extraHeaders:{"Prefer":"return=minimal"},body:JSON.stringify({uzivatel:uzivatel,akce:akce,detail:detail,osobni_cislo:osobniCislo||null})}).catch(function(){});
 }
 
+// Popis změn pro historii: " — Telefon: 777 111 222 → 777 333 444; Linka: (prázdné) → L2"
+var ZMENY_CLEN=[["jmeno","Jméno"],["prijmeni","Příjmení"],["za_svobodna","Za svobodna"],["osnum","Osobní číslo"],["email","E-mail"],["telefon","Telefon"],["adresa","Adresa"],
+  ["datumVstupu","Datum vstupu","datum"],["typ","Typ členství"],["oddeleni","Hala"],["linka","Linka"],["smena","Směna"],["vedouci","Vedoucí"],["skupina","Skupina"],["poznamky","Poznámky"]];
+var ZMENY_VYR=[["jmeno","Jméno"],["prijmeni","Příjmení"],["za_svobodna","Za svobodna"],["evidencni_cislo","Osobní číslo"],["oddeleni","Hala"],["clen_od","Člen od","datum"],["clen_do","Člen do","datum"],
+  ["linka_smena","Linka / směna"],["duvod_ukonceni","Důvod ukončení"],["poznamky","Poznámky"]];
+function popisZmen(pred, po, pole){
+  function hodnota(v, typ){
+    v=(v==null?"":String(v)).trim();
+    if(typ==="datum" && /^\d{4}-\d{2}-\d{2}/.test(v)){ var p=v.slice(0,10).split("-"); v=(+p[2])+". "+(+p[1])+". "+p[0]; }
+    return v;
+  }
+  function ukaz(v){ v=v.replace(/\s+/g," "); return v ? (v.length>80 ? v.slice(0,77)+"…" : v) : "(prázdné)"; }
+  var zmeny=[];
+  pole.forEach(function(p){
+    var a=hodnota(pred[p[0]], p[2]), b=hodnota(po[p[0]], p[2]);
+    if(a===b) return;
+    // dlouhý text (poznámky), ke kterému se jen něco připsalo: ukázat jen to připsané
+    if(p[0]==="poznamky" && a && b.length>a.length && b.indexOf(a)===0) zmeny.push(p[1]+" doplněno: "+ukaz(b.slice(a.length)).replace(/^[\s;,]+/,""));
+    else zmeny.push(p[1]+": "+ukaz(a)+" → "+ukaz(b));
+  });
+  return zmeny.length ? " — "+zmeny.join("; ") : " — beze změny údajů";
+}
+
 function loadAuditLog(){
   var el=document.getElementById("audit-log-list");
   if(!el) return;
@@ -5451,13 +5475,14 @@ function saveEditVyr(){
   var origV = vyrazeniData.find(function(x){ return x.id===editVyrId; });
   var zs = (document.getElementById("vyr-za-svobodna")||{value:""}).value.trim();
   row.data_clena = Object.assign({}, (origV&&origV.data_clena)||{}, {za_svobodna: zs||null});
-  sbFetch("vyrazeni?id=eq."+editVyrId, {method:"PATCH", body:JSON.stringify(row)}).then(function(r){
+  var predUpravouVyr = Object.assign({}, origV||{}, {za_svobodna: (origV&&origV.data_clena&&origV.data_clena.za_svobodna)||"",
+    duvod_ukonceni: String((origV&&origV.duvod_ukonceni)||"").split("||{")[0]});  sbFetch("vyrazeni?id=eq."+editVyrId, {method:"PATCH", body:JSON.stringify(row)}).then(function(r){
     if(r.ok){
       var idx = vyrazeniData.findIndex(function(x){ return x.id === editVyrId; });
       if(idx !== -1) vyrazeniData[idx] = Object.assign(vyrazeniData[idx], row);
       closeAddVyrModal();
       renderVyrazeni();
-      logChange("Upraven vyřazený člen", row.prijmeni+" "+row.jmeno);
+      logChange("Upraven vyřazený člen", row.prijmeni+" "+row.jmeno+popisZmen(predUpravouVyr, Object.assign({}, row, {za_svobodna:zs}), ZMENY_VYR));
       setTimeout(loadAuditLog, 500);
       showSuccess("Záznam byl úspěšně upraven.");
       editVyrId = null;
